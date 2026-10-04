@@ -1,0 +1,3 @@
+# Fixtures are byte-exact server responses (CRLF line endings, and MS AJAX
+# delta lengths count characters). Never normalize them.
+sise-core/src/test/resources/fixtures/** -text

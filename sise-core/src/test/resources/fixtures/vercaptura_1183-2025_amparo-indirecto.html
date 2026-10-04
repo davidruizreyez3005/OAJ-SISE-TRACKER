@@ -1,0 +1,1682 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><link href="../App_Themes/Default/StylesheetInternet.css" rel="stylesheet" type="text/css" /><title>
+
+</title>
+
+    <script language="javascript" type="text/javascript" src="../Scripts/funciones.js"></script>
+
+    <script type="text/javascript">
+        function IfrBack() {
+            window.history.back();
+            //window.parent.RestoreIFrame()
+        }
+        function ShowDiv(div) {
+            $(div).slideToggle('slow');
+        }
+
+        function AbrirVentana(url) {
+            var win = window.open(url, "Forma", "dialogTop: 25px; dialogLeft: 25px; dialogWidth: 1000px; dialogHeight: 700px; center: yes; edge: raised; help: no; scroll: yes; resizable: yes; status: no;");
+        }
+
+    </script>
+
+<link href="/SiseInternet/Css/jquery-ui-1.8.1.custom.css" rel="stylesheet" type="text/css"></link><script type="text/javascript" src="/SiseInternet/Scripts/jquery-1.4.2.min.js"></script><script type="text/javascript" src="/SiseInternet/Scripts/jquery-ui-1.8.1.custom.min.js"></script></head>
+<body>
+    <form name="form1" method="post" action="vercaptura.aspx?tipoasunto=1&amp;organismo=767&amp;expediente=1183%2f2025&amp;tipoprocedimiento=0" id="form1">
+<div>
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/SiseInternet/WebResource.axd?d=Hy9Ww91Yw07od2BYn4gKPzzlesxqwt0iTmJco_TGZZtlL2VBegD3eGnT9jX_RSyKwFRAAAZ3c8V7jDtPXvl2BhkvSTg1&amp;t=638313574859278837" type="text/javascript"></script>
+
+
+<script src="/SiseInternet/ScriptResource.axd?d=2www0fideRJvkMVqcgT9-GSXKpr9apziLijjNuqcjb4v8twEipCMdxwH6CVv6eOQ42QGw1Rr4RzhGa3Rfbi9oZP0QWyNFkooV_pK8TLldhop4ky9RZQEcVP8XURPvORYF1TsDaIs3DM3XSkqExIatfZ9iax_XjDvut6Ysi5kwdakACuG0&amp;t=ffffffff9bc22534" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<script src="/SiseInternet/ScriptResource.axd?d=iJU-84TLcIhtoeBNukZ4E-shVg0m8iDiaGVICuYts-kOfETRLxI8KeDujUMsVik8JtTcxPYQmjHteKDB4-D0N8VSg9s2rVdBVHC0ISxCdCsAP4FUQhYwUwzPFdWrzMOcBXy_nsl2IjfszR8yyO752UsQnj1RN63DtYWMLk99Ta3rc-Xn0&amp;t=ffffffff9bc22534" type="text/javascript"></script>
+<div>
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="220BBB67" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWCwLLlLzLDgK8sf6qAgK39fuiCgKRleWZCgK696WaDALGjcHeCALYzsHZDwLCqOXtAgLUmY/RCQKnh6CrAwK/n4/SCzkk/aYNoj8vqfozG99X0jIVc50z" />
+</div>
+    <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ScriptManager1', document.getElementById('form1'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls(['tupdPanel','tUPGrvAcuerdos'], [], [], 90);
+//]]>
+</script>
+
+    <div>
+        <span id="lblNombreOrgano" style="color:#666666;">Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México - Amparo Indirecto</span>
+        
+        <hr style="color: #00603b;" />
+        <div id="DivContentTemplate">
+            <table>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>
+                                    <b>Número de Expediente Único Nacional:</b>&nbsp;&nbsp;
+                                    <span id="lblNEUN">40612904</span>
+                                </td>
+                                <td style="width: 2px">
+                                </td>
+                                <td>
+                                    <b>Número de Expediente Asignado:</b>&nbsp;&nbsp;
+                                    <span id="lblNoExpedienteAsignado">1183/2025</span>
+                                </td>
+                                <td style="width: 2px">
+                                </td>
+                                <td>
+                                    <b>Número de control Oficina de Correspondencia Común:</b>&nbsp;&nbsp;
+                                    <span id="lblNoControlOCC">20255739005400076/2025</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center">
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <span id="Label4" style="color:#666666;">Captura de Información</span>
+                    </td>
+                </tr>
+            </table>
+            <hr style="color: #00603b;" />
+            <div align="center">
+                <span id="Label1" style="color:#666666;">Captura de Información</span>
+            </div>
+            <hr style="color: #00603b;" />
+            <div id="pnlVista" style="height:370px;overflow-y:scroll;">
+	
+            <div>
+		<div onclick="ShowDiv('#pBody198856383')" class="accordionHeader">
+			<span>*****</span>
+		</div><div id="pBody198856383">
+			<table border="0" style="width:100%;">
+				<tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Datos Generales</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha  presentación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de ingreso</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Mesa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">III</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Actos Reclamados</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos fuera de juicio</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados específicos</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">acuerdo de extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Materia (amparo indirecto)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Penal</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sub Materia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Entidad federativa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ciudad de México</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Municipio/Alcaldía</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Xochimilco</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Artículos constitucionales violados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">1, 14 y 16 </td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Resolucion Inicial</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Admisión</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Audiencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/01/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">03/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">09:13</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">19/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">12/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido sentencia o resolución que puso fin al juicio</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ampara para efectos</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha notificación sentencia.</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">15/06/2026</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia Recurso Contra Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha interposición recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">26/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tipo recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Revisión</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Número de toca</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">293/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tribunal Colegiado de Circuito que conoce del recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Segundo Tribunal Colegiado en Materia Penal del Primer Circuito</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Audiencia Incidental</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Definitiva</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sin materia</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de notificación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/12/2025</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension De Plano</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Concede</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Provisional</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Niega</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr>
+			</table>
+		</div>
+	</div><div>
+		<div onclick="ShowDiv('#pBody198856519')" class="accordionHeader">
+			<span>*****</span>
+		</div><div id="pBody198856519">
+			<table border="0" style="width:100%;">
+				<tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Datos Generales</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha  presentación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de ingreso</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Mesa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">III</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Actos Reclamados</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos fuera de juicio</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados específicos</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">acuerdo de extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Materia (amparo indirecto)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Penal</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sub Materia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Entidad federativa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ciudad de México</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Municipio/Alcaldía</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Xochimilco</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Artículos constitucionales violados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">1, 14 y 16 </td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Resolucion Inicial</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Admisión</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Audiencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/01/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">03/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">09:13</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">19/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">12/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido sentencia o resolución que puso fin al juicio</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ampara para efectos</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha notificación sentencia.</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">15/06/2026</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia Recurso Contra Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha interposición recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">26/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tipo recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Revisión</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Número de toca</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">293/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tribunal Colegiado de Circuito que conoce del recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Segundo Tribunal Colegiado en Materia Penal del Primer Circuito</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Audiencia Incidental</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Definitiva</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sin materia</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de notificación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/12/2025</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension De Plano</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Concede</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Provisional</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Niega</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr>
+			</table>
+		</div>
+	</div><div>
+		<div onclick="ShowDiv('#pBody198856680')" class="accordionHeader">
+			<span>*****</span>
+		</div><div id="pBody198856680">
+			<table border="0" style="width:100%;">
+				<tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Datos Generales</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha  presentación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de ingreso</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Mesa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">III</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Actos Reclamados</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos fuera de juicio</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados específicos</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">acuerdo de extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Materia (amparo indirecto)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Penal</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sub Materia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Entidad federativa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ciudad de México</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Municipio/Alcaldía</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Xochimilco</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Artículos constitucionales violados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">1, 14 y 16 </td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Resolucion Inicial</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Admisión</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Audiencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/01/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">03/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">09:13</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">19/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">12/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido sentencia o resolución que puso fin al juicio</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ampara para efectos</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha notificación sentencia.</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">15/06/2026</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia Recurso Contra Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha interposición recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">26/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tipo recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Revisión</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Número de toca</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">293/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tribunal Colegiado de Circuito que conoce del recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Segundo Tribunal Colegiado en Materia Penal del Primer Circuito</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Audiencia Incidental</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Definitiva</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sin materia</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de notificación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/12/2025</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension De Plano</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Concede</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Provisional</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Niega</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr>
+			</table>
+		</div>
+	</div><div>
+		<div onclick="ShowDiv('#pBody198856501')" class="accordionHeader">
+			<span>*****</span>
+		</div><div id="pBody198856501">
+			<table border="0" style="width:100%;">
+				<tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Datos Generales</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha  presentación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de ingreso</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Mesa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">III</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Actos Reclamados</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos fuera de juicio</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados específicos</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">acuerdo de extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Materia (amparo indirecto)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Penal</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sub Materia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Entidad federativa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ciudad de México</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Municipio/Alcaldía</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Xochimilco</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Artículos constitucionales violados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">1, 14 y 16 </td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Resolucion Inicial</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Admisión</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Audiencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/01/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">03/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">09:13</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">19/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">12/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido sentencia o resolución que puso fin al juicio</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ampara para efectos</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha notificación sentencia.</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">15/06/2026</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia Recurso Contra Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha interposición recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">26/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tipo recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Revisión</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Número de toca</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">293/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tribunal Colegiado de Circuito que conoce del recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Segundo Tribunal Colegiado en Materia Penal del Primer Circuito</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Audiencia Incidental</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Definitiva</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sin materia</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de notificación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/12/2025</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension De Plano</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Concede</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Provisional</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Niega</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr>
+			</table>
+		</div>
+	</div><div>
+		<div onclick="ShowDiv('#pBody201373092')" class="accordionHeader">
+			<span>*****</span>
+		</div><div id="pBody201373092">
+			<table border="0" style="width:100%;">
+				<tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Datos Generales</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha  presentación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de ingreso</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Mesa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">III</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Actos Reclamados</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos fuera de juicio</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Actos reclamados específicos</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">acuerdo de extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Materia (amparo indirecto)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Penal</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sub Materia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Extradición</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Entidad federativa</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ciudad de México</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Municipio/Alcaldía</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Xochimilco</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Artículos constitucionales violados</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">1, 14 y 16 </td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Resolucion Inicial</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido resolución inicial</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Admisión</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Audiencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/01/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">03/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">09:13</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">19/02/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:33</td>
+								</tr>
+							</table></td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia constitucional(diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia constitucional (diferimiento)</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">23/03/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora celebración audiencia constitucional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">10:23</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">12/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido sentencia o resolución que puso fin al juicio</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Ampara para efectos</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha notificación sentencia.</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">15/06/2026</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Sentencia Recurso Contra Sentencia</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha interposición recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">26/06/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tipo recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Revisión</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Número de toca</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">293/2026</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Tribunal Colegiado de Circuito que conoce del recurso contra sentencia</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Segundo Tribunal Colegiado en Materia Penal del Primer Circuito</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Audiencia Incidental</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora señalada para audiencia incidental</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Definitiva</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">05/12/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Hora suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">11:03</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión definitiva</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sin materia</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha de notificación</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">08/12/2025</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension De Plano</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión de plano</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Concede</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr><tr>
+					<td colspan="2"><table class="div_principal" border="0" style="width:100%;">
+						<tr class="colapsable_vc">
+							<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:0px;font-family:Arial;font-size:9pt;width:400px;">Suspension Suspension Provisional</td>
+						</tr><tr>
+							<td colspan="2"><table border="0" style="width:100%;">
+								<tr class="fila_agregada">
+									<td colspan="2" style="color:White;background-color:#9F8AE8;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;"></td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Fecha suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">27/11/2025</td>
+								</tr><tr>
+									<td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Sentido suspensión provisional</td><td style="color:Black;border-width:1px;border-style:solid;font-family:Arial;font-size:9pt;width:400px;">Niega</td>
+								</tr>
+							</table></td>
+						</tr>
+					</table></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>
+        </div>
+        <br />
+        <div id="panelVacio">
+	
+            <br />
+            <br />
+        
+</div>
+        <div id="panelOtros">
+	
+            <div align="center">
+                <span id="Label2" style="color:#666666;">Asuntos Relacionados</span>
+            </div>
+            <hr style="color: #00603b;" />
+            <table width="100%">
+                <tr>
+                    <td align="center">
+                        <div id="pnlPanelCentral" style="height:150px;overflow-y:scroll;">
+		
+                            <div>
+			<table cellspacing="0" rules="all" border="1" id="grvAsuntosRelacionados" style="color:#180C3E;background-color:#9F8AE8;border-collapse:collapse;">
+				<tr>
+					<th scope="col">Neun</th><th scope="col">Número de Expediente</th><th scope="col">Órgano Jurisdiccional</th><th scope="col">Fecha relación</th>
+				</tr><tr>
+					<td align="center" style="width:80px;">
+                                            <span id="grvAsuntosRelacionados_ctl02_lblContenido">42423129</span>
+                                        </td><td align="justify" style="width:80px;">
+                                            <span id="grvAsuntosRelacionados_ctl02_lblNúmeroExpediente">293/2026</span>
+                                        </td><td align="left" style="width:450px;">
+                                            <span id="grvAsuntosRelacionados_ctl02_lblOrgano">Segundo Tribunal Colegiado en Materia Penal del Primer Circuito - Amparo en revisión</span>
+                                        </td><td align="center" style="width:100px;">
+                                            <span id="grvAsuntosRelacionados_ctl02_lblFechaPresentacion">24/08/2026</span>
+                                        </td>
+				</tr>
+			</table>
+		</div>
+                        
+	</div>
+                    </td>
+                </tr>
+            </table>
+            <div align="center">
+                <span id="Label3" style="color:#666666;">Síntesis de los Acuerdos asociados al Asunto</span>
+            </div>
+            <hr style="color: #00603b;" />
+
+            <script type="text/javascript">
+
+
+                // This Script is used to maintain Grid Scroll on Partial Postback
+                var scrollTop;
+
+                //Register Begin Request and End Request 
+                Sys.WebForms.PageRequestManager.getInstance().add_beginRequest(BeginRequestHandler);
+                Sys.WebForms.PageRequestManager.getInstance().add_endRequest(EndRequestHandler);
+
+                //Get The Div Scroll Position
+                function BeginRequestHandler(sender, args) {
+                    var m = document.getElementById('grvAcuerdos');
+
+                    scrollTop = m.scrollTop;
+                }
+
+                //Set The Div Scroll Position
+                function EndRequestHandler(sender, args) {
+                    var m = document.getElementById('grvAcuerdos');
+                    m.scrollTop = scrollTop;
+                }
+
+
+
+                $(document).ready(function() {
+                    $("#grvAcuerdos tr").live("click", function() {
+                        //                $(this).addClass("selected").siblings().removeClass("selected"); 
+                        if ($(this).hasClass('selected')) {
+                            $(this).removeClass("selected");
+                        } else {
+                            $(this).addClass("selected");
+                        }
+                    });
+                });
+    
+            </script>
+
+            <script type="text/javascript">
+
+
+                function DoVerAcuerdo(CatOrganismoId, SintesisOrden, Neun, AsuntoId, FechaAuto, FechaPublicacion, AsuntoAlias) {
+
+                    $("#CatOrganismoIdHiddenField2").val(CatOrganismoId);
+                    $("#AcuerdoOrdenHiddenField2").val(SintesisOrden);
+                    $("#AsuntoNeunIdHiddenField2").val(Neun);
+                    $("#AsuntoIdHiddenField2").val(AsuntoId);
+                    $("#AsuntoAliasHiddenField1").val(AsuntoAlias);
+                    $("#FechaAutoHiddenField1").val(FechaAuto);
+                    $("#FechaPublicacionHiddenField1").val(FechaPublicacion);
+                    $("#AcuerdoLinkButton").click();
+                }
+            </script>
+
+            <div id="updPanel">
+		
+                    <input type="submit" name="AcuerdoLinkButton" value="" id="AcuerdoLinkButton" style="visibility: hidden" />
+                    <input type="hidden" name="CatOrganismoIdHiddenField2" id="CatOrganismoIdHiddenField2" />
+                    <input type="hidden" name="AcuerdoOrdenHiddenField2" id="AcuerdoOrdenHiddenField2" />
+                    <input type="hidden" name="AsuntoNeunIdHiddenField2" id="AsuntoNeunIdHiddenField2" />
+                    <input type="hidden" name="AsuntoIdHiddenField2" id="AsuntoIdHiddenField2" />
+                    <input type="hidden" name="AsuntoAliasHiddenField1" id="AsuntoAliasHiddenField1" />
+                    <input type="hidden" name="FechaAutoHiddenField1" id="FechaAutoHiddenField1" />
+                    <input type="hidden" name="FechaPublicacionHiddenField1" id="FechaPublicacionHiddenField1" />
+                
+	</div>
+            <table width="100%">
+                <tr>
+                    <td align="center">
+                        <div id="UPGrvAcuerdos">
+		
+                                <div id="Panel1" style="height:400px;overflow-y:scroll;">
+			
+                                    <div>
+				<table cellspacing="0" rules="all" border="1" id="grvAcuerdos" style="color:#180C3E;background-color:#9F8AE8;border-collapse:collapse;">
+					<tr>
+						<th scope="col">No.</th><th scope="col">Fecha del Auto</th><th scope="col">Tipo Cuaderno</th><th scope="col">Fecha de publicaci&#243;n</th><th scope="col">Resumen</th><th align="center" scope="col">Ver síntesis completa</th>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl02_lblContenido">1</span>
+                                                </td><td style="width:10%;">27-11-2025</td><td style="width:10%;">Principal</td><td style="width:10%;">28-11-2025</td><td style="width:70%;">Con fundamento en los art&#237;culos 15, 126 y 160 de la Ley de Amparo, se decreta de plano la suspensi&#243;n de oficio respecto del acto consistente en la extradici&#243;n y su ejecuci&#243;n, para el efecto de que no se ejecuten y el quejoso quede en el lugar en el que se ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl02_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,1,40612904,1,&quot;27/11/2025 12:00:00 a.m.&quot;,&quot;28/11/2025 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl03_lblContenido">2</span>
+                                                </td><td style="width:10%;">27-11-2025</td><td style="width:10%;">Incidental</td><td style="width:10%;">28-11-2025</td><td style="width:70%;">De oficio se abre por separado el incidente de suspensi&#243;n.
+Audiencia
+Hora: 11:03 (once horas con tres minutos).
+Fecha: 05/12/2025 (cinco de diciembre de dos mil veinticinco).
+Con fundamento en el art&#237;culo 145 de la Ley de Amparo, se niega la suspensi&#243;n pr ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl03_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,2,40612904,1,&quot;27/11/2025 12:00:00 a.m.&quot;,&quot;28/11/2025 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl04_lblContenido">3</span>
+                                                </td><td style="width:10%;">05-12-2025</td><td style="width:10%;">Incidental</td><td style="width:10%;">08-12-2025</td><td style="width:70%;">&#218;nico. Se declara sin materia la suspensi&#243;n definitiva solicitada.</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl04_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,4,40612904,1,&quot;05/12/2025 12:00:00 a.m.&quot;,&quot;08/12/2025 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl05_lblContenido">4</span>
+                                                </td><td style="width:10%;">08-12-2025</td><td style="width:10%;">Principal</td><td style="width:10%;">09-12-2025</td><td style="width:70%;">Agr&#233;guese el informe sobre el cumplimiento a la suspensi&#243;n de oficio decretada de plano de cuenta.
+
+P&#243;ngase a la vista de las partes. 
+</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl05_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,5,40612904,1,&quot;08/12/2025 12:00:00 a.m.&quot;,&quot;09/12/2025 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl06_lblContenido">5</span>
+                                                </td><td style="width:10%;">11-12-2025</td><td style="width:10%;">Principal</td><td style="width:10%;">12-12-2025</td><td style="width:70%;">
+Agr&#233;guese al expediente la constancia de notificaci&#243;n con manifestaciones del quejoso de nueve de diciembre de dos mil veinticinco, por medio del cual solicita visita carcelaria de su defensor p&#250;blico por las razones que ah&#237; se&#241;ala.
+Requi&#233;rase a los cita ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl06_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,6,40612904,1,&quot;11/12/2025 12:00:00 a.m.&quot;,&quot;12/12/2025 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl07_lblContenido">6</span>
+                                                </td><td style="width:10%;">06-01-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">07-01-2026</td><td style="width:70%;">
+Int&#233;grese las comparecencias de los defensores, visto su contenido, se le tiene aceptando y protestando el cargo de asesora jur&#237;dica del quejoso.
+Agr&#233;guese al expediente el informe justificado rendido por la autoridad responsable.
+
+A fin de garantizar el ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl07_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,8,40612904,1,&quot;06/01/2026 12:00:00 a.m.&quot;,&quot;07/01/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl08_lblContenido">7</span>
+                                                </td><td style="width:10%;">08-01-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">09-01-2026</td><td style="width:70%;">
+De estado de autos se aprecia que en auto de seis de los actuales, se requiri&#243; al asesor jur&#237;dico se entreviste con el quejoso, sin embargo, dado que este se encuentra en periodo vacacional y a fin de garantizar el derecho de defensa del quejoso, requi&#233;r ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl08_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,9,40612904,1,&quot;08/01/2026 12:00:00 a.m.&quot;,&quot;09/01/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl09_lblContenido">8</span>
+                                                </td><td style="width:10%;">12-01-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">13-01-2026</td><td style="width:70%;">Int&#233;grese la constancia de cuenta de la que se advierte que al notificar al quejoso ******************** el acuerdo de seis de enero del a&#241;o en curso, manifest&#243;:
+&quot;No he tenido la oportunidad de asesorarme con el defensor p&#250;blico federal asegurado a mi cas ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl09_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,10,40612904,1,&quot;12/01/2026 12:00:00 a.m.&quot;,&quot;13/01/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl10_lblContenido">9</span>
+                                                </td><td style="width:10%;">21-01-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">22-01-2026</td><td style="width:70%;">
+Int&#233;grese el escrito firmado por la defensora p&#250;blica federal xxxxxxxxx, mediante el cual comunica que se puso en contacto con el quejoso xxxxxx y al explicarle la naturaleza y alcance del juicio de amparo, le indic&#243; que es su deseo que se incorporar inf ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl10_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,12,40612904,1,&quot;21/01/2026 12:00:00 a.m.&quot;,&quot;22/01/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl11_lblContenido">10</span>
+                                                </td><td style="width:10%;">03-02-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">04-02-2026</td><td style="width:70%;">Vistas las constancias de autos se advierte que se encuentra transcurriendo el plazo de tres d&#237;as concedido a la defensora p&#250;blica federal Leticia Hern&#225;ndez Flores para desahogar el requerimiento de veintiuno de enero de dos mil veintis&#233;is, notificado el  ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl11_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,14,40612904,1,&quot;03/02/2026 12:00:00 a.m.&quot;,&quot;04/02/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl12_lblContenido">11</span>
+                                                </td><td style="width:10%;">19-02-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">20-02-2026</td><td style="width:70%;">
+Visto el estado procesal, requi&#233;rase al asesor jur&#237;dico del quejoso, para que en el t&#233;rmino de tres d&#237;as, contado a partir de que se encuentre notificada del presente acuerdo, acredite que brind&#243; asesor&#237;a al quejoso con relaci&#243;n al presente juicio.
+
+Para ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl12_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,15,40612904,1,&quot;19/02/2026 12:00:00 a.m.&quot;,&quot;20/02/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl13_lblContenido">12</span>
+                                                </td><td style="width:10%;">24-02-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">25-02-2026</td><td style="width:70%;">Vistas las razones actuariales de cuenta se advierte que no se logr&#243; notificar al defensor p&#250;blico, toda vez que la persona con la que se atendi&#243; la diligencia manifest&#243; que el mismo ya no labora en la instituci&#243;n.
+
+Int&#233;grese la constancia de cuenta de la ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl13_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,16,40612904,1,&quot;24/02/2026 12:00:00 a.m.&quot;,&quot;25/02/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl14_lblContenido">13</span>
+                                                </td><td style="width:10%;">02-03-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">03-03-2026</td><td style="width:70%;">Int&#233;grese al expediente el oficio proveniente del Instituto Federal de la Defensor&#237;a P&#250;blica, visto su contenido, se le tiene desahogando el requerimiento formulado.
+Asimismo, hace del conocimiento que design&#243; a ***** para que asista al quejoso en este ju ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl14_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,17,40612904,1,&quot;02/03/2026 12:00:00 a.m.&quot;,&quot;03/03/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl15_lblContenido">14</span>
+                                                </td><td style="width:10%;">04-03-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">05-03-2026</td><td style="width:70%;">
+Int&#233;grese el escrito firmado electr&#243;nicamente por ******************** asesor jur&#237;dico, visto su contenido, se le tiene aceptando y protestando el cargo para asistir al quejoso en el presente juicio de amparo. 
+Por tanto, se le tiene desahogando el reque ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl15_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,19,40612904,1,&quot;04/03/2026 12:00:00 a.m.&quot;,&quot;05/03/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl16_lblContenido">15</span>
+                                                </td><td style="width:10%;">05-03-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">06-03-2026</td><td style="width:70%;">
+Vistas las constancias de autos se advierte que el cuatro de marzo de dos mil veinticinco, se tuvo al defensor p&#250;blico protestando el cargo y  se requiri&#243; asesorara a la   parte quejosa en el tr&#225;mite del presente expediente.
+Difiere 
+Para dar oportunidad ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl16_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,21,40612904,1,&quot;05/03/2026 12:00:00 a.m.&quot;,&quot;06/03/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl17_lblContenido">16</span>
+                                                </td><td style="width:10%;">13-03-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">17-03-2026</td><td style="width:70%;">
+Escrito de defensor p&#250;blico federal 
+Int&#233;grese al expediente el escrito firmado electr&#243;nicamente por ********************, defensor  p&#250;blico federal con ese car&#225;cter del quejoso ********************, por medio del cual, en atenci&#243;n al requerimiento formu ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl17_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,23,40612904,1,&quot;13/03/2026 12:00:00 a.m.&quot;,&quot;17/03/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl18_lblContenido">17</span>
+                                                </td><td style="width:10%;">17-03-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">18-03-2026</td><td style="width:70%;">
+Int&#233;grese al expediente el escrito firmado electr&#243;nicamente por el defensor p&#250;blico federal; visto su contenido, se le tiene desahogando el requerimiento de cuatro de marzo de dos mil veintis&#233;is, al efecto informa que realiz&#243; la entrevista correspondient ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl18_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,24,40612904,1,&quot;17/03/2026 12:00:00 a.m.&quot;,&quot;18/03/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl19_lblContenido">18</span>
+                                                </td><td style="width:10%;">18-03-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">19-03-2026</td><td style="width:70%;">Int&#233;grese al expediente el escrito firmado por el quejoso, por medio del cual, ofrece pruebas documentales referenciadas a trav&#233;s de ligas electr&#243;nicas.
+En su atenci&#243;n, luego del an&#225;lisis de dichas pruebas, se estima que no es procedente su admisi&#243;n, toda ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl19_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,26,40612904,1,&quot;18/03/2026 12:00:00 a.m.&quot;,&quot;19/03/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl20_lblContenido">19</span>
+                                                </td><td style="width:10%;">20-03-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">23-03-2026</td><td style="width:70%;">Int&#233;grese al expediente la intervenci&#243;n ministerial recibida v&#237;a electr&#243;nica, visto su contenido, se tiene a la agente del Ministerio P&#250;blico de la Federaci&#243;n adscrita realizando manifestaciones en v&#237;a de alegatos, las cuales se relacionar&#225;n en la audienc ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl20_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,27,40612904,1,&quot;20/03/2026 12:00:00 a.m.&quot;,&quot;23/03/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl21_lblContenido">20</span>
+                                                </td><td style="width:10%;">14-05-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">15-05-2026</td><td style="width:70%;">Vista la certificaci&#243;n que antecede se aprecia que a las diez horas con veintitr&#233;s minutos del veintitr&#233;s  de marzo dos mil veintis&#233;is se verific&#243; la audiencia constitucional en el juicio de amparo en que se act&#250;a.
+En esas condiciones y con la comunicaci&#243; ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl21_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,30,40612904,1,&quot;14/05/2026 12:00:00 a.m.&quot;,&quot;15/05/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl22_lblContenido">21</span>
+                                                </td><td style="width:10%;">04-06-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">05-06-2026</td><td style="width:70%;">
+Visto la certificaci&#243;n de cuenta se advierte que el t&#233;rmino concedido a la defensora p&#250;blica federal en prove&#237;do de catorce de mayo de dos mil veintis&#233;is, notificado al d&#237;a siguiente, a efecto de que protestara el cargo conferido transcurri&#243; del diecinue ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl22_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,31,40612904,1,&quot;04/06/2026 12:00:00 a.m.&quot;,&quot;05/06/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl23_lblContenido">22</span>
+                                                </td><td style="width:10%;">12-06-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">15-06-2026</td><td style="width:70%;">
+&#218;nico. La Justicia de la Uni&#243;n ampara y protege al quejoso.
+</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl23_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,32,40612904,1,&quot;12/06/2026 12:00:00 a.m.&quot;,&quot;15/06/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl24_lblContenido">23</span>
+                                                </td><td style="width:10%;">15-06-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">16-06-2026</td><td style="width:70%;">Int&#233;grese al expediente el escrito firmado electr&#243;nicamente por ********************, visto su contenido, se le tiene aceptando y protestando el cargo para asistir al quejoso en el presente juicio de amparo. 
+Sin que sea necesario ordenar la diligencia pr ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl24_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,33,40612904,1,&quot;15/06/2026 12:00:00 a.m.&quot;,&quot;16/06/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl25_lblContenido">24</span>
+                                                </td><td style="width:10%;">18-06-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">19-06-2026</td><td style="width:70%;">
+Int&#233;grese la constancia de notificaci&#243;n con manifestaciones del quejoso, por medio de la cual refiere que desde fecha previa a la audiencia constitucional no ha tenido comunicaci&#243;n efectiva con su defensora p&#250;blica.
+Al respecto, h&#225;gase de su conocimiento ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl25_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,34,40612904,1,&quot;18/06/2026 12:00:00 a.m.&quot;,&quot;19/06/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl26_lblContenido">25</span>
+                                                </td><td style="width:10%;">29-06-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">01-07-2026</td><td style="width:70%;">Ciudad de M&#233;xico, veintinueve de junio de dos mil veintis&#233;is.
+Recurso de revisi&#243;n
+Int&#233;grese al expediente el escrito firmado por *************, visto su contenido, con fundamento en los art&#237;culos 80, 81, fracci&#243;n I, inciso e), 84, 86, 88 y 89 de la Ley de ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl26_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,35,40612904,1,&quot;29/06/2026 12:00:00 a.m.&quot;,&quot;01/07/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl27_lblContenido">26</span>
+                                                </td><td style="width:10%;">02-07-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">03-07-2026</td><td style="width:70%;">Ciudad de M&#233;xico, dos de julio de dos mil veintis&#233;is.
+Recurso de revisi&#243;n
+Int&#233;grese al expediente el escrito firmado por la Agente del Ministerio P&#250;blico Federal adscrita, visto su contenido, con fundamento en los art&#237;culos 80, 81, fracci&#243;n I, inciso e),  ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl27_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,36,40612904,1,&quot;02/07/2026 12:00:00 a.m.&quot;,&quot;03/07/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl28_lblContenido">27</span>
+                                                </td><td style="width:10%;">08-07-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">09-07-2026</td><td style="width:70%;">Ciudad de M&#233;xico, ocho de julio de dos mil veintis&#233;is.
+Quejoso se adhiere a recurso 
+Int&#233;grese el escrito signado por la defensora p&#250;blica del quejoso mediante el cual se adhiere al recurso de revisi&#243;n interpuesto por la agente del Ministerio P&#250;blico adsc ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl28_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,37,40612904,1,&quot;08/07/2026 12:00:00 a.m.&quot;,&quot;09/07/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr><tr>
+						<td align="center" style="width:80px;">
+                                                    <span id="grvAcuerdos_ctl29_lblContenido">28</span>
+                                                </td><td style="width:10%;">31-08-2026</td><td style="width:10%;">Principal</td><td style="width:10%;">01-09-2026</td><td style="width:70%;">Ciudad de M&#233;xico, treinta y uno de agosto de dos mil veintis&#233;is.
+Tribunal colegiado acusa recibo
+Int&#233;grese el oficio proveniente del Segundo Tribunal Colegiado en Materia Penal del Primer Circuito, por medio del cual acusa recibo del diverso por el que se ...</td><td align="center">
+                                                    <a id="grvAcuerdos_ctl29_lnkTicketLink2" href="javascript:DoVerAcuerdo(767,38,40612904,1,&quot;31/08/2026 12:00:00 a.m.&quot;,&quot;01/09/2026 12:00:00 a.m.&quot;,&quot;1183/2025&quot;)">Ver síntesis</a>
+                                                </td>
+					</tr>
+				</table>
+			</div>
+                                
+		</div>
+                            
+	</div>
+                    </td>
+                </tr>
+            </table>
+        
+</div>
+        <br />
+        <br />
+        <span id="lblNumResultado" style="font-weight:bold;"><div  style="color:#24135F;background-color:#9f8ae8;font-weight:bold;"> Listado de Resoluciones (1)</div></span>
+        <br />
+        <div id="pnlReporteSentencias" style="height:300px;overflow-y:scroll;text-align:center;">
+	
+            <div>
+		<table cellspacing="0" align="Center" rules="all" border="1" id="grvReporteSentencias" style="color:#180C3E;background-color:#9F8AE8;font-size:10pt;border-collapse:collapse;">
+			<tr>
+				<th scope="col">Asunto</th><th scope="col">Fecha Ingreso</th><th scope="col">Tema</th><th scope="col">Archivo</th>
+			</tr><tr>
+				<td align="center" style="width:150px;">
+                            <span id="grvReporteSentencias_ctl02_cmdAsuntoNeunid">40612904</span>
+                            
+                        </td><td align="center" style="width:150px;">
+                            <span id="grvReporteSentencias_ctl02_lblFechaIngreso">12/06/2026</span>
+                        </td><td align="left" style="width:300px;">
+                            <div id="grvReporteSentencias_ctl02_pnlScroll" style="height:70px;width:100%;overflow-y:scroll;">
+					
+                                <span id="grvReporteSentencias_ctl02_lblTema">Se concede el amparo respecto del acuerdo que concede la extradición internacional del quejoso a los Estados Unidos de América.</span>
+                            
+				</div>
+                        </td><td align="center" style="width:180px;">
+                            
+                            <a onclick="AbrirVentana('http://sise.cjf.gob.mx/SVP/word1.aspx?arch=767/0767000040612904025.pdf_1&amp;sec=Fabiola_Perales_Rivera&amp;svp=1');" id="grvReporteSentencias_ctl02_SentenciasLinkButton" href="javascript:__doPostBack('grvReporteSentencias$ctl02$SentenciasLinkButton','')">Haga clic para ver el archivo...</a>
+                            
+                        </td>
+			</tr>
+		</table>
+	</div>
+        
+</div>
+        <br />
+        <br />
+        <div align="center">
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="button" onclick="IfrBack()" value="Regresar" />
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            
+            <input type="submit" name="btnCerrar" value="Cerrar" id="btnCerrar" />
+            <br />
+        </div>
+    </div>
+    
+
+<script type="text/javascript">
+//<![CDATA[
+Sys.Application.initialize();
+//]]>
+</script>
+</form>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("td:contains('Datos Generales')").parent().parent().find("tr td table td table tr td:contains('Observaciones')").css("display", "none");
+            $("td:contains('Datos Generales')").parent().parent().find("tr td table td table tr td:contains('Observaciones')").next().css("display", "none");
+        });
+    </script>
+</body>
+</html>
