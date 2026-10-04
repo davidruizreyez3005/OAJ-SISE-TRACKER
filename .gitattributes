@@ -1,3 +1,8 @@
 # Fixtures are byte-exact server responses (CRLF line endings, and MS AJAX
 # delta lengths count characters). Never normalize them.
 sise-core/src/test/resources/fixtures/** -text
+
+# Gradle wrapper scripts keep their platform line endings.
+/gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary

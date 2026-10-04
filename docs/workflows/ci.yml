@@ -1,0 +1,52 @@
+# Proposed CI workflow. The GitHub App can't push files under
+# .github/workflows/, so copy this file there by hand:
+#   mkdir -p .github/workflows && cp docs/workflows/ci.yml .github/workflows/
+# Check the action versions against their latest major releases when copying.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      # Tests only read saved fixtures; nothing here touches the live portal.
+      - name: Test and build
+        run: ./gradlew :sise-core:test testDebugUnitTest assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v5
+        with:
+          name: sise-tracker-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-reports
+          path: |
+            sise-core/build/reports/tests/
+            app/build/reports/tests/

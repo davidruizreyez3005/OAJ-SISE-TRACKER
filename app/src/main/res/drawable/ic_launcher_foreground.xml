@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A document with three text lines. The lines are cut out (evenOdd), so the
+     same drawable works as the themed-icon monochrome layer. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M36,28 L62,28 L74,40 L74,78 Q74,80 72,80 L36,80 Q34,80 34,78 L34,30 Q34,28 36,28 Z
+            M41,48 L67,48 L67,51 L41,51 Z
+            M41,56 L67,56 L67,59 L41,59 Z
+            M41,64 L58,64 L58,67 L41,67 Z" />
+</vector>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name" translatable="false">SISE Tracker</string>
+    <string name="home_search_button">Buscar expediente</string>
+</resources>
