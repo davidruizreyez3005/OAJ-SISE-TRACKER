@@ -97,6 +97,14 @@ data class CaseUrl(
             )
         }
 
+        private val urlInText = Regex("https?://[^\\s<>\"']+", RegexOption.IGNORE_CASE)
+
+        /** The first case URL in shared or pasted text, if any. */
+        fun findIn(text: String): CaseUrl? =
+            urlInText.findAll(text).firstNotNullOfOrNull { match ->
+                parse(match.value.trimEnd('.', ',', ';', ')', ']', '>'))
+            }
+
         /**
          * The case shown by the portal's search result page
          * (`ExpedienteyTipo.asp`), which embeds it as `iframe#ifr`.

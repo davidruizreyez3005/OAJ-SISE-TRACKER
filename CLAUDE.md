@@ -177,6 +177,9 @@ form is `name="Editar"`:
 - `div#recaptchaArea`: reCAPTCHA v2 with explicit render.
 - The existing fixture `expedienteytipo_result_1183-2025.html` contains this
   same form, so the parser can be built now.
+- Until the circuit list (A) lands, the app doesn't know circuit names and
+  sends `CircuitoName` empty. Unverified whether the portal needs it to list
+  the tipos; if step C comes back without options, check this first.
 
 **D. Tipos de procedimiento.**
 - Changing TipoAsunto submits the form with `Accion=2`. The server re-renders
@@ -391,6 +394,10 @@ expected values to assert, and what's still missing.
 
 - `./gradlew :sise-core:test`: fast parser tests.
 - `./gradlew testDebugUnitTest assembleDebug`: what CI runs.
+- `SISE_SCREENSHOTS_DIR=/some/dir ./gradlew testDebugUnitTest`: the
+  Robolectric UI tests also save PNGs of the screens there.
+- Robolectric is pinned to SDK 34 (`app/src/test/resources/robolectric.properties`):
+  its SDK 35+ runtimes need Java 21, and the build uses JDK 17.
 
 ## Conventions
 

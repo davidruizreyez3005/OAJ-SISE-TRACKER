@@ -1,4 +1,58 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="es">
     <string name="app_name" translatable="false">SISE Tracker</string>
+
+    <string name="action_back">Atrás</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_not_now">Ahora no</string>
+
     <string name="home_search_button">Buscar expediente</string>
+
+    <string name="search_title">Buscar expediente</string>
+    <string name="search_paste_link">Pegar enlace del portal</string>
+    <string name="search_paste_no_link">No hay un enlace de expediente del SISE en el portapapeles.</string>
+    <string name="search_circuito">Circuito</string>
+    <string name="search_circuito_help">Número del circuito; por ejemplo, 1 para el Primer Circuito.</string>
+    <string name="search_kind">Tipo de órgano</string>
+    <string name="kind_juzgados">Juzgados</string>
+    <string name="kind_tribunales">Tribunales</string>
+    <string name="kind_otros">Otros</string>
+    <string name="search_organo">Órgano</string>
+    <string name="search_organo_help">Escribe el nombre de un órgano reciente o su número de organismo.</string>
+    <string name="search_organo_number">Organismo %1$s</string>
+    <string name="search_recent_organos">Órganos recientes</string>
+    <string name="search_tipo_asunto">Tipo de asunto</string>
+    <string name="search_tipo_asunto_disabled">Indica primero el circuito y el órgano.</string>
+    <string name="search_tipo_asunto_empty">El portal no lista tipos de asunto para este órgano. Revisa el número de organismo.</string>
+    <string name="search_tipo_procedimiento">Tipo de procedimiento</string>
+    <string name="search_tipo_procedimiento_empty">El portal no lista tipos de procedimiento para este tipo de asunto.</string>
+    <string name="search_loading_options">Cargando las opciones del portal…</string>
+    <string name="search_tap_to_retry">Toca para reintentar.</string>
+    <string name="search_expediente">Número de expediente</string>
+    <string name="search_expediente_placeholder">1183/2025</string>
+    <string name="search_expediente_help">Número/año, como en el portal.</string>
+    <string name="search_expediente_warning">El formato habitual es número/año, por ejemplo 1183/2025.</string>
+    <string name="search_button">Buscar</string>
+    <string name="search_open_portal">Abrir en el portal</string>
+    <string name="search_not_found">No se encontró el expediente. Revisa el órgano, el tipo de asunto y el número.</string>
+
+    <string name="preview_expediente">Expediente %1$s</string>
+    <plurals name="preview_acuerdos">
+        <item quantity="one">%d acuerdo</item>
+        <item quantity="many">%d acuerdos</item>
+        <item quantity="other">%d acuerdos</item>
+    </plurals>
+    <string name="preview_latest_acuerdo">Último acuerdo publicado: %1$s</string>
+
+    <string name="error_network">No se pudo conectar con el portal. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="error_server">El portal no respondió correctamente. Inténtalo más tarde o usa «Abrir en el portal».</string>
+    <string name="error_unexpected_page">El portal respondió con un formato inesperado; puede que haya cambiado. Usa «Abrir en el portal».</string>
+
+    <string name="portal_title">Portal del SISE</string>
+    <string name="portal_reload">Recargar</string>
+
+    <string name="capture_title">¿Guardar este expediente?</string>
+    <string name="capture_ids">Organismo %1$s · Tipo de asunto %2$s</string>
+    <string name="capture_procedimiento">Tipo de procedimiento %1$s</string>
+    <string name="share_no_case_link">El texto compartido no contiene un enlace de expediente del SISE.</string>
+    <string name="save_not_available_yet">Guardar expedientes llegará con «Mis expedientes».</string>
 </resources>

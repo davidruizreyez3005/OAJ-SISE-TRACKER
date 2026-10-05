@@ -1,0 +1,90 @@
+package mx.sisetracker.ui.search
+
+import mx.sisetracker.core.CasePage
+import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.ExpedienteFormat
+import mx.sisetracker.core.FormOption
+import mx.sisetracker.core.OrganoKind
+import mx.sisetracker.core.SearchText
+import mx.sisetracker.core.TipoProcedimientoRule
+import mx.sisetracker.data.net.PortalError
+
+/** An órgano the app already knows the ID of. [name] is blank when the user typed a bare organismo number. */
+data class KnownOrgano(
+    val id: String,
+    val name: String,
+    val circuito: String? = null,
+) {
+    val kind: OrganoKind get() = OrganoKind.fromName(name)
+}
+
+sealed interface Loadable<out T> {
+    data object Idle : Loadable<Nothing>
+
+    data object Loading : Loadable<Nothing>
+
+    data class Loaded<T>(val value: T) : Loadable<T>
+
+    data class Failed(val error: PortalError) : Loadable<Nothing>
+}
+
+sealed interface LookupState {
+    data object None : LookupState
+
+    data object Loading : LookupState
+
+    data class Found(val url: CaseUrl, val page: CasePage) : LookupState
+
+    data object NotFound : LookupState
+
+    data class Failed(val error: PortalError) : LookupState
+}
+
+data class SearchUiState(
+    val circuito: String = "",
+    val kindFilter: OrganoKind? = null,
+    val organoText: String = "",
+    val organo: KnownOrgano? = null,
+    val knownOrganos: List<KnownOrgano> = emptyList(),
+    val tiposAsunto: Loadable<List<FormOption>> = Loadable.Idle,
+    val tipoAsunto: FormOption? = null,
+    val tiposProcedimiento: Loadable<List<FormOption>> = Loadable.Idle,
+    val tipoProcedimiento: FormOption? = null,
+    val expediente: String = "",
+    val lookup: LookupState = LookupState.None,
+) {
+    /** Known órganos matching the "Tipo de órgano" chip and what's typed, for the type-ahead. */
+    val organoSuggestions: List<KnownOrgano>
+        get() {
+            val query = organoText.takeUnless { organo != null && it == organo.name }.orEmpty()
+            return knownOrganos
+                .filter { kindFilter == null || it.kind == kindFilter }
+                .filter { SearchText.matches("${it.name} ${it.id}", query) }
+                .take(MAX_SUGGESTIONS)
+        }
+
+    /** Whether the portal would show the "Tipo de procedimiento" row. */
+    val showsProcedimiento: Boolean
+        get() = tipoAsunto?.let { TipoProcedimientoRule.isShown(it.value) } == true
+
+    val canLoadTipos: Boolean get() = organo != null && circuito.isNotBlank()
+
+    val expedienteWarning: Boolean
+        get() = expediente.isNotBlank() && !ExpedienteFormat.isUsual(expediente)
+
+    val canSearch: Boolean
+        get() = organo != null &&
+            tipoAsunto != null &&
+            (!showsProcedimiento || tipoProcedimiento != null) &&
+            expediente.isNotBlank() &&
+            lookup != LookupState.Loading
+
+    val canOpenPortal: Boolean get() = circuito.isNotBlank()
+
+    companion object {
+        const val MAX_SUGGESTIONS = 50
+
+        /** The portal's `maxlength` for Expediente. */
+        const val MAX_EXPEDIENTE_LENGTH = 15
+    }
+}

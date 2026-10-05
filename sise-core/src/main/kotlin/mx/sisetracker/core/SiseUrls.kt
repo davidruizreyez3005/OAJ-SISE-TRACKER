@@ -13,4 +13,8 @@ object SiseUrls {
 
     /** The portal's search form (classic ASP, ISO-8859-1). */
     const val SEARCH_FORM = "https://$HOST/internet/expedientes/ExpedienteyTipo.asp"
+
+    /** A circuit's órgano list, where a search on the portal starts (step B). */
+    fun circuitos(circuito: String): String =
+        "https://$HOST/internet/expedientes/circuitos.asp?Cir=${QueryString.encode(circuito)}&Exp=1"
 }

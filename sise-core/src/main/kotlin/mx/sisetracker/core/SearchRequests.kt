@@ -64,9 +64,13 @@ object SearchRequests {
      * does when the tipo changes), which fills its tipos de procedimiento.
      * Only for tipos that show the procedimiento row.
      */
-    fun loadProcedimientos(form: SearchForm, tipoAsunto: String, expediente: String = ""): FormRequest {
+    fun loadProcedimientos(form: SearchForm, tipoAsunto: String, expediente: String = ""): FormRequest =
+        loadProcedimientos(form.hiddenFields, tipoAsunto, expediente)
+
+    /** Step D from a form's saved [SearchForm.hiddenFields]. */
+    fun loadProcedimientos(hiddenFields: Map<String, String>, tipoAsunto: String, expediente: String = ""): FormRequest {
         require(TipoProcedimientoRule.isShown(tipoAsunto)) { "Tipo de asunto $tipoAsunto has no procedimientos" }
-        fun hidden(name: String) = form.hiddenFields[name].orEmpty()
+        fun hidden(name: String) = hiddenFields[name].orEmpty()
         return FormRequest(
             SiseUrls.SEARCH_FORM,
             listOf(
