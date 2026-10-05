@@ -171,7 +171,9 @@ form is `name="Editar"`:
 - `input[name=Expediente]`: maxlength 15. It has been `n/yyyy` so far, but
   don't reject other shapes; just warn.
 - Hidden fields: `Circuito`, `CircuitoName`, `Organismo`, `OrgName`,
-  `TipoOrganismo`, `Accion`.
+  `TipoOrganismo`, `Accion`. In the saved page `OrgName` is empty and the
+  "Órgano Jurisdiccional" cell is blank, so take the órgano's name from the
+  órgano list (B) or the case page header, not from this form.
 - `div#recaptchaArea`: reCAPTCHA v2 with explicit render.
 - The existing fixture `expedienteytipo_result_1183-2025.html` contains this
   same form, so the parser can be built now.

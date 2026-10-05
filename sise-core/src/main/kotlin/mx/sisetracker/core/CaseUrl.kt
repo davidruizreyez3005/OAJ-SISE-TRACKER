@@ -38,6 +38,37 @@ data class CaseUrl(
             Regex("^(https?)://([^/?#]+)([^?#]*)(?:\\?([^#]*))?(?:#.*)?$", RegexOption.IGNORE_CASE)
 
         /**
+         * The case page for the user's dropdown choices: what the portal's
+         * iframe would show after its (captcha-protected) search.
+         *
+         * `tipoprocedimiento` is `0` unless the tipo de asunto shows the
+         * procedimiento row, and then the chosen procedimiento. That second
+         * part is unverified (every capture so far had `0`); this is the one
+         * place to change once the pending Accion=2 fixture confirms it.
+         */
+        fun forLookup(
+            organismo: String,
+            tipoAsunto: String,
+            tipoProcedimientoShown: Boolean,
+            tipoProcedimiento: String?,
+            expediente: String,
+        ): CaseUrl {
+            val procedimiento = if (tipoProcedimientoShown) {
+                requireNotNull(tipoProcedimiento?.takeIf { it.isNotBlank() }) {
+                    "Tipo de asunto $tipoAsunto needs a tipo de procedimiento"
+                }
+            } else {
+                NO_TIPO_PROCEDIMIENTO
+            }
+            return CaseUrl(
+                tipoAsunto = tipoAsunto,
+                organismo = organismo,
+                expediente = expediente.trim(),
+                tipoProcedimiento = procedimiento,
+            )
+        }
+
+        /**
          * Parses a `vercaptura.aspx` URL, with the expediente's slash raw or as
          * `%2f`. Returns null for anything else. A missing `tipoprocedimiento`
          * is read as [NO_TIPO_PROCEDIMIENTO].

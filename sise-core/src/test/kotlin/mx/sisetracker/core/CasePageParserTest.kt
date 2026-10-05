@@ -10,7 +10,7 @@ import org.junit.jupiter.api.assertThrows
 /** Expected values from fixtures/README.md, `vercaptura_1183-2025_amparo-indirecto.html`. */
 class CasePageParserTest {
     private val html = Fixtures.load("vercaptura_1183-2025_amparo-indirecto.html")
-    private val page = CasePageParser.parse(html)
+    private val page = parseFound(html)
 
     @Test
     fun header() {
@@ -178,7 +178,7 @@ class CasePageParserTest {
         // Same markup with the first panel's "Mesa" row relabelled.
         val withObservaciones = html.replaceFirst(">Mesa</td>", ">Observaciones</td>")
 
-        val captura = CasePageParser.parse(withObservaciones).captura
+        val captura = parseFound(withObservaciones).captura
 
         assertTrue(captura.entries.none { "Observaciones" in it.label })
         assertTrue(captura.values("Mesa").isEmpty())
@@ -189,4 +189,24 @@ class CasePageParserTest {
     fun `rejects a page without the case header`() {
         assertThrows<SiseParseException> { CasePageParser.parse("<html><body>Error</body></html>") }
     }
+
+    @Test
+    fun `an empty NEUN means not found`() {
+        // fixtures/README.md: every header span present and empty, no tables, no error message.
+        val lookup = CasePageParser.parse(Fixtures.load("vercaptura_not-found_99999-2025.html"))
+
+        assertEquals(CaseLookup.NotFound, lookup)
+    }
+
+    @Test
+    fun `a real case is found`() {
+        assertTrue(CasePageParser.parse(html) is CaseLookup.Found)
+    }
 }
+
+/** Parses a case page that must be found. */
+fun parseFound(html: String): CasePage =
+    when (val lookup = CasePageParser.parse(html)) {
+        is CaseLookup.Found -> lookup.page
+        CaseLookup.NotFound -> error("Expected a case, got NotFound")
+    }

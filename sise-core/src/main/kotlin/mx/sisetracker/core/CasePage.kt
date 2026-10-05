@@ -2,6 +2,17 @@ package mx.sisetracker.core
 
 import java.time.LocalDate
 
+/** What the case page answered for a lookup. */
+sealed interface CaseLookup {
+    data class Found(val page: CasePage) : CaseLookup
+
+    /**
+     * The portal's normal page shell with an empty `#lblNEUN`: the expediente
+     * doesn't exist, or (most likely) the órgano or tipo de asunto is wrong.
+     */
+    data object NotFound : CaseLookup
+}
+
 /** Everything the public case page (`vercaptura.aspx`) shows for one case. */
 data class CasePage(
     /** NEUN: the stable, unique case ID. */

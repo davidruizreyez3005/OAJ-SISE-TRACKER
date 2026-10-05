@@ -30,7 +30,7 @@ class SintesisPageParserTest {
 
     @Test
     fun `the truncated resume of orden 38 is a prefix of its sintesis`() {
-        val page = CasePageParser.parse(Fixtures.load("vercaptura_1183-2025_amparo-indirecto.html"))
+        val page = parseFound(Fixtures.load("vercaptura_1183-2025_amparo-indirecto.html"))
         val sintesis = SintesisPageParser.parse(Fixtures.load("veracuerdo_1183-2025_orden38.html"))
         val resumen = page.acuerdos.single { it.orden == 38 }.resumen
 

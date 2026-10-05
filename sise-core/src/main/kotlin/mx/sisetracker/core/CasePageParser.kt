@@ -10,13 +10,26 @@ object CasePageParser {
     private val abrirVentana = Regex("AbrirVentana\\(\\s*'([^']*)'")
     private val partyPanelId = Regex("^pBody\\d+$")
 
-    /** @throws SiseParseException when the page doesn't look like a case page. */
-    fun parse(html: String): CasePage {
+    /**
+     * [CaseLookup.NotFound] when `#lblNEUN` is present but empty. That is the
+     * only signal: a real case can have zero acuerdos, so missing tables mean
+     * nothing.
+     *
+     * @throws SiseParseException when the page doesn't look like a case page.
+     */
+    fun parse(html: String): CaseLookup {
         val document = Jsoup.parse(html, SiseUrls.CASE_PAGE)
+        if (document.getElementById("lblNEUN") == null) {
+            throw SiseParseException("Not a case page: no #lblNEUN")
+        }
         val neun = document.textById("lblNEUN")
-        if (neun.isEmpty()) throw SiseParseException("Case page has no NEUN")
+        if (neun.isEmpty()) return CaseLookup.NotFound
         val title = document.textById("lblNombreOrgano")
-        return CasePage(
+        return CaseLookup.Found(parseCase(document, neun, title))
+    }
+
+    private fun parseCase(document: Document, neun: String, title: String): CasePage =
+        CasePage(
             neun = neun,
             organoName = OrganoTitle.organo(title),
             tipoAsuntoName = OrganoTitle.tipoAsunto(title),
@@ -29,7 +42,6 @@ object CasePageParser {
             asuntosRelacionados = parseAsuntosRelacionados(document),
             captura = parseCaptura(document),
         )
-    }
 
     private fun parseAcuerdos(document: Document): List<Acuerdo> {
         val table = document.getElementById("grvAcuerdos") ?: return emptyList()

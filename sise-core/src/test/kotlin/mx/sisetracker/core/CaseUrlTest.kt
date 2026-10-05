@@ -4,6 +4,7 @@ import java.net.URI
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class CaseUrlTest {
     private val url1183 =
@@ -82,5 +83,39 @@ class CaseUrlTest {
         val case = CaseUrl.parse(URI(SiseUrls.CASE_PAGE).resolve(formAction).toString())
 
         assertEquals(CaseUrl("11", "18", "293/2026", "0"), case)
+    }
+
+    @Test
+    fun `lookup uses tipoprocedimiento 0 when the row is hidden`() {
+        val case = CaseUrl.forLookup(
+            organismo = "767",
+            tipoAsunto = "1",
+            tipoProcedimientoShown = false,
+            tipoProcedimiento = "3042",
+            expediente = " 1183/2025 ",
+        )
+
+        assertEquals(case1183, case)
+        assertEquals(url1183, case.toUrl())
+    }
+
+    @Test
+    fun `lookup uses the chosen procedimiento when the row is shown`() {
+        val case = CaseUrl.forLookup(
+            organismo = "767",
+            tipoAsunto = "125",
+            tipoProcedimientoShown = true,
+            tipoProcedimiento = "3042",
+            expediente = "12/2026",
+        )
+
+        assertEquals(CaseUrl("125", "767", "12/2026", "3042"), case)
+    }
+
+    @Test
+    fun `lookup needs a procedimiento when the row is shown`() {
+        assertThrows<IllegalArgumentException> {
+            CaseUrl.forLookup("767", "125", tipoProcedimientoShown = true, tipoProcedimiento = null, expediente = "12/2026")
+        }
     }
 }
