@@ -17,6 +17,9 @@ kotlin {
 
 dependencies {
     implementation(libs.jsoup)
+    // Jsoup's API is annotated with JSpecify (a "provided" dependency of
+    // Jsoup); Kotlin needs the annotation classes to compile against it.
+    compileOnly(libs.jspecify)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

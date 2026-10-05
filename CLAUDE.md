@@ -271,6 +271,13 @@ The slash in `expediente` may be raw or `%2f`; both work.
   Suspension Audiencia Incidental, Suspension Suspension Definitiva,
   Suspension Suspension De Plano, Suspension Suspension Provisional.
 - `div#panelVacio` exists, and the section may be empty for some cases.
+- Within a section, each nested table is one record (e.g. each audiencia
+  diferimiento); the parser keeps its index as `CapturaEntry.group`. Records
+  after the first start with an empty `tr.fila_agregada` separator row.
+- The page ends with a script that hides every cell containing
+  "Observaciones" in the panels (jQuery `:contains`, case-sensitive), plus the
+  value cell next to such a label. The app drops the same entries, even
+  though no fixture has one yet.
 
 **Asuntos Relacionados** (`table#grvAsuntosRelacionados`):
 - Per-row span IDs end in `_lblContenido` (NEUN), `_lblNúmeroExpediente`
@@ -299,10 +306,17 @@ Resumen, Ver síntesis completa.
   asunto type).
 - `td[3]`: fecha publicación, `dd-MM-yyyy`.
 - `td[4]`: resumen. HTML entities and newlines; truncated with `" ..."` when
-  long.
+  long. The cell text uses `\n` (the markup around it uses CRLF), some cells
+  start with a line break and some end with `" \n"`; the parser drops leading
+  blank lines and trailing whitespace, which keeps the prefix relation with
+  the síntesis.
 - `td[5] a[id$=_lnkTicketLink2]`: href
   `javascript:DoVerAcuerdo(org, orden, neun, asuntoId, "dd/MM/yyyy 12:00:00 a.m.", "dd/MM/yyyy 12:00:00 a.m.", "n/yyyy")`
   with `&quot;` entities in the raw HTML.
+- `asuntoId` is not the case URL's `tipoasunto`. For the tribunal case
+  293/2026 the case page is `tipoasunto=11&organismo=18` (seen in the
+  postback deltas' `formAction`), but its DoVerAcuerdo links pass
+  `asuntoId` 1. Always build the síntesis URL from the link's own arguments.
 
 Gotchas for this grid:
 - **Key acuerdos by `orden` (2nd argument), never by the displayed No.** Orden
@@ -380,6 +394,13 @@ expected values to assert, and what's still missing.
 
 - Kotlin official style, coroutines, no `!!`.
 - Every parser change ships with fixture tests.
+- Keep test names ASCII (no accents in backticked names): they become class
+  file names, which fail to compile on JVMs with a non-UTF-8 file encoding.
+- `:sise-core` also runs on Android (API 26+), and lint's NewApi check doesn't
+  cover plain JVM modules. Use the charset-name overloads of
+  `URLEncoder`/`URLDecoder` (the `Charset` ones need API 33), and avoid other
+  JDK APIs newer than API 26. The app enables core library desugaring (with
+  NIO), which Jsoup needs.
 - Keep user-facing strings in Spanish (`strings.xml`), with code and comments in
   English.
 - When you learn something new about the portal, update the protocol section

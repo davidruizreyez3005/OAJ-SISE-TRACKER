@@ -28,6 +28,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Jsoup (via :sise-core) needs core library desugaring with NIO on Android.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -36,6 +38,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs.nio)
+
     implementation(project(":sise-core"))
 
     implementation(libs.androidx.core.ktx)
