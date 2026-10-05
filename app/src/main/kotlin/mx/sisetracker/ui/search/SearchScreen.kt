@@ -74,10 +74,16 @@ fun SearchScreen(
     onBack: () -> Unit,
     onOpenPortal: (circuito: String) -> Unit,
     onCaseLinkFound: (CaseUrl) -> Unit,
-    onSave: (CaseUrl, CasePage) -> Unit,
+    onOpenCase: (neun: String) -> Unit,
     viewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(state.openCase) {
+        state.openCase?.let { neun ->
+            onOpenCase(neun)
+            viewModel.onCaseOpened()
+        }
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val clipboard = LocalClipboard.current
@@ -198,7 +204,13 @@ fun SearchScreen(
                 Text(stringResource(R.string.search_open_portal))
             }
 
-            LookupResult(lookup = state.lookup, onSave = onSave, onOpenPortal = openPortal)
+            LookupResult(
+                lookup = state.lookup,
+                saving = state.saving,
+                onSave = viewModel::onSave,
+                onOpenSaved = viewModel::onOpenSaved,
+                onOpenPortal = openPortal,
+            )
         }
     }
 }
@@ -417,12 +429,20 @@ private fun ExpedienteField(
 @Composable
 private fun LookupResult(
     lookup: LookupState,
-    onSave: (CaseUrl, CasePage) -> Unit,
+    saving: Boolean,
+    onSave: () -> Unit,
+    onOpenSaved: () -> Unit,
     onOpenPortal: () -> Unit,
 ) {
     when (lookup) {
         LookupState.None, LookupState.Loading -> Unit
-        is LookupState.Found -> CasePreview(page = lookup.page, onSave = { onSave(lookup.url, lookup.page) })
+        is LookupState.Found -> CasePreview(
+            page = lookup.page,
+            alreadySaved = lookup.alreadySaved,
+            saving = saving,
+            onSave = onSave,
+            onOpenSaved = onOpenSaved,
+        )
         LookupState.NotFound -> MessageCard(text = stringResource(R.string.search_not_found))
         is LookupState.Failed -> MessageCard(text = stringResource(lookup.error.messageRes())) {
             TextButton(onClick = onOpenPortal) { Text(stringResource(R.string.search_open_portal)) }
@@ -431,7 +451,13 @@ private fun LookupResult(
 }
 
 @Composable
-private fun CasePreview(page: CasePage, onSave: () -> Unit) {
+private fun CasePreview(
+    page: CasePage,
+    alreadySaved: Boolean,
+    saving: Boolean,
+    onSave: () -> Unit,
+    onOpenSaved: () -> Unit,
+) {
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -459,8 +485,18 @@ private fun CasePreview(page: CasePage, onSave: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
-            Button(onClick = onSave, modifier = Modifier.padding(top = 8.dp)) {
-                Text(stringResource(R.string.action_save))
+            if (alreadySaved) {
+                Text(
+                    stringResource(R.string.preview_already_saved),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                Button(onClick = onOpenSaved) { Text(stringResource(R.string.action_open)) }
+            } else {
+                Button(onClick = onSave, enabled = !saving, modifier = Modifier.padding(top = 8.dp)) {
+                    Text(stringResource(R.string.action_save))
+                }
             }
         }
     }

@@ -1,13 +1,17 @@
 package mx.sisetracker.ui.search
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.toRoute
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -16,13 +20,17 @@ import mx.sisetracker.core.CaseLookup
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.core.FormOption
 import mx.sisetracker.core.OrganoKind
+import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.TipoProcedimientoRule
+import mx.sisetracker.data.cases.SavedCases
 import mx.sisetracker.data.catalog.CatalogRepository
+import mx.sisetracker.data.db.SavedOrgano
 import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.net.PortalResult
 import mx.sisetracker.data.net.portalCall
 import mx.sisetracker.data.settings.RecentOrgano
 import mx.sisetracker.data.settings.SettingsStore
+import mx.sisetracker.ui.SearchRoute
 
 /**
  * The native search screen. Every portal request here is user-triggered: the
@@ -33,10 +41,12 @@ import mx.sisetracker.data.settings.SettingsStore
 class SearchViewModel(
     private val catalog: CatalogRepository,
     private val lookupRepository: LookupRepository,
+    private val cases: SavedCases,
     private val settings: SettingsStore,
+    private val prefill: SearchRoute = SearchRoute(),
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SearchUiState())
+    private val _state = MutableStateFlow(SearchUiState(expediente = prefill.expediente.orEmpty()))
     val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
     private var tiposJob: Job? = null
@@ -48,8 +58,13 @@ class SearchViewModel(
             if (!last.isNullOrBlank()) _state.update { if (it.circuito.isEmpty()) it.copy(circuito = last) else it }
         }
         viewModelScope.launch {
-            settings.recentOrganos.collect { recents ->
-                _state.update { state -> state.copy(knownOrganos = recents.map { KnownOrgano(it.id, it.name, it.circuito) }) }
+            var prefilled = false
+            combine(settings.recentOrganos, cases.observeSavedOrganos(), ::knownOrganos).collect { (known, saved) ->
+                _state.update { it.copy(knownOrganos = known) }
+                if (!prefilled) {
+                    prefilled = true
+                    applyPrefill(known, saved)
+                }
             }
         }
     }
@@ -140,7 +155,7 @@ class SearchViewModel(
             val lookup = when (result) {
                 is PortalResult.Failed -> LookupState.Failed(result.error)
                 is PortalResult.Ok -> when (val found = result.value) {
-                    is CaseLookup.Found -> LookupState.Found(url, found.page)
+                    is CaseLookup.Found -> LookupState.Found(url, found.page, cases.isSaved(found.page.neun))
                     CaseLookup.NotFound -> LookupState.NotFound
                 }
             }
@@ -159,11 +174,57 @@ class SearchViewModel(
         }
     }
 
+    /** "Guardar" on the preview: stores the page already fetched, with no new request. */
+    fun onSave() {
+        val found = _state.value.lookup as? LookupState.Found ?: return
+        if (_state.value.saving) return
+        _state.update { it.copy(saving = true) }
+        viewModelScope.launch {
+            cases.save(found.url, found.page)
+            _state.update { it.copy(saving = false, openCase = found.page.neun) }
+        }
+    }
+
+    /** "Abrir" on the preview of a case that's already saved. */
+    fun onOpenSaved() {
+        val found = _state.value.lookup as? LookupState.Found ?: return
+        _state.update { it.copy(openCase = found.page.neun) }
+    }
+
+    fun onCaseOpened() {
+        _state.update { it.copy(openCase = null) }
+    }
+
     /** The circuit to open on the portal, remembered as the last one used. */
     fun onOpenPortal(): String? {
         val circuito = _state.value.circuito.takeIf { it.isNotBlank() } ?: return null
         viewModelScope.launch { settings.setLastCircuito(circuito) }
         return circuito
+    }
+
+    /**
+     * "Buscar este expediente" from a related case: the expediente always, and
+     * the órgano and tipo de asunto when known órganos and cached catalogs
+     * match their names exactly. Makes no request.
+     */
+    private suspend fun applyPrefill(known: List<KnownOrgano>, saved: List<SavedOrgano>) {
+        val organoName = prefill.organoName?.takeIf { it.isNotBlank() } ?: return
+        val organo = known.firstOrNull { SearchText.sameName(it.name, organoName) } ?: return
+        if (organo.circuito != null) _state.update { it.copy(circuito = organo.circuito) }
+        setOrgano(organo, organo.name)
+
+        val tipoName = prefill.tipoAsuntoName?.takeIf { it.isNotBlank() } ?: return
+        val cached = catalog.cachedTiposDeAsunto(organo.id)
+        val tipo = cached.firstOrNull { SearchText.sameName(it.label, tipoName) }
+            ?: saved.firstOrNull { it.organismoId == organo.id && SearchText.sameName(it.tipoAsuntoName, tipoName) }
+                ?.let { FormOption(it.tipoAsuntoId, it.tipoAsuntoName, position = 0, selected = false) }
+            ?: return
+        _state.update {
+            it.copy(
+                tiposAsunto = if (cached.isNotEmpty()) Loadable.Loaded(cached) else Loadable.Idle,
+                tipoAsunto = tipo,
+            )
+        }
     }
 
     private fun setOrgano(organo: KnownOrgano?, text: String) {
@@ -241,11 +302,27 @@ class SearchViewModel(
     companion object {
         private const val MAX_CIRCUITO_LENGTH = 3
 
+        /** Recent órganos first (they know their circuit), then those of saved cases. */
+        private fun knownOrganos(recents: List<RecentOrgano>, saved: List<SavedOrgano>): Pair<List<KnownOrgano>, List<SavedOrgano>> {
+            val known = recents.map { KnownOrgano(it.id, it.name, it.circuito) } +
+                saved.distinctBy { it.organismoId }.map { KnownOrgano(it.organismoId, it.organoName) }
+            return known.distinctBy { it.id } to saved
+        }
+
         val Factory = viewModelFactory {
             initializer {
                 val container = this.container
-                SearchViewModel(container.catalogRepository, container.lookupRepository, container.settings)
+                SearchViewModel(
+                    catalog = container.catalogRepository,
+                    lookupRepository = container.lookupRepository,
+                    cases = container.caseRepository,
+                    settings = container.settings,
+                    prefill = createSavedStateHandle().searchRoute(),
+                )
             }
         }
+
+        private fun SavedStateHandle.searchRoute(): SearchRoute =
+            runCatching { toRoute<SearchRoute>() }.getOrDefault(SearchRoute())
     }
 }

@@ -16,7 +16,7 @@ import mx.sisetracker.ui.SiseNavHost
 import mx.sisetracker.ui.theme.SiseTrackerTheme
 
 class MainActivity : ComponentActivity() {
-    private val appViewModel: AppViewModel by viewModels()
+    private val appViewModel: AppViewModel by viewModels { AppViewModel.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

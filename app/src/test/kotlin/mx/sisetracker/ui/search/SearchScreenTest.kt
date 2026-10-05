@@ -16,6 +16,7 @@ import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.settings.RecentOrgano
 import mx.sisetracker.data.settings.SettingsStore
 import mx.sisetracker.testing.FakeCatalogDao
+import mx.sisetracker.testing.FakeSavedCases
 import mx.sisetracker.testing.FakeSiseClient
 import mx.sisetracker.testing.Fixtures
 import mx.sisetracker.testing.InMemoryPreferences
@@ -46,6 +47,7 @@ class SearchScreenTest {
         val viewModel = SearchViewModel(
             CatalogRepository(FakeCatalogDao(), client),
             LookupRepository(client),
+            FakeSavedCases(),
             settings,
         )
         compose.setContent {
@@ -54,7 +56,7 @@ class SearchScreenTest {
                     onBack = {},
                     onOpenPortal = {},
                     onCaseLinkFound = {},
-                    onSave = { _, _ -> },
+                    onOpenCase = {},
                     viewModel = viewModel,
                 )
             }

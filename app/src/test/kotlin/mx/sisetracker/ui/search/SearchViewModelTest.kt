@@ -12,11 +12,15 @@ import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.net.PortalError
 import mx.sisetracker.data.settings.RecentOrgano
 import mx.sisetracker.data.settings.SettingsStore
+import mx.sisetracker.data.db.SavedOrgano
+import mx.sisetracker.ui.SearchRoute
 import mx.sisetracker.testing.FakeCatalogDao
+import mx.sisetracker.testing.FakeSavedCases
 import mx.sisetracker.testing.FakeSiseClient
 import mx.sisetracker.testing.Fixtures
 import mx.sisetracker.testing.InMemoryPreferences
 import mx.sisetracker.testing.MainDispatcherRule
+import mx.sisetracker.testing.parseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,16 +36,21 @@ class SearchViewModelTest {
         onGet = { Fixtures.load(Fixtures.CASE_1183) }
     }
     private val settings = SettingsStore(InMemoryPreferences())
+    private val savedCases = FakeSavedCases()
 
     private val juzgado = "Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México"
     private val caseUrl1183 =
         "GET https://www.dgej.cjf.gob.mx/siseinternet/reportes/vercaptura.aspx?tipoasunto=1&organismo=767&expediente=1183/2025&tipoprocedimiento=0"
 
-    private fun TestScope.viewModel(): SearchViewModel {
+    private val catalogDao = FakeCatalogDao()
+
+    private fun TestScope.viewModel(prefill: SearchRoute = SearchRoute()): SearchViewModel {
         val viewModel = SearchViewModel(
-            CatalogRepository(FakeCatalogDao(), client, now = { 0L }, parsing = main.dispatcher),
+            CatalogRepository(catalogDao, client, now = { 0L }, parsing = main.dispatcher),
             LookupRepository(client, main.dispatcher),
+            savedCases,
             settings,
+            prefill,
         )
         advanceUntilIdle()
         return viewModel
@@ -181,5 +190,77 @@ class SearchViewModelTest {
         viewModel.onExpedienteChange("12345678901234567890")
         assertEquals(15, viewModel.state.value.expediente.length)
         assertTrue(viewModel.state.value.expedienteWarning)
+    }
+
+    private fun TestScope.foundViewModel(): SearchViewModel {
+        val viewModel = viewModel()
+        viewModel.onCircuitoChange("1")
+        viewModel.onOrganoTextChange("767")
+        viewModel.onTiposAsuntoRequested()
+        advanceUntilIdle()
+        viewModel.onTipoAsuntoSelected(tipo("1"))
+        viewModel.onExpedienteChange("1183/2025")
+        viewModel.onSearch()
+        advanceUntilIdle()
+        return viewModel
+    }
+
+    @Test
+    fun `guardar stores the previewed page without another request`() = runTest(main.dispatcher) {
+        val viewModel = foundViewModel()
+        val requests = client.requests.size
+
+        viewModel.onSave()
+        advanceUntilIdle()
+
+        assertEquals(requests, client.requests.size)
+        assertEquals("40612904", savedCases.saved.keys.single())
+        assertEquals("40612904", viewModel.state.value.openCase)
+        viewModel.onCaseOpened()
+        assertEquals(null, viewModel.state.value.openCase)
+    }
+
+    @Test
+    fun `a case that's already saved offers to open it`() = runTest(main.dispatcher) {
+        savedCases.saved["40612904"] = parseCase(Fixtures.CASE_1183)
+
+        val viewModel = foundViewModel()
+
+        assertTrue((viewModel.state.value.lookup as LookupState.Found).alreadySaved)
+        viewModel.onOpenSaved()
+        assertEquals("40612904", viewModel.state.value.openCase)
+    }
+
+    @Test
+    fun `a related case pre-fills what known names match exactly, with no request`() = runTest(main.dispatcher) {
+        savedCases.organos.value = listOf(
+            SavedOrgano("18", "Segundo Tribunal Colegiado en Materia Penal del Primer Circuito", "11", "Amparo en revisión"),
+        )
+
+        val viewModel = viewModel(
+            SearchRoute(
+                expediente = "293/2026",
+                organoName = "Segundo Tribunal Colegiado en Materia Penal del Primer Circuito",
+                tipoAsuntoName = "Amparo en revisión",
+            ),
+        )
+
+        val state = viewModel.state.value
+        assertEquals("293/2026", state.expediente)
+        assertEquals("18", state.organo?.id)
+        assertEquals(FormOption("11", "Amparo en revisión", 0, false), state.tipoAsunto)
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `a related case with an unknown organo only pre-fills the expediente`() = runTest(main.dispatcher) {
+        val viewModel = viewModel(
+            SearchRoute(expediente = "293/2026", organoName = "Otro Tribunal", tipoAsuntoName = "Amparo en revisión"),
+        )
+
+        val state = viewModel.state.value
+        assertEquals("293/2026", state.expediente)
+        assertEquals(null, state.organo)
+        assertEquals(null, state.tipoAsunto)
     }
 }

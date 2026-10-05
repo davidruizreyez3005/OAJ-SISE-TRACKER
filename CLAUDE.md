@@ -137,6 +137,19 @@ an approximation, not official brand colors. Keep every color in
   `TipoProcedimiento`(organoId, tipoAsuntoId, id, name, position). Each table
   also stores fetchedAt.
 
+As built (`data/db` and `data/catalog` in `:app`):
+- `sise.db` holds the saved cases (user data: schema changes need migrations;
+  schemas are exported to `app/schemas/`). `Acuerdo` adds `seen` (false for
+  acuerdos a refresh found, until the case is opened: the "Nuevo" badge).
+  `Case` adds partyCount. Resoluciones, relacionados and captura rows are
+  keyed by (neun, position) and replaced on every read; captura rows keep the
+  record index as `group_index`. Children cascade-delete with their case.
+- `acuerdos_fts` is an FTS4 external-content table over resumen and sintesis
+  (unicode61, `remove_diacritics=1`, so searches ignore accents and case).
+- `catalog.db` is only a cache (destructive migrations are fine). Until
+  milestone 4 it holds tipos de asunto/procedimiento per órgano, plus each
+  órgano's search form hidden fields (echoed back in step D).
+
 ## SISE protocol reference
 
 ### Search pages (classic ASP, ISO-8859-1)

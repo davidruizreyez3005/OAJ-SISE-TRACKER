@@ -4,8 +4,28 @@
     <string name="action_back">Atrás</string>
     <string name="action_save">Guardar</string>
     <string name="action_not_now">Ahora no</string>
+    <string name="action_open">Abrir</string>
+    <string name="action_clear">Borrar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_expand">Mostrar</string>
+    <string name="action_collapse">Ocultar</string>
+    <string name="new_badge">Nuevo</string>
 
+    <string name="home_title">Mis expedientes</string>
     <string name="home_search_button">Buscar expediente</string>
+    <string name="home_filter">Filtrar por expediente u órgano</string>
+    <string name="home_filter_no_match">Ningún expediente guardado coincide con el filtro.</string>
+    <string name="home_latest_acuerdo">Último acuerdo publicado: %1$s</string>
+    <string name="home_no_acuerdos">Sin acuerdos publicados</string>
+    <string name="home_empty_title">Aún no guardas expedientes</string>
+    <string name="home_empty_body">Busca un expediente con los mismos datos que en el portal y guárdalo para seguir sus acuerdos.</string>
+    <plurals name="home_unseen">
+        <item quantity="one">%d nuevo</item>
+        <item quantity="many">%d nuevos</item>
+        <item quantity="other">%d nuevos</item>
+    </plurals>
 
     <string name="search_title">Buscar expediente</string>
     <string name="search_paste_link">Pegar enlace del portal</string>
@@ -42,6 +62,47 @@
         <item quantity="other">%d acuerdos</item>
     </plurals>
     <string name="preview_latest_acuerdo">Último acuerdo publicado: %1$s</string>
+    <string name="preview_already_saved">Ya guardaste este expediente.</string>
+
+    <string name="case_refresh">Actualizar</string>
+    <string name="case_more">Más opciones</string>
+    <string name="case_open_portal">Ver en el portal</string>
+    <string name="case_delete">Eliminar expediente</string>
+    <string name="case_delete_title">¿Eliminar este expediente?</string>
+    <string name="case_delete_body">Se borrarán de este dispositivo sus acuerdos y síntesis guardados.</string>
+    <string name="case_removed">Este expediente ya no está guardado.</string>
+    <string name="case_neun">NEUN %1$s</string>
+    <string name="case_occ">OCC %1$s</string>
+    <string name="case_checked">Consultado el %1$s</string>
+    <string name="case_tab_acuerdos">Acuerdos (%1$d)</string>
+    <string name="case_tab_resoluciones">Resoluciones (%1$d)</string>
+    <string name="case_tab_relacionados">Relacionados (%1$d)</string>
+    <string name="case_tab_datos">Datos</string>
+    <string name="case_refreshed_none">Sin acuerdos nuevos.</string>
+    <plurals name="case_refreshed_new">
+        <item quantity="one">%d acuerdo nuevo.</item>
+        <item quantity="many">%d acuerdos nuevos.</item>
+        <item quantity="other">%d acuerdos nuevos.</item>
+    </plurals>
+    <string name="case_not_found_on_portal">El portal no devolvió este expediente; se conservan los datos guardados.</string>
+    <string name="case_no_acuerdos">El portal aún no publica acuerdos de este expediente.</string>
+    <string name="case_no_resoluciones">Sin resoluciones.</string>
+    <string name="case_no_relacionados">Sin asuntos relacionados.</string>
+    <string name="case_no_captura">El portal no muestra captura de información para este expediente.</string>
+    <string name="captura_parties">El portal repite estos datos para cada una de las %1$d partes.</string>
+    <string name="acuerdo_numero">No. %1$s</string>
+    <string name="acuerdo_dates">Auto: %1$s · Publicado: %2$s</string>
+    <string name="resolucion_fecha">Ingreso: %1$s</string>
+    <string name="resolucion_open">Ver archivo</string>
+    <string name="relacionado_fecha">Relacionado el %1$s</string>
+    <string name="relacionado_search">Buscar este expediente</string>
+
+    <string name="acuerdo_title">Acuerdo %1$s</string>
+    <string name="acuerdo_fecha_auto">Fecha del auto: %1$s</string>
+    <string name="acuerdo_fecha_publicacion">Fecha de publicación: %1$s</string>
+    <string name="acuerdo_cuaderno">Cuaderno: %1$s</string>
+    <string name="acuerdo_loading">Cargando la síntesis completa…</string>
+    <string name="acuerdo_resumen_only">Por ahora se muestra el resumen.</string>
 
     <string name="error_network">No se pudo conectar con el portal. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="error_server">El portal no respondió correctamente. Inténtalo más tarde o usa «Abrir en el portal».</string>
@@ -53,6 +114,6 @@
     <string name="capture_title">¿Guardar este expediente?</string>
     <string name="capture_ids">Organismo %1$s · Tipo de asunto %2$s</string>
     <string name="capture_procedimiento">Tipo de procedimiento %1$s</string>
+    <string name="error_no_browser">No hay un navegador para abrir el enlace.</string>
     <string name="share_no_case_link">El texto compartido no contiene un enlace de expediente del SISE.</string>
-    <string name="save_not_available_yet">Guardar expedientes llegará con «Mis expedientes».</string>
 </resources>

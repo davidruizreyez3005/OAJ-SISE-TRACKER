@@ -70,6 +70,13 @@ class CatalogRepository(
         return options
     }
 
+    /** The cached tipos de asunto of [organismo], if fresh; never makes a request. */
+    suspend fun cachedTiposDeAsunto(organismo: String): List<FormOption> {
+        val cached = dao.tiposAsunto(organismo)
+        if (cached.isEmpty() || !cached.all { isFresh(it.fetchedAt) }) return emptyList()
+        return cached.map { FormOption(it.id, it.name, it.position, selected = false) }
+    }
+
     /** "Actualizar catálogos": forget everything; options reload the next time they're needed. */
     suspend fun clear() = dao.clear()
 

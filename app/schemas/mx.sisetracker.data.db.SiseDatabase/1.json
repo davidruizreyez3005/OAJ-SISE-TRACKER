@@ -1,0 +1,413 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "a1ec7eee3ce5e33a4ce831a2b0b231a6",
+    "entities": [
+      {
+        "tableName": "cases",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`neun` TEXT NOT NULL, `organismoId` TEXT NOT NULL, `tipoAsuntoId` TEXT NOT NULL, `tipoProcedimiento` TEXT NOT NULL, `expediente` TEXT NOT NULL, `organoName` TEXT NOT NULL, `tipoAsuntoName` TEXT NOT NULL, `noControlOcc` TEXT NOT NULL, `partyCount` INTEGER NOT NULL, `caseUrl` TEXT NOT NULL, `addedAt` INTEGER NOT NULL, `lastCheckedAt` INTEGER NOT NULL, PRIMARY KEY(`neun`))",
+        "fields": [
+          {
+            "fieldPath": "neun",
+            "columnName": "neun",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "organismoId",
+            "columnName": "organismoId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoAsuntoId",
+            "columnName": "tipoAsuntoId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoProcedimiento",
+            "columnName": "tipoProcedimiento",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expediente",
+            "columnName": "expediente",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "organoName",
+            "columnName": "organoName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoAsuntoName",
+            "columnName": "tipoAsuntoName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "noControlOcc",
+            "columnName": "noControlOcc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "partyCount",
+            "columnName": "partyCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caseUrl",
+            "columnName": "caseUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "addedAt",
+            "columnName": "addedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCheckedAt",
+            "columnName": "lastCheckedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "neun"
+          ]
+        }
+      },
+      {
+        "tableName": "acuerdos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`neun` TEXT NOT NULL, `orden` INTEGER NOT NULL, `numero` TEXT NOT NULL, `fechaAuto` INTEGER NOT NULL, `fechaPublicacion` INTEGER NOT NULL, `tipoCuaderno` TEXT NOT NULL, `resumen` TEXT NOT NULL, `sintesis` TEXT, `verAcuerdoUrl` TEXT NOT NULL, `firstSeenAt` INTEGER NOT NULL, `seen` INTEGER NOT NULL, PRIMARY KEY(`neun`, `orden`), FOREIGN KEY(`neun`) REFERENCES `cases`(`neun`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "neun",
+            "columnName": "neun",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orden",
+            "columnName": "orden",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "numero",
+            "columnName": "numero",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaAuto",
+            "columnName": "fechaAuto",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaPublicacion",
+            "columnName": "fechaPublicacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoCuaderno",
+            "columnName": "tipoCuaderno",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resumen",
+            "columnName": "resumen",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sintesis",
+            "columnName": "sintesis",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "verAcuerdoUrl",
+            "columnName": "verAcuerdoUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstSeenAt",
+            "columnName": "firstSeenAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seen",
+            "columnName": "seen",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "neun",
+            "orden"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "cases",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "neun"
+            ],
+            "referencedColumns": [
+              "neun"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "acuerdos_fts",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`resumen` TEXT NOT NULL, `sintesis` TEXT, tokenize=unicode61 `remove_diacritics=1`, content=`acuerdos`)",
+        "fields": [
+          {
+            "fieldPath": "resumen",
+            "columnName": "resumen",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sintesis",
+            "columnName": "sintesis",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": []
+        },
+        "ftsVersion": "FTS4",
+        "ftsOptions": {
+          "tokenizer": "unicode61",
+          "tokenizerArgs": [
+            "remove_diacritics=1"
+          ],
+          "contentTable": "acuerdos",
+          "languageIdColumnName": "",
+          "matchInfo": "FTS4",
+          "notIndexedColumns": [],
+          "prefixSizes": [],
+          "preferredOrder": "ASC"
+        },
+        "contentSyncTriggers": [
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_acuerdos_fts_BEFORE_UPDATE BEFORE UPDATE ON `acuerdos` BEGIN DELETE FROM `acuerdos_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_acuerdos_fts_BEFORE_DELETE BEFORE DELETE ON `acuerdos` BEGIN DELETE FROM `acuerdos_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_acuerdos_fts_AFTER_UPDATE AFTER UPDATE ON `acuerdos` BEGIN INSERT INTO `acuerdos_fts`(`docid`, `resumen`, `sintesis`) VALUES (NEW.`rowid`, NEW.`resumen`, NEW.`sintesis`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_acuerdos_fts_AFTER_INSERT AFTER INSERT ON `acuerdos` BEGIN INSERT INTO `acuerdos_fts`(`docid`, `resumen`, `sintesis`) VALUES (NEW.`rowid`, NEW.`resumen`, NEW.`sintesis`); END"
+        ]
+      },
+      {
+        "tableName": "resoluciones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`neun` TEXT NOT NULL, `position` INTEGER NOT NULL, `asuntoNeun` TEXT NOT NULL, `fechaIngreso` INTEGER NOT NULL, `tema` TEXT NOT NULL, `archivoUrl` TEXT, PRIMARY KEY(`neun`, `position`), FOREIGN KEY(`neun`) REFERENCES `cases`(`neun`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "neun",
+            "columnName": "neun",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "asuntoNeun",
+            "columnName": "asuntoNeun",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaIngreso",
+            "columnName": "fechaIngreso",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tema",
+            "columnName": "tema",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "archivoUrl",
+            "columnName": "archivoUrl",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "neun",
+            "position"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "cases",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "neun"
+            ],
+            "referencedColumns": [
+              "neun"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "asuntos_relacionados",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`neun` TEXT NOT NULL, `position` INTEGER NOT NULL, `relatedNeun` TEXT NOT NULL, `expediente` TEXT NOT NULL, `organo` TEXT NOT NULL, `fechaRelacion` INTEGER NOT NULL, PRIMARY KEY(`neun`, `position`), FOREIGN KEY(`neun`) REFERENCES `cases`(`neun`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "neun",
+            "columnName": "neun",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relatedNeun",
+            "columnName": "relatedNeun",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expediente",
+            "columnName": "expediente",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "organo",
+            "columnName": "organo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaRelacion",
+            "columnName": "fechaRelacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "neun",
+            "position"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "cases",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "neun"
+            ],
+            "referencedColumns": [
+              "neun"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "captura",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`neun` TEXT NOT NULL, `position` INTEGER NOT NULL, `section` TEXT NOT NULL, `group_index` INTEGER NOT NULL, `label` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`neun`, `position`), FOREIGN KEY(`neun`) REFERENCES `cases`(`neun`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "neun",
+            "columnName": "neun",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "section",
+            "columnName": "section",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "group",
+            "columnName": "group_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "neun",
+            "position"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "cases",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "neun"
+            ],
+            "referencedColumns": [
+              "neun"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a1ec7eee3ce5e33a4ce831a2b0b231a6')"
+    ]
+  }
+}

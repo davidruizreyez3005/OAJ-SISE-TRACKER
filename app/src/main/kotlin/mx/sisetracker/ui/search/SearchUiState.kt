@@ -33,7 +33,7 @@ sealed interface LookupState {
 
     data object Loading : LookupState
 
-    data class Found(val url: CaseUrl, val page: CasePage) : LookupState
+    data class Found(val url: CaseUrl, val page: CasePage, val alreadySaved: Boolean = false) : LookupState
 
     data object NotFound : LookupState
 
@@ -52,6 +52,9 @@ data class SearchUiState(
     val tipoProcedimiento: FormOption? = null,
     val expediente: String = "",
     val lookup: LookupState = LookupState.None,
+    val saving: Boolean = false,
+    /** A case to open (just saved, or already saved): consumed by the screen. */
+    val openCase: String? = null,
 ) {
     /** Known órganos matching the "Tipo de órgano" chip and what's typed, for the type-ahead. */
     val organoSuggestions: List<KnownOrgano>

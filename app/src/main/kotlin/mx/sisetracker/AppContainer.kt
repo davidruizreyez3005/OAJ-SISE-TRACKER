@@ -3,8 +3,10 @@ package mx.sisetracker
 import android.app.Application
 import androidx.room.Room
 import java.util.concurrent.TimeUnit
+import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.catalog.CatalogDatabase
 import mx.sisetracker.data.catalog.CatalogRepository
+import mx.sisetracker.data.db.SiseDatabase
 import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.net.InMemoryCookieJar
 import mx.sisetracker.data.net.OkHttpSiseClient
@@ -39,11 +41,18 @@ class AppContainer(private val app: Application) {
             .build()
     }
 
+    /** Saved cases: user data, so schema changes need real migrations. */
+    private val database: SiseDatabase by lazy {
+        Room.databaseBuilder(app, SiseDatabase::class.java, SiseDatabase.NAME).build()
+    }
+
     val catalogRepository: CatalogRepository by lazy {
         CatalogRepository(catalogDatabase.catalogDao(), siseClient)
     }
 
     val lookupRepository: LookupRepository by lazy { LookupRepository(siseClient) }
+
+    val caseRepository: CaseRepository by lazy { CaseRepository(database, siseClient, lookupRepository) }
 
     val settings: SettingsStore by lazy { SettingsStore(app.settingsDataStore) }
 }

@@ -13,6 +13,14 @@ object SearchText {
             .lowercase()
             .let(SiseText::normalizeSpace)
 
+    /**
+     * The same name, compared exactly apart from whitespace runs: for matching
+     * a name shown in one place of the portal against another (e.g. a related
+     * case's órgano against a known órgano).
+     */
+    fun sameName(a: String, b: String): Boolean =
+        SiseText.normalizeSpace(a) == SiseText.normalizeSpace(b)
+
     /** Whether every word of [query] appears in [text], ignoring accents and case. */
     fun matches(text: String, query: String): Boolean {
         val haystack = fold(text)
