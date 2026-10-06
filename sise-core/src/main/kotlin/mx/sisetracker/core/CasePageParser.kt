@@ -47,7 +47,7 @@ object CasePageParser {
         val table = document.getElementById("grvAcuerdos") ?: return emptyList()
         return table.tableRows().mapNotNull { row ->
             val cells = row.cells()
-            if (cells.isEmpty()) return@mapNotNull null // header row
+            if (cells.isEmpty() || row.isEmptyDataRow()) return@mapNotNull null // header or "no rows" row
             if (cells.size < 6) throw SiseParseException("Acuerdos row has ${cells.size} cells, expected 6")
             // Only the link carries the arguments: the page also contains the
             // DoVerAcuerdo function definition, which must not be parsed.
@@ -68,7 +68,7 @@ object CasePageParser {
 
     private fun parseResoluciones(document: Document, caseNeun: String): List<Resolucion> {
         val table = document.getElementById("grvReporteSentencias") ?: return emptyList()
-        return table.tableRows().filter { it.cells().isNotEmpty() }.map { row ->
+        return table.tableRows().filter { it.cells().isNotEmpty() && !it.isEmptyDataRow() }.map { row ->
             val fecha = row.selectFirst("[id$=_lblFechaIngreso]")
                 ?: throw SiseParseException("Resoluciones row without a fecha de ingreso")
             Resolucion(
@@ -100,7 +100,7 @@ object CasePageParser {
         val table = document.getElementById("grvAsuntosRelacionados") ?: return emptyList()
         return table.tableRows().mapNotNull { row ->
             val cells = row.cells()
-            if (cells.isEmpty()) return@mapNotNull null // header row
+            if (cells.isEmpty() || row.isEmptyDataRow()) return@mapNotNull null // header or "no rows" row
             // Spans by ID suffix (one of them has a non-ASCII "ú"), falling back
             // to the column.
             fun field(idSuffix: String, column: Int): String {

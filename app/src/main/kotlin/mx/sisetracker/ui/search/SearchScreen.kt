@@ -166,6 +166,11 @@ fun SearchScreen(
                 onOpen = viewModel::onTiposAsuntoRequested,
                 onSelect = viewModel::onTipoAsuntoSelected,
             )
+            if (state.canLoadOrganoTipos) {
+                TextButton(onClick = viewModel::onLoadOrganoTipos) {
+                    Text(stringResource(R.string.search_tipos_del_organo))
+                }
+            }
 
             if (state.showsProcedimiento) {
                 OptionField(
@@ -234,7 +239,6 @@ private fun CircuitoField(
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.search_circuito)) },
-            placeholder = { Text(stringResource(R.string.search_circuito_placeholder)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             singleLine = true,
             modifier = Modifier
@@ -343,7 +347,7 @@ private fun OrganoField(
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu)
                 }
             },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Next),
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
@@ -421,11 +425,6 @@ private fun OptionField(
             readOnly = true,
             enabled = enabled,
             label = { Text(label) },
-            placeholder = if (enabled && loaded.isNotEmpty()) {
-                { Text(stringResource(R.string.search_select)) }
-            } else {
-                null
-            },
             trailingIcon = {
                 if (options == Loadable.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -486,14 +485,17 @@ private fun ExpedienteField(
             onValueChange(it.text)
         },
         label = { Text(stringResource(R.string.search_expediente)) },
-        placeholder = { Text(stringResource(R.string.search_expediente_placeholder)) },
         supportingText = {
             Text(
                 stringResource(if (warning) R.string.search_expediente_warning else R.string.search_expediente_help),
             )
         },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Search),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            autoCorrectEnabled = false,
+            imeAction = ImeAction.Search,
+        ),
         keyboardActions = KeyboardActions(onSearch = { onSearch() }),
         trailingIcon = {
             TextButton(

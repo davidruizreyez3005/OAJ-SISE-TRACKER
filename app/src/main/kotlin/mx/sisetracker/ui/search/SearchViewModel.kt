@@ -24,6 +24,7 @@ import mx.sisetracker.core.FormOption
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.TipoProcedimientoRule
+import mx.sisetracker.core.TiposDeAsunto
 import mx.sisetracker.data.cases.SavedCases
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.db.SavedOrgano
@@ -113,16 +114,23 @@ class SearchViewModel(
             val circuito = organo.circuito ?: circuitoOf(organo.id)
             if (circuito != null && circuito != _state.value.circuito) switchCircuito(circuito, fetch = false)
             setOrgano(organo.copy(circuito = circuito), organo.name)
-            loadTiposAsunto()
+            showTiposAsunto()
         }
     }
 
     /** The user opened the "Tipo de asunto" dropdown. */
     fun onTiposAsuntoRequested() {
         when (_state.value.tiposAsunto) {
-            Loadable.Idle, is Loadable.Failed -> loadTiposAsunto()
+            Loadable.Idle -> showTiposAsunto()
+            is Loadable.Failed -> loadTiposAsunto()
             else -> Unit
         }
+    }
+
+    /** "Ver solo los tipos de este órgano": one request for the órgano's own list (step C). */
+    fun onLoadOrganoTipos() {
+        if (_state.value.tiposFromPortal || _state.value.tiposAsunto == Loadable.Loading) return
+        loadTiposAsunto()
     }
 
     fun onTipoAsuntoSelected(option: FormOption) {
@@ -242,17 +250,43 @@ class SearchViewModel(
         }
         setOrgano(organo, organo.name)
 
+        val tipos = tiposFor(organo)
+        _state.update { it.copy(tiposAsunto = Loadable.Loaded(tipos.options), tiposFromPortal = tipos.fromPortal) }
         val tipoName = prefill.tipoAsuntoName?.takeIf { it.isNotBlank() } ?: return
-        val cached = catalog.cachedTiposDeAsunto(organo.id)
-        val tipo = cached.firstOrNull { SearchText.sameName(it.label, tipoName) }
+        val tipo = tipos.options.firstOrNull { SearchText.sameName(it.label, tipoName) }
             ?: saved.firstOrNull { it.organismoId == organo.id && SearchText.sameName(it.tipoAsuntoName, tipoName) }
                 ?.let { FormOption(it.tipoAsuntoId, it.tipoAsuntoName, position = 0, selected = false) }
             ?: return
-        _state.update {
-            it.copy(
-                tiposAsunto = if (cached.isNotEmpty()) Loadable.Loaded(cached) else Loadable.Idle,
-                tipoAsunto = tipo,
-            )
+        _state.update { it.copy(tipoAsunto = tipo) }
+    }
+
+    private class Tipos(val options: List<FormOption>, val fromPortal: Boolean)
+
+    /**
+     * The órgano's own list when it's cached, else the bundled list of every
+     * known tipo (IDs are global), its kind's tipos first. Never makes a request.
+     */
+    private suspend fun tiposFor(organo: KnownOrgano): Tipos {
+        val cached = catalog.cachedTiposDeAsunto(organo.id)
+        if (cached.isNotEmpty()) return Tipos(cached, fromPortal = true)
+        val kind = organo.kind.takeIf { organo.name.isNotBlank() }
+        return Tipos(TiposDeAsunto.forKind(kind), fromPortal = false)
+    }
+
+    /** Shows the tipos with no request, so Buscar is one GET of the case page. */
+    private fun showTiposAsunto() {
+        val organo = _state.value.organo ?: return
+        tiposJob?.cancel()
+        tiposJob = viewModelScope.launch {
+            val tipos = tiposFor(organo)
+            _state.update { current ->
+                if (current.organo?.id != organo.id) return@update current
+                current.copy(
+                    tiposAsunto = Loadable.Loaded(tipos.options),
+                    tiposFromPortal = tipos.fromPortal,
+                    tipoAsunto = current.tipoAsunto?.takeIf { tipo -> tipos.options.any { it.value == tipo.value } },
+                )
+            }
         }
     }
 
@@ -312,6 +346,7 @@ class SearchViewModel(
                     organoText = text,
                     organo = organo,
                     tiposAsunto = Loadable.Idle,
+                    tiposFromPortal = false,
                     tipoAsunto = null,
                     tiposProcedimiento = Loadable.Idle,
                     tipoProcedimiento = null,
@@ -326,7 +361,7 @@ class SearchViewModel(
     private fun loadTiposAsunto() {
         val state = _state.value
         val organo = state.organo ?: return
-        if (!state.canLoadTipos) return
+        if (state.circuito.isBlank()) return
         tiposJob?.cancel()
         _state.update { it.copy(tiposAsunto = Loadable.Loading) }
         tiposJob = viewModelScope.launch {
@@ -336,6 +371,7 @@ class SearchViewModel(
                 when (result) {
                     is PortalResult.Ok -> current.copy(
                         tiposAsunto = Loadable.Loaded(result.value),
+                        tiposFromPortal = true,
                         // No preselection: the user picks a tipo explicitly, even when there's only one.
                         tipoAsunto = current.tipoAsunto?.takeIf { tipo -> result.value.any { it.value == tipo.value } },
                     )

@@ -181,6 +181,15 @@ Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=
 - No duplicate values.
 - Page text includes `Circuito: PRIMER CIRCUITO`. The parsed CircuitoName (`td` after the `th` containing "Circuito:", trimmed, no `&nbsp;`) is exactly `PRIMER CIRCUITO`.
 
+## Bundled lists checked against these fixtures
+
+- `circuitos.tsv` (32 circuits) against `oaj_circuitos_excerpt.html`.
+- `tipos_asunto.tsv` (44 tipos de asunto, with the kinds of órgano they were seen at) against every `expedienteytipo_form_*.html` and `expedienteytipo_result_1183-2025.html`. When a new form fixture adds tipos, add them there too.
+
+## Empty grids (no fixture file)
+
+`EmptyGridsTest` splices the live "no rows" markup of the tribunal case 293/2026 (October 2026) into the 1183/2025 page: `grvReporteSentencias` with `<td colspan="5">No existen Sentencias asociadas para este expediente</td>`, and `grvAsuntosRelacionados` with a single `<td>No existen Asuntos relacionados para este expediente</td>`. A full tribunal case page fixture is still wanted (see below).
+
 ## Still missing (ask the user before writing code that depends on these)
 
 To capture each one, open the page in Chrome on the phone, then use ⋮ → download (saves `.mhtml`). Mask any personal names before committing.

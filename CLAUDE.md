@@ -331,12 +331,21 @@ as windows-1252, because
    - Circuito dropdown (from A).
    - Tipo de órgano filter chips.
    - Órgano dropdown with type-ahead filtering (from B).
-   - Tipo de asunto dropdown (from C).
+   - Tipo de asunto dropdown. By default (the user's request: most lookups
+     are amparos directos at tribunales colegiados, and every request
+     costs time) it shows the bundled list of every known tipo
+     (`tipos_asunto.tsv` in `:sise-core`, IDs are global), the órgano kind's
+     tipos first, with **no request**: Buscar is then a single GET of the
+     case page. The órgano's own list (step C) loads only from the cache or
+     when the user taps "Ver solo los tipos de este órgano". A tipo the
+     órgano doesn't have just gives "No se encontró…".
    - Tipo de procedimiento dropdown, only when the portal would show it
      (from D).
    - Número de expediente field, with a numeric keyboard that allows `/`.
    - "Órganos recientes" chips for quick re-selection.
    - Remember the last circuit used.
+   - No placeholder text in the fields, and Android autofill and keyboard
+     autocorrect are off (`MainActivity`, `KeyboardOptions`).
 2. **"Buscar"** builds
    `vercaptura.aspx?tipoasunto={TipoAsunto}&organismo={Organismo}&expediente={n/yyyy}&tipoprocedimiento={p}`
    and fetches it through the request queue.
@@ -427,6 +436,14 @@ The slash in `expediente` may be raw or `%2f`; both work.
   href.
 - The URL is cleartext `http://`. Open it in a Custom Tab or the browser; don't
   fetch it from the app.
+
+**Empty grids.** A grid with no rows shows one message cell instead
+(verbatim, 293/2026 in October 2026): `<td colspan="5">No existen Sentencias
+asociadas para este expediente</td>` in `grvReporteSentencias`, and
+`<td>No existen Asuntos relacionados para este expediente</td>` (no header row,
+no colspan) in `grvAsuntosRelacionados`. Skip such rows (one cell, no IDs or
+links) in every grid; treating them as data made every case without
+resoluciones fail with "formato inesperado".
 
 **Acuerdos** (`table#grvAcuerdos`, inside a scroll div; no paging seen at 28
 rows). Columns: No., Fecha del Auto, Tipo Cuaderno, Fecha de publicación,

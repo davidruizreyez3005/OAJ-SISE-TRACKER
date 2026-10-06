@@ -60,6 +60,11 @@ data class SearchUiState(
     val organo: KnownOrgano? = null,
     val knownOrganos: List<KnownOrgano> = emptyList(),
     val tiposAsunto: Loadable<List<FormOption>> = Loadable.Idle,
+    /**
+     * Whether [tiposAsunto] is the órgano's own list from the portal (step C),
+     * rather than the bundled list of every known tipo.
+     */
+    val tiposFromPortal: Boolean = false,
     val tipoAsunto: FormOption? = null,
     val tiposProcedimiento: Loadable<List<FormOption>> = Loadable.Idle,
     val tipoProcedimiento: FormOption? = null,
@@ -94,7 +99,11 @@ data class SearchUiState(
     val showsProcedimiento: Boolean
         get() = tipoAsunto?.let { TipoProcedimientoRule.isShown(it.value) } == true
 
-    val canLoadTipos: Boolean get() = organo != null && circuito.isNotBlank()
+    val canLoadTipos: Boolean get() = organo != null
+
+    /** "Ver solo los tipos de este órgano" needs the circuit for step C. */
+    val canLoadOrganoTipos: Boolean
+        get() = organo != null && circuito.isNotBlank() && !tiposFromPortal && tiposAsunto is Loadable.Loaded
 
     val expedienteWarning: Boolean
         get() = expediente.isNotBlank() && !ExpedienteFormat.isUsual(expediente)

@@ -31,7 +31,6 @@
     <string name="search_paste_link">Pegar enlace del portal</string>
     <string name="search_paste_no_link">No hay un enlace de expediente del SISE en el portapapeles.</string>
     <string name="search_circuito">Circuito</string>
-    <string name="search_circuito_placeholder">Elige un circuito</string>
     <string name="search_organos_loading">Cargando los órganos del circuito…</string>
     <string name="search_organos_failed">Toca el campo para reintentar, o escribe el número del órgano.</string>
     <string name="search_kind">Tipo de órgano</string>
@@ -43,14 +42,14 @@
     <string name="search_organo_number">Organismo %1$s</string>
     <string name="search_recent_organos">Órganos recientes</string>
     <string name="search_tipo_asunto">Tipo de asunto</string>
-    <string name="search_tipo_asunto_disabled">Indica primero el circuito y el órgano.</string>
+    <string name="search_tipo_asunto_disabled">Indica primero el órgano.</string>
+    <string name="search_tipos_del_organo">Ver solo los tipos de este órgano (consulta el portal)</string>
     <string name="search_tipo_asunto_empty">Este órgano no tiene expedientes consultables en el portal.</string>
     <string name="search_tipo_procedimiento">Tipo de procedimiento</string>
     <string name="search_tipo_procedimiento_empty">El portal no lista tipos de procedimiento para este tipo de asunto.</string>
     <string name="search_loading_options">Cargando las opciones del portal…</string>
     <string name="search_tap_to_retry">Toca para reintentar.</string>
     <string name="search_expediente">Número de expediente</string>
-    <string name="search_expediente_placeholder">1183/2025</string>
     <string name="search_expediente_help">Número/año, como en el portal.</string>
     <string name="search_expediente_warning">El formato habitual es número/año, por ejemplo 1183/2025.</string>
     <string name="search_button">Buscar</string>
@@ -135,7 +134,6 @@
     <string name="settings_refresh_catalogs">Actualizar catálogos</string>
     <string name="settings_refresh_catalogs_help">Borra las listas del portal guardadas en el teléfono (órganos, tipos de asunto y de procedimiento); se vuelven a cargar cuando las necesites.</string>
     <string name="settings_catalogs_cleared">Catálogos borrados. Se cargarán de nuevo al usarlos.</string>
-    <string name="search_select">Selecciona…</string>
     <string name="organo_closed">Cerrado</string>
     <string name="settings_capture">Capturar páginas del catálogo</string>
     <string name="settings_capture_help">Diagnóstico: guarda en el teléfono cada lista de órganos y formulario de búsqueda que abras (nunca expedientes ni síntesis), para compartirlos con quien desarrolla la app. No hace consultas por su cuenta. Para volver a capturar algo ya cargado, usa antes «Actualizar catálogos».</string>

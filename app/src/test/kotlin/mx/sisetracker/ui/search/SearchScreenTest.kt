@@ -1,6 +1,5 @@
 package mx.sisetracker.ui.search
 
-import android.os.Looper
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
@@ -24,11 +23,11 @@ import mx.sisetracker.testing.InMemoryPreferences
 import mx.sisetracker.testing.saveScreenshot
 import mx.sisetracker.ui.theme.SiseTrackerTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -95,8 +94,8 @@ class SearchScreenTest {
         setContent()
 
         compose.onNodeWithText("Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México").performClick()
-        // The circuit's órgano list (for its CircuitoName), then the tipos.
-        waitForRequests(2)
+        // The bundled tipos show without any request.
+        compose.waitForIdle()
         compose.onNodeWithText("Tipo de asunto").performClick()
         compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Amparo Indirecto")).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Amparo Indirecto").performClick()
@@ -105,7 +104,9 @@ class SearchScreenTest {
         compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("28 acuerdos")).fetchSemanticsNodes().isNotEmpty() }
 
         compose.onNodeWithText("Último acuerdo publicado: 01/09/2026").performScrollTo().assertExists()
-        assertEquals(1, client.requests.count { "vercaptura.aspx" in it })
+        // One request in all: the case page itself.
+        assertEquals(1, client.requests.size)
+        assertTrue("vercaptura.aspx" in client.requests.single())
         compose.onRoot().saveScreenshot("search_found_light")
     }
 
@@ -130,18 +131,6 @@ class SearchScreenTest {
 
         compose.onNodeWithText("Circuito").assertExists()
         compose.onRoot().saveScreenshot("search_empty_dark")
-    }
-
-    /**
-     * Compose's waitUntil only pumps the main looper while the UI changes, so
-     * a request made after a second hop back to the main thread would never
-     * go out. Idle the looper explicitly.
-     */
-    private fun waitForRequests(count: Int) {
-        compose.waitUntil(TIMEOUT) {
-            shadowOf(Looper.getMainLooper()).idle()
-            client.requests.size == count
-        }
     }
 
     private companion object {

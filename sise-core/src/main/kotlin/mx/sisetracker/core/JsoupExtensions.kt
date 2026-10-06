@@ -26,6 +26,18 @@ internal fun Element.tableRows(): List<Element> =
         }
     }
 
+/**
+ * The row an ASP.NET grid shows instead of data when it has none: a single
+ * cell with no per-row span IDs or links, e.g. `<td colspan="5">No existen
+ * Sentencias asociadas para este expediente</td>` or, without a colspan (the
+ * grid then has no header row either), `<td>No existen Asuntos relacionados
+ * para este expediente</td>`.
+ */
+internal fun Element.isEmptyDataRow(): Boolean {
+    val cells = cells()
+    return cells.size == 1 && cells[0].select("[id], a").isEmpty()
+}
+
 /** The row's own `td` cells. */
 internal fun Element.cells(): List<Element> = children().filter { it.tagName() == "td" }
 
