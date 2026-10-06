@@ -46,7 +46,7 @@ class DailyCheck(
         for (case in cases.getCases()) {
             val refreshed = when (val result = portalCall { cases.refresh(case.neun) }) {
                 is PortalResult.Failed -> {
-                    if (result.error == PortalError.NETWORK) return Outcome.Stopped(result.error)
+                    if (result.error in STOPPING_ERRORS) return Outcome.Stopped(result.error)
                     continue
                 }
                 is PortalResult.Ok -> result.value
@@ -59,7 +59,7 @@ class DailyCheck(
             notified++
             for (acuerdo in newAcuerdos.filter { Resumen.isTruncated(it.resumen) }) {
                 val sintesis = portalCall { cases.sintesis(case.neun, acuerdo.orden) }
-                if (sintesis is PortalResult.Failed && sintesis.error == PortalError.NETWORK) {
+                if (sintesis is PortalResult.Failed && sintesis.error in STOPPING_ERRORS) {
                     return Outcome.Stopped(sintesis.error)
                 }
             }
@@ -68,6 +68,9 @@ class DailyCheck(
     }
 
     companion object {
+        /** Failures every later request would hit too: stop and retry another day. */
+        private val STOPPING_ERRORS = setOf(PortalError.NETWORK, PortalError.SECURE_CONNECTION)
+
         val EARLY_MARGIN_MILLIS: Long = TimeUnit.HOURS.toMillis(4)
     }
 }

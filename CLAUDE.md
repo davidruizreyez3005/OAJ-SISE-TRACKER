@@ -178,6 +178,20 @@ As built (`data/db` and `data/catalog` in `:app`):
 
 ## SISE protocol reference
 
+### TLS
+
+- www.dgej.cjf.gob.mx serves a Let's Encrypt "Gen Y" chain: leaf ← YR2 ←
+  ISRG Root YR (seen October 2026). Root YR isn't in Android's trust store
+  yet, and the server doesn't send the Root YR certificate cross-signed by
+  ISRG Root X1, so Android can't verify the portal ("no se pudo conectar")
+  even though Chrome can.
+- The app bundles Root YR (`res/raw/isrg_root_yr.pem`) and trusts it only
+  for `cjf.gob.mx` and its subdomains (`res/xml/network_security_config.xml`).
+  Verification stays on. `PortalTrustTest` checks a saved copy of the chain.
+- TLS failures surface as their own error (`PortalError.SECURE_CONNECTION`),
+  not as "no connection". If the portal changes CA again, update the bundled
+  root and the saved chain together.
+
 ### Search pages (classic ASP, windows-1252)
 
 The portal's search is a chain of plain form pages. The app reads steps A to D

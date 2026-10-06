@@ -107,6 +107,7 @@
     <string name="acuerdo_resumen_only">Por ahora se muestra el resumen.</string>
 
     <string name="error_network">No se pudo conectar con el portal. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="error_secure_connection">No se pudo verificar la conexión segura con el portal (certificado). Actualiza la app o usa «Abrir en el portal».</string>
     <string name="error_server">El portal no respondió correctamente. Inténtalo más tarde o usa «Abrir en el portal».</string>
     <string name="error_unexpected_page">El portal respondió con un formato inesperado; puede que haya cambiado. Usa «Abrir en el portal».</string>
 

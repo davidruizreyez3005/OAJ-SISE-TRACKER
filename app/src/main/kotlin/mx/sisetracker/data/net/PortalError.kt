@@ -1,6 +1,7 @@
 package mx.sisetracker.data.net
 
 import java.io.IOException
+import javax.net.ssl.SSLException
 import kotlin.coroutines.cancellation.CancellationException
 import mx.sisetracker.core.SiseParseException
 
@@ -8,6 +9,9 @@ import mx.sisetracker.core.SiseParseException
 enum class PortalError {
     /** No connection, timeout… */
     NETWORK,
+
+    /** The secure connection couldn't be verified (e.g. a certificate chain the device doesn't trust). */
+    SECURE_CONNECTION,
 
     /** The portal answered with an HTTP error. */
     SERVER,
@@ -30,6 +34,8 @@ suspend fun <T> portalCall(block: suspend () -> T): PortalResult<T> =
         throw e
     } catch (e: SiseHttpException) {
         PortalResult.Failed(PortalError.SERVER)
+    } catch (e: SSLException) {
+        PortalResult.Failed(PortalError.SECURE_CONNECTION)
     } catch (e: IOException) {
         PortalResult.Failed(PortalError.NETWORK)
     } catch (e: SiseParseException) {

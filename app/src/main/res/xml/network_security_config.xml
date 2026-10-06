@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The portal (www.dgej.cjf.gob.mx) serves a Let's Encrypt "Gen Y" chain:
+    leaf ← YR2 ← ISRG Root YR. Root YR is new and not yet in Android's (or most)
+    trust stores, and the server doesn't send the Root YR certificate
+    cross-signed by ISRG Root X1, so the system store alone can't build a path.
+    Chrome copes; the app and its WebView don't.
+
+    Fix: also trust ISRG Root YR (res/raw/isrg_root_yr.pem, from
+    letsencrypt.org/certs/gen-y/root-yr.pem; same key as the X1-signed
+    cross-sign), and only for the portal's domain. Verification stays on.
+    Root YR SHA-256: E5:7B:7E:6F:15:0C:41:91:02:E8:D5:C0:55:72:9F:F9:67:B9:D1:A8:29:BF:00:CE:C8:9C:A6:04:EB:F4:A8:6F
+    Remove once Root YR ships in Android's trust store for every supported
+    version (minSdk 26 devices never get root updates, so likely never).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">cjf.gob.mx</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/isrg_root_yr" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

@@ -47,6 +47,7 @@ fun MessageCard(
 @StringRes
 fun PortalError.messageRes(): Int = when (this) {
     PortalError.NETWORK -> R.string.error_network
+    PortalError.SECURE_CONNECTION -> R.string.error_secure_connection
     PortalError.SERVER -> R.string.error_server
     PortalError.UNEXPECTED_PAGE -> R.string.error_unexpected_page
 }
