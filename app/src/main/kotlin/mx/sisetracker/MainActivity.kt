@@ -10,18 +10,27 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.ui.AppViewModel
 import mx.sisetracker.ui.SiseNavHost
 import mx.sisetracker.ui.theme.SiseTrackerTheme
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        const val ACTION_OPEN_CASE = "mx.sisetracker.action.OPEN_CASE"
+        const val EXTRA_NEUN = "neun"
+    }
+
     private val appViewModel: AppViewModel by viewModels { AppViewModel.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableSiseEdgeToEdge()
-        if (savedInstanceState == null) handleShare(intent)
+        if (savedInstanceState == null) handleIntent(intent)
+        scheduleDailyCheck()
         setContent {
             SiseTrackerTheme {
                 SiseNavHost(appViewModel)
@@ -31,7 +40,27 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleShare(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        if (intent?.action == ACTION_OPEN_CASE) {
+            intent.getStringExtra(EXTRA_NEUN)?.let(appViewModel::openCase)
+        } else {
+            handleShare(intent)
+        }
+    }
+
+    /** Keeps the existing schedule; Settings applies changes. */
+    private fun scheduleDailyCheck() {
+        val container = (application as SiseApp).container
+        lifecycleScope.launch {
+            container.dailyCheckScheduler.apply(
+                enabled = container.settings.dailyCheckEnabled.first(),
+                intervalDays = container.settings.checkIntervalDays.first(),
+                replace = false,
+            )
+        }
     }
 
     /** A `vercaptura.aspx` link shared from another app opens the save sheet. */

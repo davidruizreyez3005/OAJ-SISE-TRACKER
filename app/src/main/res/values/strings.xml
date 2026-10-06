@@ -114,6 +114,38 @@
     <string name="capture_title">¿Guardar este expediente?</string>
     <string name="capture_ids">Organismo %1$s · Tipo de asunto %2$s</string>
     <string name="capture_procedimiento">Tipo de procedimiento %1$s</string>
+    <string name="acuerdo_search_title">Buscar en acuerdos</string>
+    <string name="acuerdo_search_field">Palabras del resumen o la síntesis</string>
+    <string name="acuerdo_search_hint">Escribe una o más palabras de al menos dos letras. Se busca en los acuerdos de tus expedientes guardados.</string>
+    <string name="acuerdo_search_empty">Sin resultados en tus expedientes guardados.</string>
+    <string name="acuerdo_search_result">%1$s · No. %2$s · %3$s</string>
+    <string name="acuerdo_search_open_case">Ver expediente</string>
+
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_daily_check">Revisión diaria</string>
+    <string name="settings_daily_check_help">Una vez al día, con conexión, revisa si tus expedientes guardados tienen acuerdos nuevos y te avisa.</string>
+    <plurals name="settings_interval">
+        <item quantity="one">Revisar cada día</item>
+        <item quantity="many">Revisar cada %d días</item>
+        <item quantity="other">Revisar cada %d días</item>
+    </plurals>
+    <string name="settings_refresh_catalogs">Actualizar catálogos</string>
+    <string name="settings_refresh_catalogs_help">Borra las listas del portal guardadas en el teléfono (tipos de asunto y de procedimiento); se vuelven a cargar cuando las necesites.</string>
+    <string name="settings_catalogs_cleared">Catálogos borrados. Se cargarán de nuevo al usarlos.</string>
+    <string name="settings_privacy">Los expedientes guardados y sus síntesis solo están en este teléfono: no se respaldan en la nube ni se transfieren a otro dispositivo.</string>
+
+    <string name="notifications_prompt">Activa las notificaciones para saber cuándo tus expedientes tienen acuerdos nuevos.</string>
+    <string name="notifications_allow">Permitir</string>
+    <string name="notifications_off">Notificaciones desactivadas</string>
+    <string name="notifications_off_help">La revisión diaria no podrá avisarte de acuerdos nuevos.</string>
+    <string name="notification_channel">Acuerdos nuevos</string>
+    <string name="notification_channel_description">Avisos de acuerdos nuevos en tus expedientes guardados. Solo muestran el expediente, el órgano y cuántos acuerdos hay.</string>
+    <plurals name="notification_new_acuerdos">
+        <item quantity="one">%1$d acuerdo nuevo en %2$s</item>
+        <item quantity="many">%1$d acuerdos nuevos en %2$s</item>
+        <item quantity="other">%1$d acuerdos nuevos en %2$s</item>
+    </plurals>
+
     <string name="error_no_browser">No hay un navegador para abrir el enlace.</string>
     <string name="share_no_case_link">El texto compartido no contiene un enlace de expediente del SISE.</string>
 </resources>

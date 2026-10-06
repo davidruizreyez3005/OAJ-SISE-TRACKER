@@ -17,6 +17,8 @@ import mx.sisetracker.ui.cases.CaseScreen
 import mx.sisetracker.ui.home.HomeScreen
 import mx.sisetracker.ui.portal.PortalScreen
 import mx.sisetracker.ui.search.SearchScreen
+import mx.sisetracker.ui.searchacuerdos.AcuerdoSearchScreen
+import mx.sisetracker.ui.settings.SettingsScreen
 
 @Serializable
 data object HomeRoute
@@ -38,6 +40,12 @@ data class CaseRoute(val neun: String)
 @Serializable
 data class AcuerdoRoute(val neun: String, val orden: Int)
 
+@Serializable
+data object AcuerdoSearchRoute
+
+@Serializable
+data object SettingsRoute
+
 @Composable
 fun SiseNavHost(
     appViewModel: AppViewModel,
@@ -56,7 +64,19 @@ fun SiseNavHost(
             HomeScreen(
                 onSearchClick = { navController.navigate(SearchRoute()) },
                 onOpenCase = { neun -> navController.navigate(CaseRoute(neun)) },
+                onSearchAcuerdos = { navController.navigate(AcuerdoSearchRoute) },
+                onSettings = { navController.navigate(SettingsRoute) },
             )
+        }
+        composable<AcuerdoSearchRoute> {
+            AcuerdoSearchScreen(
+                onBack = { navController.popBackStack() },
+                onOpenAcuerdo = { neun, orden -> navController.navigate(AcuerdoRoute(neun, orden)) },
+                onOpenCase = { neun -> navController.navigate(CaseRoute(neun)) },
+            )
+        }
+        composable<SettingsRoute> {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
         composable<SearchRoute> {
             SearchScreen(

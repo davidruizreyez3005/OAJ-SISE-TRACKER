@@ -63,6 +63,11 @@ class AppViewModel(private val cases: CaseRepository) : ViewModel() {
         }
     }
 
+    /** From a new-acuerdos notification. */
+    fun openCase(neun: String) {
+        _openCase.value = neun
+    }
+
     fun onCaseOpened() {
         _openCase.value = null
     }

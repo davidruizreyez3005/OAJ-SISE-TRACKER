@@ -73,6 +73,26 @@ abstract class CaseDao {
     @Query("UPDATE acuerdos SET seen = 1 WHERE neun = :neun AND seen = 0")
     abstract suspend fun markSeen(neun: String)
 
+    /** Full-text search over résumé and síntesis; [match] is an FTS4 expression (see FtsQuery). */
+    @Query(
+        """
+        SELECT a.neun, a.orden, a.numero, a.fechaPublicacion, c.expediente, c.organoName,
+            snippet(acuerdos_fts, :snippetStart, :snippetEnd, '…', -1, 24) AS snippet
+        FROM acuerdos_fts
+        JOIN acuerdos a ON a.rowid = acuerdos_fts.rowid
+        JOIN cases c ON c.neun = a.neun
+        WHERE acuerdos_fts MATCH :match
+        ORDER BY a.fechaPublicacion DESC, a.orden DESC
+        LIMIT :limit
+        """,
+    )
+    abstract suspend fun searchAcuerdos(
+        match: String,
+        snippetStart: String,
+        snippetEnd: String,
+        limit: Int,
+    ): List<AcuerdoSearchResult>
+
     @Query("SELECT * FROM resoluciones WHERE neun = :neun ORDER BY position")
     abstract fun observeResoluciones(neun: String): Flow<List<ResolucionEntity>>
 

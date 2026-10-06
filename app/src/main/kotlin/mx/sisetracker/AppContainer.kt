@@ -2,8 +2,12 @@ package mx.sisetracker
 
 import android.app.Application
 import androidx.room.Room
+import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 import mx.sisetracker.data.cases.CaseRepository
+import mx.sisetracker.data.check.DailyCheck
+import mx.sisetracker.data.check.DailyCheckScheduler
+import mx.sisetracker.data.check.SystemNewAcuerdosNotifier
 import mx.sisetracker.data.catalog.CatalogDatabase
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.db.SiseDatabase
@@ -55,4 +59,12 @@ class AppContainer(private val app: Application) {
     val caseRepository: CaseRepository by lazy { CaseRepository(database, siseClient, lookupRepository) }
 
     val settings: SettingsStore by lazy { SettingsStore(app.settingsDataStore) }
+
+    val dailyCheck: DailyCheck by lazy {
+        DailyCheck(caseRepository, settings, SystemNewAcuerdosNotifier(app))
+    }
+
+    val dailyCheckScheduler: DailyCheckScheduler by lazy {
+        DailyCheckScheduler { WorkManager.getInstance(app) }
+    }
 }

@@ -199,4 +199,20 @@ class CaseRepositoryTest {
         assertTrue(db.ftsOrdenes("extradicion").isEmpty())
         assertTrue(repository.observeSummaries().first().isEmpty())
     }
+
+    @Test
+    fun `search finds saved acuerdos newest first, ignoring accents, with highlighted matches`() = runTest {
+        repository.save(url, page)
+
+        val results = repository.searchAcuerdos("extradicion")
+
+        assertTrue(results.isNotEmpty())
+        assertEquals(results.sortedByDescending { it.fechaPublicacion }, results)
+        val first = results.last()
+        assertEquals("1183/2025", first.expediente)
+        assertTrue(first.snippet.contains("\u0002extradición\u0003"))
+        assertTrue(repository.searchAcuerdos("").isEmpty())
+        assertTrue(repository.searchAcuerdos("zzzinexistente").isEmpty())
+        assertTrue(client.requests.isEmpty())
+    }
 }

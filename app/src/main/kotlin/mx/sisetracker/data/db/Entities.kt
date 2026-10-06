@@ -119,6 +119,24 @@ data class CaseSummary(
     val latestPublicacion: LocalDate?,
 )
 
+/** One hit of the full-text search over saved acuerdos. */
+data class AcuerdoSearchResult(
+    val neun: String,
+    val orden: Int,
+    val numero: String,
+    val fechaPublicacion: LocalDate,
+    val expediente: String,
+    val organoName: String,
+    /** A short excerpt, with each match between [SnippetMarkers.START] and [SnippetMarkers.END]. */
+    val snippet: String,
+)
+
+/** Control characters around the matches in a search snippet; they never occur in case text. */
+object SnippetMarkers {
+    const val START = "\u0002"
+    const val END = "\u0003"
+}
+
 /** An órgano known from a saved case, with the tipo de asunto it was saved under. */
 data class SavedOrgano(
     val organismoId: String,

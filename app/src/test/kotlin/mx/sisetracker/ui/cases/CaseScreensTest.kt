@@ -12,12 +12,21 @@ import mx.sisetracker.core.SintesisPageParser
 import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.db.SiseDatabase
 import mx.sisetracker.data.lookup.LookupRepository
+import mx.sisetracker.data.settings.SettingsStore
 import mx.sisetracker.testing.FakeSiseClient
+import mx.sisetracker.testing.InMemoryPreferences
 import mx.sisetracker.testing.Fixtures
 import mx.sisetracker.testing.inMemoryDatabase
 import mx.sisetracker.testing.parseCase
 import mx.sisetracker.testing.saveScreenshot
+import mx.sisetracker.data.catalog.CatalogRepository
+import mx.sisetracker.data.check.DailyCheckScheduler
+import mx.sisetracker.testing.FakeCatalogDao
 import mx.sisetracker.ui.acuerdo.AcuerdoScreen
+import mx.sisetracker.ui.searchacuerdos.AcuerdoSearchScreen
+import mx.sisetracker.ui.searchacuerdos.AcuerdoSearchViewModel
+import mx.sisetracker.ui.settings.SettingsScreen
+import mx.sisetracker.ui.settings.SettingsViewModel
 import mx.sisetracker.ui.acuerdo.AcuerdoViewModel
 import mx.sisetracker.ui.home.HomeScreen
 import mx.sisetracker.ui.home.HomeViewModel
@@ -70,7 +79,7 @@ class CaseScreensTest {
 
     @Test
     fun `home shows the empty state`() {
-        val viewModel = HomeViewModel(repository)
+        val viewModel = HomeViewModel(repository, SettingsStore(InMemoryPreferences()))
         compose.setContent { SiseTrackerTheme { HomeScreen(onSearchClick = {}, onOpenCase = {}, viewModel = viewModel) } }
 
         waitForText("Aún no guardas expedientes")
@@ -80,7 +89,7 @@ class CaseScreensTest {
     @Test
     fun `home lists saved cases with their new acuerdos and filters them`() {
         saveWithNewAcuerdo()
-        val viewModel = HomeViewModel(repository)
+        val viewModel = HomeViewModel(repository, SettingsStore(InMemoryPreferences()))
         compose.setContent { SiseTrackerTheme { HomeScreen(onSearchClick = {}, onOpenCase = {}, viewModel = viewModel) } }
 
         waitForText("1183/2025")
@@ -173,5 +182,44 @@ class CaseScreensTest {
         compose.waitUntil(5_000) {
             compose.onAllNodes(hasText(text, substring = substring)).fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    @Test
+    fun `acuerdo search shows highlighted results that open the acuerdo`() {
+        runBlocking { repository.save(url, page) }
+        var opened: Pair<String, Int>? = null
+        val viewModel = AcuerdoSearchViewModel(repository)
+        compose.setContent {
+            SiseTrackerTheme {
+                AcuerdoSearchScreen(onBack = {}, onOpenAcuerdo = { n, o -> opened = n to o }, onOpenCase = {}, viewModel = viewModel)
+            }
+        }
+
+        compose.onNodeWithText("Palabras del resumen o la síntesis").performTextInput("sin materia")
+        waitForText("1183/2025 · No. 3 · 08/12/2025")
+        compose.onRoot().saveScreenshot("acuerdo_search_light")
+        compose.onNodeWithText("1183/2025 · No. 3 · 08/12/2025").performClick()
+
+        assertEquals(neun to 4, opened)
+        assertEquals(0, client.requests.size)
+    }
+
+    @Test
+    fun `settings show the daily check and catalog refresh`() {
+        val context = org.robolectric.RuntimeEnvironment.getApplication()
+        androidx.work.testing.WorkManagerTestInitHelper.initializeTestWorkManager(context)
+        val settings = SettingsStore(InMemoryPreferences())
+        val viewModel = SettingsViewModel(
+            settings,
+            DailyCheckScheduler { androidx.work.WorkManager.getInstance(context) },
+            CatalogRepository(FakeCatalogDao(), client),
+        )
+        compose.setContent { SiseTrackerTheme { SettingsScreen(onBack = {}, viewModel = viewModel) } }
+
+        waitForText("Revisión diaria")
+        compose.onNodeWithText("Revisar cada día").assertExists()
+        compose.onRoot().saveScreenshot("settings_light")
+        compose.onNodeWithText("Actualizar catálogos").performClick()
+        waitForText("Catálogos borrados. Se cargarán de nuevo al usarlos.")
     }
 }

@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -23,6 +25,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -37,7 +40,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.sisetracker.R
 import mx.sisetracker.core.SiseDates
 import mx.sisetracker.data.db.CaseSummary
+import mx.sisetracker.ui.components.MessageCard
 import mx.sisetracker.ui.components.NewBadge
+import mx.sisetracker.ui.components.rememberNotificationPermission
 import mx.sisetracker.ui.components.SiseTopAppBar
 
 /** "Mis expedientes": the saved cases, with a filter by expediente or órgano. */
@@ -45,23 +50,34 @@ import mx.sisetracker.ui.components.SiseTopAppBar
 fun HomeScreen(
     onSearchClick: () -> Unit,
     onOpenCase: (neun: String) -> Unit,
-    actions: @Composable () -> Unit = {},
+    onSearchAcuerdos: () -> Unit = {},
+    onSettings: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val notifications = rememberNotificationPermission()
 
     Scaffold(
         topBar = {
             SiseTopAppBar(
                 title = stringResource(R.string.home_title),
-                actions = { actions() },
+                actions = {
+                    if (state.savedCount > 0) {
+                        IconButton(onClick = onSearchAcuerdos) {
+                            Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.acuerdo_search_title))
+                        }
+                    }
+                    IconButton(onClick = onSettings) {
+                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
+                    }
+                },
             )
         },
         floatingActionButton = {
             if (state.savedCount > 0) {
                 ExtendedFloatingActionButton(
                     onClick = onSearchClick,
-                    icon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                     text = { Text(stringResource(R.string.home_search_button)) },
                 )
             }
@@ -77,6 +93,20 @@ fun HomeScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                if (state.suggestNotifications && !notifications.granted) {
+                    item {
+                        MessageCard(text = stringResource(R.string.notifications_prompt)) {
+                            Row {
+                                TextButton(onClick = notifications.request) {
+                                    Text(stringResource(R.string.notifications_allow))
+                                }
+                                TextButton(onClick = viewModel::onDismissNotificationPrompt) {
+                                    Text(stringResource(R.string.action_not_now))
+                                }
+                            }
+                        }
+                    }
+                }
                 item {
                     OutlinedTextField(
                         value = state.filter,

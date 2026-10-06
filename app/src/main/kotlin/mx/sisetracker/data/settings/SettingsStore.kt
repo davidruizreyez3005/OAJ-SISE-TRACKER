@@ -3,7 +3,10 @@ package mx.sisetracker.data.settings
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +34,35 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         prefs[RECENT_ORGANOS]?.let(::decodeRecents).orEmpty()
     }
 
+    /** The once-a-day background check for new acuerdos (on by default). */
+    val dailyCheckEnabled: Flow<Boolean> = dataStore.data.map { it[DAILY_CHECK] ?: true }
+
+    /** Days between background checks, 1 to 7. */
+    val checkIntervalDays: Flow<Int> = dataStore.data.map {
+        (it[CHECK_INTERVAL_DAYS] ?: 1).coerceIn(MIN_INTERVAL_DAYS, MAX_INTERVAL_DAYS)
+    }
+
+    /** When the last background check started (epoch millis). */
+    val lastBackgroundCheckAt: Flow<Long?> = dataStore.data.map { it[LAST_BACKGROUND_CHECK] }
+
+    val notificationPromptDismissed: Flow<Boolean> = dataStore.data.map { it[NOTIFICATION_PROMPT_DISMISSED] ?: false }
+
+    suspend fun setDailyCheckEnabled(enabled: Boolean) {
+        dataStore.edit { it[DAILY_CHECK] = enabled }
+    }
+
+    suspend fun setCheckIntervalDays(days: Int) {
+        dataStore.edit { it[CHECK_INTERVAL_DAYS] = days.coerceIn(MIN_INTERVAL_DAYS, MAX_INTERVAL_DAYS) }
+    }
+
+    suspend fun setLastBackgroundCheckAt(time: Long) {
+        dataStore.edit { it[LAST_BACKGROUND_CHECK] = time }
+    }
+
+    suspend fun dismissNotificationPrompt() {
+        dataStore.edit { it[NOTIFICATION_PROMPT_DISMISSED] = true }
+    }
+
     suspend fun setLastCircuito(circuito: String) {
         dataStore.edit { it[LAST_CIRCUITO] = circuito }
     }
@@ -55,8 +87,14 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
 
     companion object {
         const val MAX_RECENTS = 8
+        const val MIN_INTERVAL_DAYS = 1
+        const val MAX_INTERVAL_DAYS = 7
         private val LAST_CIRCUITO = stringPreferencesKey("last_circuito")
         private val RECENT_ORGANOS = stringPreferencesKey("recent_organos")
+        private val DAILY_CHECK = booleanPreferencesKey("daily_check")
+        private val CHECK_INTERVAL_DAYS = intPreferencesKey("check_interval_days")
+        private val LAST_BACKGROUND_CHECK = longPreferencesKey("last_background_check")
+        private val NOTIFICATION_PROMPT_DISMISSED = booleanPreferencesKey("notification_prompt_dismissed")
         private val json = Json { ignoreUnknownKeys = true }
     }
 }

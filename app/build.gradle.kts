@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.room)
 }
 
+// Release builds are signed only when these are set (the release workflow sets
+// them from repository secrets); otherwise assembleRelease leaves the APK unsigned.
+val releaseKeystore = providers.environmentVariable("SISE_KEYSTORE_PATH").orNull
+
 android {
     namespace = "mx.sisetracker"
     compileSdk = 37
@@ -14,12 +18,26 @@ android {
         applicationId = "mx.sisetracker"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        // CI passes the tag and run number, so each released APK installs over the last.
+        versionCode = providers.environmentVariable("SISE_VERSION_CODE").map { it.toInt() }.getOrElse(1)
+        versionName = providers.environmentVariable("SISE_VERSION_NAME").getOrElse("0.1.0")
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.environmentVariable("SISE_KEYSTORE_PASSWORD").orNull
+                keyAlias = providers.environmentVariable("SISE_KEY_ALIAS").orNull
+                keyPassword = providers.environmentVariable("SISE_KEY_PASSWORD").orNull
+            }
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
+            // R8 stays off until a minified build has been checked on a device.
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -69,6 +87,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.browser)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
@@ -90,6 +109,7 @@ dependencies {
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.work.testing)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
 }

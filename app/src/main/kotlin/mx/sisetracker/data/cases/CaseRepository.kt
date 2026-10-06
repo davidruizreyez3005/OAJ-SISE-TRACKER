@@ -11,11 +11,13 @@ import mx.sisetracker.core.AcuerdoDiff
 import mx.sisetracker.core.CaseLookup
 import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.FtsQuery
 import mx.sisetracker.core.Resumen
 import mx.sisetracker.core.SintesisPageParser
 import mx.sisetracker.core.SiseParseException
 import mx.sisetracker.core.VerAcuerdoUrl
 import mx.sisetracker.data.db.AcuerdoEntity
+import mx.sisetracker.data.db.AcuerdoSearchResult
 import mx.sisetracker.data.db.AsuntoRelacionadoEntity
 import mx.sisetracker.data.db.CapturaEntryEntity
 import mx.sisetracker.data.db.CaseEntity
@@ -23,6 +25,7 @@ import mx.sisetracker.data.db.CaseSummary
 import mx.sisetracker.data.db.ResolucionEntity
 import mx.sisetracker.data.db.SavedOrgano
 import mx.sisetracker.data.db.SiseDatabase
+import mx.sisetracker.data.db.SnippetMarkers
 import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.net.SiseClient
 
@@ -85,6 +88,12 @@ class CaseRepository(
     fun observeCaptura(neun: String): Flow<List<CapturaEntryEntity>> = dao.observeCaptura(neun)
 
     suspend fun getCases(): List<CaseEntity> = dao.getCases()
+
+    /** Full-text search over every saved résumé and síntesis, newest first. Empty for an empty query. */
+    suspend fun searchAcuerdos(input: String, limit: Int = SEARCH_LIMIT): List<AcuerdoSearchResult> {
+        val match = FtsQuery.from(input) ?: return emptyList()
+        return dao.searchAcuerdos(match, SnippetMarkers.START, SnippetMarkers.END, limit)
+    }
 
     override suspend fun isSaved(neun: String): Boolean = dao.getCase(neun) != null
 
@@ -235,4 +244,8 @@ class CaseRepository(
         firstSeenAt = firstSeenAt,
         seen = seen,
     )
+
+    private companion object {
+        const val SEARCH_LIMIT = 100
+    }
 }
