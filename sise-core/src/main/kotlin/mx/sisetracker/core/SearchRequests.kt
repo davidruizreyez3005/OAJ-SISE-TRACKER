@@ -1,20 +1,21 @@
 package mx.sisetracker.core
 
 import java.net.URLEncoder
+import java.nio.charset.Charset
 
 /**
  * A form POST to the portal's classic ASP pages.
  *
- * Those pages are ISO-8859-1, and `CircuitoName`/`OrgName` carry accents, so
- * the body is percent-encoded from ISO-8859-1 bytes ("México" becomes
+ * Those pages are windows-1252, and `CircuitoName`/`OrgName` carry accents, so
+ * the body is percent-encoded from windows-1252 bytes ("México" becomes
  * `M%E9xico`). The result is plain ASCII: send [body] as-is, never through a
  * form builder that re-encodes it as UTF-8.
  */
 class FormRequest(val url: String, val fields: List<Pair<String, String>>) {
     init {
         fields.forEach { (name, value) ->
-            require(latin1.canEncode(name) && latin1.canEncode(value)) {
-                "$name can't be sent to an ISO-8859-1 form: '$value'"
+            require(windows1252.canEncode(name) && windows1252.canEncode(value)) {
+                "$name can't be sent to a windows-1252 form: '$value'"
             }
         }
     }
@@ -29,10 +30,13 @@ class FormRequest(val url: String, val fields: List<Pair<String, String>>) {
     companion object {
         const val CONTENT_TYPE = "application/x-www-form-urlencoded"
 
-        private val latin1 get() = Charsets.ISO_8859_1.newEncoder()
+        /** The search pages' charset, a superset of ISO-8859-1. */
+        const val CHARSET = "windows-1252"
+
+        private val windows1252 get() = Charset.forName(CHARSET).newEncoder()
 
         // Charset-name overload: the Charset one needs Android API 33.
-        private fun encode(text: String): String = URLEncoder.encode(text, "ISO-8859-1")
+        private fun encode(text: String): String = URLEncoder.encode(text, CHARSET)
     }
 }
 

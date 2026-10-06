@@ -16,7 +16,10 @@ interface SiseClient {
     /** GETs an ASP.NET page (UTF-8): a case page or a síntesis page. */
     suspend fun getPage(url: String): String
 
-    /** POSTs one of the classic ASP search forms (ISO-8859-1). */
+    /** GETs a classic ASP search page (windows-1252): a circuit's órgano list. */
+    suspend fun getFormPage(url: String): String
+
+    /** POSTs one of the classic ASP search forms (windows-1252). */
     suspend fun postForm(request: FormRequest): String
 }
 
@@ -32,11 +35,14 @@ class OkHttpSiseClient(
     override suspend fun getPage(url: String): String =
         execute(Request.Builder().url(url).get(), Charsets.UTF_8)
 
-    // The body is already percent-encoded from ISO-8859-1 bytes; it goes out as-is.
+    override suspend fun getFormPage(url: String): String =
+        execute(Request.Builder().url(url).get(), formPageCharset)
+
+    // The body is already percent-encoded from windows-1252 bytes; it goes out as-is.
     override suspend fun postForm(request: FormRequest): String =
         execute(
             Request.Builder().url(request.url).post(request.body.toRequestBody(formMediaType)),
-            Charsets.ISO_8859_1,
+            formPageCharset,
         )
 
     private suspend fun execute(builder: Request.Builder, pageCharset: Charset): String =
@@ -53,5 +59,6 @@ class OkHttpSiseClient(
 
     private companion object {
         val formMediaType = FormRequest.CONTENT_TYPE.toMediaType()
+        val formPageCharset: Charset = Charset.forName(FormRequest.CHARSET)
     }
 }

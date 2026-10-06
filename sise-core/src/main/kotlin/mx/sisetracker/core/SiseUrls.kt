@@ -11,7 +11,7 @@ object SiseUrls {
     /** Full síntesis of one acuerdo (ASP.NET, UTF-8): a public GET, see [VerAcuerdoUrl]. */
     const val VER_ACUERDO = "https://$HOST/siseinternet/Actuaria/VerAcuerdo.aspx"
 
-    /** The portal's search form (classic ASP, ISO-8859-1). */
+    /** The portal's search form (classic ASP, windows-1252). */
     const val SEARCH_FORM = "https://$HOST/internet/expedientes/ExpedienteyTipo.asp"
 
     /** A circuit's órgano list, where a search on the portal starts (step B). */

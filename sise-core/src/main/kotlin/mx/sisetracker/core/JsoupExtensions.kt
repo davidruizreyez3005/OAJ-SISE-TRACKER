@@ -28,3 +28,21 @@ internal fun Element.tableRows(): List<Element> =
 
 /** The row's own `td` cells. */
 internal fun Element.cells(): List<Element> = children().filter { it.tagName() == "td" }
+
+/**
+ * A dropdown's options in page order, value and label exactly as given (labels
+ * whitespace-normalized), skipping only placeholders: value `0`, `-1` or empty.
+ */
+internal fun Element.dropdownOptions(): List<FormOption> =
+    select("option")
+        .filterNot { isPlaceholderValue(it.attr("value")) }
+        .mapIndexed { position, option ->
+            FormOption(
+                value = option.attr("value").trim(),
+                label = SiseText.normalizeSpace(option.text()),
+                position = position,
+                selected = option.hasAttr("selected"),
+            )
+        }
+
+private fun isPlaceholderValue(value: String): Boolean = value.trim().let { it.isEmpty() || it == "0" || it == "-1" }

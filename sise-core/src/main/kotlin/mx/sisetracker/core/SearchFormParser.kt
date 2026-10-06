@@ -5,7 +5,7 @@ import org.jsoup.nodes.Element
 
 /**
  * Parses the search form on `ExpedienteyTipo.asp` (steps C and D). The page is
- * ISO-8859-1 on the wire; the caller passes it already decoded.
+ * windows-1252 on the wire; the caller passes it already decoded.
  *
  * The reCAPTCHA in `div#recaptchaArea` is deliberately ignored (hard rule 1).
  */
@@ -19,8 +19,8 @@ object SearchFormParser {
             ?: throw SiseParseException("Search form has no TipoAsunto select")
         val expediente = form.selectFirst("input[name=Expediente]")
         return SearchForm(
-            tipoAsuntoOptions = options(tipoAsunto),
-            tipoProcedimientoOptions = form.selectFirst("select[name=TipoProcedimiento]")?.let(::options).orEmpty(),
+            tipoAsuntoOptions = tipoAsunto.dropdownOptions(),
+            tipoProcedimientoOptions = form.selectFirst("select[name=TipoProcedimiento]")?.dropdownOptions().orEmpty(),
             isTipoProcedimientoShown = currentValue(tipoAsunto)?.let(TipoProcedimientoRule::isShown) ?: false,
             expediente = expediente?.attr("value").orEmpty(),
             expedienteMaxLength = expediente?.attr("maxlength")?.trim()?.toIntOrNull(),
@@ -30,24 +30,9 @@ object SearchFormParser {
         )
     }
 
-    /** Every option in page order, skipping only placeholders (value `0` or empty). */
-    private fun options(select: Element): List<FormOption> =
-        select.select("option")
-            .filterNot { isPlaceholder(it.attr("value")) }
-            .mapIndexed { position, option ->
-                FormOption(
-                    value = option.attr("value").trim(),
-                    label = SiseText.normalizeSpace(option.text()),
-                    position = position,
-                    selected = option.hasAttr("selected"),
-                )
-            }
-
     /** What the browser would read as the select's value: the selected option, else the first. */
     private fun currentValue(select: Element): String? {
         val options = select.select("option")
         return (options.firstOrNull { it.hasAttr("selected") } ?: options.firstOrNull())?.attr("value")
     }
-
-    private fun isPlaceholder(value: String): Boolean = value.isBlank() || value.trim() == "0"
 }

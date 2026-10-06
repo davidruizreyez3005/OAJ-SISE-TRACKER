@@ -43,8 +43,8 @@ class OkHttpSiseClientTest {
     }
 
     @Test
-    fun `asp form posts send the ISO-8859-1 body as-is and default to ISO-8859-1`() = runTest {
-        network.respond("Ejecución de Penas".toByteArray(Charsets.ISO_8859_1), "text/html")
+    fun `asp form posts send the windows-1252 body as-is and default to windows-1252`() = runTest {
+        network.respond("Ejecución de Penas “Norte”".toByteArray(charset("windows-1252")), "text/html")
         val request = FormRequest(
             "https://www.dgej.cjf.gob.mx/internet/expedientes/ExpedienteyTipo.asp",
             listOf("CircuitoName" to "PRIMER CIRCUITO", "OrgName" to "México"),
@@ -52,11 +52,21 @@ class OkHttpSiseClientTest {
 
         val html = client.postForm(request)
 
-        assertEquals("Ejecución de Penas", html)
+        assertEquals("Ejecución de Penas “Norte”", html)
         val sent = network.requests.single()
         assertEquals("POST", sent.method)
         assertEquals("application/x-www-form-urlencoded", sent.body?.contentType().toString())
         assertArrayEquals("CircuitoName=PRIMER+CIRCUITO&OrgName=M%E9xico".toByteArray(), network.bodies.single())
+    }
+
+    @Test
+    fun `asp pages fetched with GET default to windows-1252`() = runTest {
+        network.respond("Comisión de Disciplina".toByteArray(charset("windows-1252")), "text/html")
+
+        val html = client.getFormPage("https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=1&Exp=1")
+
+        assertEquals("Comisión de Disciplina", html)
+        assertEquals("GET", network.requests.single().method)
     }
 
     @Test

@@ -36,7 +36,7 @@ class SearchRequestsTest {
     }
 
     @Test
-    fun `accents are encoded as ISO-8859-1`() {
+    fun `accents are encoded as windows-1252`() {
         val orgName = "Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México"
         val withOrgName = form.copy(hiddenFields = form.hiddenFields + ("OrgName" to orgName))
 
@@ -46,13 +46,13 @@ class SearchRequestsTest {
             "Juzgado+Sexto+de+Distrito+en+Materia+Penal+en+la+Ciudad+de+M%E9xico",
             encodedValue(request, "OrgName"),
         )
-        // Plain ASCII on the wire, and it decodes back as ISO-8859-1.
+        // Plain ASCII on the wire, and it decodes back as windows-1252.
         assertArrayEquals(request.encodedBody.toByteArray(Charsets.US_ASCII), request.body)
-        assertEquals(orgName, URLDecoder.decode(encodedValue(request, "OrgName"), "ISO-8859-1"))
+        assertEquals(orgName, URLDecoder.decode(encodedValue(request, "OrgName"), "windows-1252"))
     }
 
     @Test
-    fun `PRIMER CIRCUITO and Mexico match the ISO-8859-1 bytes`() {
+    fun `PRIMER CIRCUITO and Mexico match the windows-1252 bytes`() {
         val request = FormRequest(SiseUrls.SEARCH_FORM, listOf("CircuitoName" to "PRIMER CIRCUITO", "OrgName" to "México"))
 
         assertEquals("CircuitoName=PRIMER+CIRCUITO&OrgName=M%E9xico", request.encodedBody)
@@ -61,10 +61,17 @@ class SearchRequestsTest {
     }
 
     @Test
-    fun `rejects text that ISO-8859-1 can't carry`() {
+    fun `rejects text that windows-1252 can't carry`() {
         assertThrows<IllegalArgumentException> {
-            FormRequest(SiseUrls.SEARCH_FORM, listOf("Expediente" to "12/2026 — A"))
+            FormRequest(SiseUrls.SEARCH_FORM, listOf("Expediente" to "12/2026 → A"))
         }
+    }
+
+    @Test
+    fun `windows-1252 punctuation that ISO-8859-1 lacks is encoded`() {
+        val request = FormRequest(SiseUrls.SEARCH_FORM, listOf("OrgName" to "Juzgado “Primero” — México"))
+
+        assertEquals("OrgName=Juzgado+%93Primero%94+%97+M%E9xico", request.encodedBody)
     }
 
     @Test

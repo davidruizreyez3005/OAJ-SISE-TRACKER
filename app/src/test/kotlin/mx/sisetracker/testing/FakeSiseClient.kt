@@ -15,6 +15,11 @@ class FakeSiseClient : SiseClient {
         return onGet(url)
     }
 
+    override suspend fun getFormPage(url: String): String {
+        requests += "GET $url"
+        return onGet(url)
+    }
+
     override suspend fun postForm(request: FormRequest): String {
         requests += "POST ${request.url} ${request.encodedBody}"
         return onPost(request)

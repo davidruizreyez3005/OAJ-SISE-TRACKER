@@ -18,6 +18,8 @@ import kotlinx.coroutines.launch
 import mx.sisetracker.container
 import mx.sisetracker.core.CaseLookup
 import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.Circuito
+import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.FormOption
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SearchText
@@ -33,10 +35,12 @@ import mx.sisetracker.data.settings.SettingsStore
 import mx.sisetracker.ui.SearchRoute
 
 /**
- * The native search screen. Every portal request here is user-triggered: the
- * tipos load when an órgano is picked or the dropdown is opened, procedimientos
- * when a tipo that needs them is picked, and the lookup on "Buscar" (one per
- * tap; the button is disabled while it runs).
+ * The native search screen. Every portal request here is user-triggered: a
+ * circuit's órganos load when the circuit is picked or the Órgano field is
+ * opened, the tipos when an órgano is picked or their dropdown is opened,
+ * procedimientos when a tipo that needs them is picked, and the lookup on
+ * "Buscar" (one per tap; the button is disabled while it runs). Anything
+ * cached shows without a request.
  */
 class SearchViewModel(
     private val catalog: CatalogRepository,
@@ -49,13 +53,15 @@ class SearchViewModel(
     private val _state = MutableStateFlow(SearchUiState(expediente = prefill.expediente.orEmpty()))
     val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
+    private var organosJob: Job? = null
     private var tiposJob: Job? = null
     private var procedimientosJob: Job? = null
 
     init {
         viewModelScope.launch {
-            val last = settings.lastCircuito.first()
-            if (!last.isNullOrBlank()) _state.update { if (it.circuito.isEmpty()) it.copy(circuito = last) else it }
+            // Only a circuit from the list: earlier versions took any typed number.
+            val last = settings.lastCircuito.first()?.let(Circuitos::byNum)
+            if (last != null && _state.value.circuito.isEmpty()) switchCircuito(last.num, fetch = false)
         }
         viewModelScope.launch {
             var prefilled = false
@@ -69,8 +75,18 @@ class SearchViewModel(
         }
     }
 
-    fun onCircuitoChange(text: String) {
-        _state.update { it.copy(circuito = text.filter(Char::isDigit).take(MAX_CIRCUITO_LENGTH)) }
+    fun onCircuitoSelected(circuito: Circuito) {
+        if (circuito.num == _state.value.circuito) return
+        switchCircuito(circuito.num, fetch = true)
+        viewModelScope.launch { settings.setLastCircuito(circuito.num) }
+    }
+
+    /** The user opened the Órgano field: load the circuit's list if it isn't there yet. */
+    fun onOrganosRequested() {
+        when (_state.value.organos) {
+            Loadable.Idle, is Loadable.Failed -> loadOrganos(fetch = true)
+            else -> Unit
+        }
     }
 
     fun onKindFilterChange(kind: OrganoKind?) {
@@ -84,16 +100,21 @@ class SearchViewModel(
         val organo = when {
             state.organo != null && state.organo.name.isNotEmpty() && text == state.organo.name -> state.organo
             trimmed.isNotEmpty() && trimmed.all(Char::isDigit) ->
-                state.knownOrganos.firstOrNull { it.id == trimmed } ?: KnownOrgano(id = trimmed, name = "")
+                (state.organos as? Loadable.Loaded)?.value?.firstOrNull { it.id == trimmed }
+                    ?: state.knownOrganos.firstOrNull { it.id == trimmed }
+                    ?: KnownOrgano(id = trimmed, name = "", circuito = state.circuito.ifBlank { null })
             else -> null
         }
         setOrgano(organo, text)
     }
 
     fun onOrganoSelected(organo: KnownOrgano) {
-        if (organo.circuito != null) _state.update { it.copy(circuito = organo.circuito) }
-        setOrgano(organo, organo.name)
-        loadTiposAsunto()
+        viewModelScope.launch {
+            val circuito = organo.circuito ?: circuitoOf(organo.id)
+            if (circuito != null && circuito != _state.value.circuito) switchCircuito(circuito, fetch = false)
+            setOrgano(organo.copy(circuito = circuito), organo.name)
+            loadTiposAsunto()
+        }
     }
 
     /** The user opened the "Tipo de asunto" dropdown. */
@@ -204,13 +225,21 @@ class SearchViewModel(
 
     /**
      * "Buscar este expediente" from a related case: the expediente always, and
-     * the órgano and tipo de asunto when known órganos and cached catalogs
-     * match their names exactly. Makes no request.
+     * the circuit, órgano and tipo de asunto when cached catalogs or known
+     * órganos match their names exactly. Makes no request.
      */
     private suspend fun applyPrefill(known: List<KnownOrgano>, saved: List<SavedOrgano>) {
         val organoName = prefill.organoName?.takeIf { it.isNotBlank() } ?: return
-        val organo = known.firstOrNull { SearchText.sameName(it.name, organoName) } ?: return
-        if (organo.circuito != null) _state.update { it.copy(circuito = organo.circuito) }
+        val fromCatalog = catalog.findCachedOrganos(organoName)
+            .distinctBy { it.organo.id }
+            .singleOrNull()
+            ?.let { KnownOrgano(it.organo.id, it.organo.name, it.circuito) }
+        val organo = fromCatalog
+            ?: known.firstOrNull { SearchText.sameName(it.name, organoName) }?.let { it.copy(circuito = it.circuito ?: circuitoOf(it.id)) }
+            ?: return
+        if (organo.circuito != null && organo.circuito != _state.value.circuito) {
+            switchCircuito(organo.circuito, fetch = false)
+        }
         setOrgano(organo, organo.name)
 
         val tipoName = prefill.tipoAsuntoName?.takeIf { it.isNotBlank() } ?: return
@@ -225,6 +254,50 @@ class SearchViewModel(
                 tipoAsunto = tipo,
             )
         }
+    }
+
+    /**
+     * Changes the circuit, keeping the órgano only if it belongs to it, and
+     * shows the circuit's órgano list: from the cache, or with [fetch] one
+     * request for it.
+     */
+    private fun switchCircuito(circuito: String, fetch: Boolean) {
+        organosJob?.cancel()
+        _state.update { it.copy(circuito = circuito, organos = Loadable.Idle) }
+        val organo = _state.value.organo
+        if (organo != null && organo.circuito != circuito) setOrgano(null, "")
+        loadOrganos(fetch)
+    }
+
+    private fun loadOrganos(fetch: Boolean) {
+        val circuito = _state.value.circuito.takeIf { it.isNotBlank() } ?: return
+        organosJob?.cancel()
+        organosJob = viewModelScope.launch {
+            val cached = catalog.cachedOrganos(circuito)
+            if (cached == null && !fetch) return@launch
+            val result = if (cached != null) {
+                PortalResult.Ok(cached)
+            } else {
+                _state.update { if (it.circuito == circuito) it.copy(organos = Loadable.Loading) else it }
+                portalCall { catalog.organos(circuito) }
+            }
+            _state.update { current ->
+                if (current.circuito != circuito) return@update current
+                when (result) {
+                    is PortalResult.Ok -> current.copy(
+                        organos = Loadable.Loaded(result.value.map { KnownOrgano(it.id, it.name, circuito) }),
+                    )
+                    is PortalResult.Failed -> current.copy(organos = Loadable.Failed(result.error))
+                }
+            }
+        }
+    }
+
+    /** The circuit of an órgano with none on record: the chosen one if its list has it, else the cached lists'. */
+    private suspend fun circuitoOf(organismo: String): String? {
+        val state = _state.value
+        if ((state.organos as? Loadable.Loaded)?.value?.any { it.id == organismo } == true) return state.circuito
+        return catalog.cachedCircuitosOf(organismo).singleOrNull() ?: state.circuito.ifBlank { null }
     }
 
     private fun setOrgano(organo: KnownOrgano?, text: String) {
@@ -257,8 +330,7 @@ class SearchViewModel(
         tiposJob?.cancel()
         _state.update { it.copy(tiposAsunto = Loadable.Loading) }
         tiposJob = viewModelScope.launch {
-            // The circuit's name only comes with the circuit catalog (milestone 4).
-            val result = portalCall { catalog.tiposDeAsunto(state.circuito, circuitoName = "", organismo = organo.id) }
+            val result = portalCall { catalog.tiposDeAsunto(state.circuito, organo.id) }
             _state.update { current ->
                 if (current.organo?.id != organo.id) return@update current
                 when (result) {
@@ -269,6 +341,8 @@ class SearchViewModel(
                     is PortalResult.Failed -> current.copy(tiposAsunto = Loadable.Failed(result.error))
                 }
             }
+            // Loading the tipos may have cached the circuit's órgano list.
+            if (_state.value.organos !is Loadable.Loaded) loadOrganos(fetch = false)
             val tipo = _state.value.tipoAsunto
             if (tipo != null && TipoProcedimientoRule.isShown(tipo.value) && _state.value.tiposProcedimiento == Loadable.Idle) {
                 loadTiposProcedimiento()
@@ -284,7 +358,7 @@ class SearchViewModel(
         _state.update { it.copy(tiposProcedimiento = Loadable.Loading) }
         procedimientosJob = viewModelScope.launch {
             val result = portalCall {
-                catalog.tiposDeProcedimiento(state.circuito, circuitoName = "", organismo = organo.id, tipoAsunto = tipoAsunto.value)
+                catalog.tiposDeProcedimiento(state.circuito, organo.id, tipoAsunto.value)
             }
             _state.update { current ->
                 if (current.organo?.id != organo.id || current.tipoAsunto != tipoAsunto) return@update current
@@ -300,8 +374,6 @@ class SearchViewModel(
     }
 
     companion object {
-        private const val MAX_CIRCUITO_LENGTH = 3
-
         /** Recent órganos first (they know their circuit), then those of saved cases. */
         private fun knownOrganos(recents: List<RecentOrgano>, saved: List<SavedOrgano>): Pair<List<KnownOrgano>, List<SavedOrgano>> {
             val known = recents.map { KnownOrgano(it.id, it.name, it.circuito) } +

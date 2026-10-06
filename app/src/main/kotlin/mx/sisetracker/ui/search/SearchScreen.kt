@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import mx.sisetracker.R
 import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.Circuito
 import mx.sisetracker.core.FormOption
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SiseDates
@@ -127,24 +128,22 @@ fun SearchScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(
-                value = state.circuito,
-                onValueChange = viewModel::onCircuitoChange,
-                label = { Text(stringResource(R.string.search_circuito)) },
-                supportingText = { Text(stringResource(R.string.search_circuito_help)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth(),
+            CircuitoField(
+                circuitos = state.circuitos,
+                selectedLabel = state.circuitoLabel,
+                onSelect = viewModel::onCircuitoSelected,
             )
 
-            if (state.knownOrganos.isNotEmpty()) {
+            if (state.showsKindFilter) {
                 KindChips(selected = state.kindFilter, onSelect = viewModel::onKindFilterChange)
             }
 
             OrganoField(
                 text = state.organoText,
                 organo = state.organo,
+                organos = state.organos,
                 suggestions = state.organoSuggestions,
+                onOpen = viewModel::onOrganosRequested,
                 onTextChange = viewModel::onOrganoTextChange,
                 onSelect = viewModel::onOrganoSelected,
             )
@@ -215,6 +214,43 @@ fun SearchScreen(
     }
 }
 
+/** The OAJ's circuit list, bundled with the app: choosing one makes no request until its órganos are needed. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CircuitoField(
+    circuitos: List<Circuito>,
+    selectedLabel: String,
+    onSelect: (Circuito) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        OutlinedTextField(
+            value = selectedLabel,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.search_circuito)) },
+            placeholder = { Text(stringResource(R.string.search_circuito_placeholder)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            circuitos.forEach { circuito ->
+                DropdownMenuItem(
+                    text = { Text(circuito.label) },
+                    onClick = {
+                        onSelect(circuito)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun KindChips(selected: OrganoKind?, onSelect: (OrganoKind?) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -243,31 +279,49 @@ private fun OrganoKind.labelRes(): Int = when (this) {
 private fun OrganoField(
     text: String,
     organo: KnownOrgano?,
+    organos: Loadable<List<KnownOrgano>>,
     suggestions: List<KnownOrgano>,
+    onOpen: () -> Unit,
     onTextChange: (String) -> Unit,
     onSelect: (KnownOrgano) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val showMenu = expanded && suggestions.isNotEmpty()
-    ExposedDropdownMenuBox(expanded = showMenu, onExpandedChange = { expanded = it }) {
+    ExposedDropdownMenuBox(
+        expanded = showMenu,
+        onExpandedChange = { open ->
+            if (open) onOpen()
+            expanded = open
+        },
+    ) {
         OutlinedTextField(
             value = text,
             onValueChange = {
+                if (!expanded) onOpen()
                 onTextChange(it)
                 expanded = true
             },
             label = { Text(stringResource(R.string.search_organo)) },
             supportingText = {
                 Text(
-                    if (organo != null && organo.name.isEmpty()) {
-                        stringResource(R.string.search_organo_number, organo.id)
-                    } else {
-                        stringResource(R.string.search_organo_help)
+                    when {
+                        organo != null && organo.name.isEmpty() -> stringResource(R.string.search_organo_number, organo.id)
+                        organos == Loadable.Loading -> stringResource(R.string.search_organos_loading)
+                        organos is Loadable.Failed -> stringResource(organos.error.messageRes()) + " " +
+                            stringResource(R.string.search_organos_failed)
+                        else -> stringResource(R.string.search_organo_help)
                     },
                 )
             },
+            isError = organos is Loadable.Failed,
             singleLine = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu) },
+            trailingIcon = {
+                if (organos == Loadable.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu)
+                }
+            },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             modifier = Modifier
                 .fillMaxWidth()

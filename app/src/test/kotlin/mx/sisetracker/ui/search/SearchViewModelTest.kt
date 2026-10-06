@@ -6,6 +6,8 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.Circuitos
+import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.FormOption
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.lookup.LookupRepository
@@ -33,8 +35,10 @@ class SearchViewModelTest {
 
     private val client = FakeSiseClient().apply {
         onPost = { Fixtures.load(Fixtures.SEARCH_FORM_1183) }
-        onGet = { Fixtures.load(Fixtures.CASE_1183) }
+        onGet = { url -> Fixtures.load(if ("circuitos.asp" in url) Fixtures.ORGANOS_CIR1 else Fixtures.CASE_1183) }
     }
+    private val primerCircuito = Circuitos.all.first()
+    private val organosRequest = "GET https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=1&Exp=1"
     private val settings = SettingsStore(InMemoryPreferences())
     private val savedCases = FakeSavedCases()
 
@@ -59,10 +63,113 @@ class SearchViewModelTest {
     private fun tipo(value: String) = FormOption(value, "Tipo $value", position = 0, selected = false)
 
     @Test
-    fun `starts with the last circuit used`() = runTest(main.dispatcher) {
+    fun `starts with the last circuit used, without a request`() = runTest(main.dispatcher) {
         settings.setLastCircuito("7")
 
-        assertEquals("7", viewModel().state.value.circuito)
+        val state = viewModel().state.value
+
+        assertEquals("7", state.circuito)
+        assertEquals("Séptimo Circuito Veracruz de Ignacio de la Llave", state.circuitoLabel)
+        assertEquals(Loadable.Idle, state.organos)
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `a last circuit that isn't in the list is ignored`() = runTest(main.dispatcher) {
+        settings.setLastCircuito("99")
+
+        assertEquals("", viewModel().state.value.circuito)
+    }
+
+    @Test
+    fun `picking a circuit loads its organos once and remembers it`() = runTest(main.dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onCircuitoSelected(primerCircuito)
+        advanceUntilIdle()
+        viewModel.onOrganosRequested()
+        viewModel.onCircuitoSelected(primerCircuito)
+        advanceUntilIdle()
+
+        assertEquals(listOf(organosRequest), client.requests)
+        val organos = (viewModel.state.value.organos as Loadable.Loaded).value
+        assertEquals(184, organos.size)
+        assertTrue(organos.all { it.circuito == "1" })
+        assertEquals("1", settings.lastCircuito.first())
+    }
+
+    @Test
+    fun `the remembered circuit's organos load when the organo field opens`() = runTest(main.dispatcher) {
+        settings.setLastCircuito("1")
+        val viewModel = viewModel()
+        assertTrue(client.requests.isEmpty())
+
+        viewModel.onOrganosRequested()
+        advanceUntilIdle()
+
+        assertEquals(listOf(organosRequest), client.requests)
+        assertEquals(184, (viewModel.state.value.organos as Loadable.Loaded).value.size)
+    }
+
+    @Test
+    fun `cached organos show without a request`() = runTest(main.dispatcher) {
+        CatalogRepository(catalogDao, client, now = { 0L }, parsing = main.dispatcher).organos("1")
+        client.requests.clear()
+        settings.setLastCircuito("1")
+
+        val viewModel = viewModel()
+
+        assertEquals(184, (viewModel.state.value.organos as Loadable.Loaded).value.size)
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `the kind chips and typing filter the circuit's organos`() = runTest(main.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onCircuitoSelected(primerCircuito)
+        advanceUntilIdle()
+        assertTrue(viewModel.state.value.showsKindFilter)
+        assertEquals(184, viewModel.state.value.organoSuggestions.size)
+
+        viewModel.onKindFilterChange(OrganoKind.TRIBUNALES)
+        assertEquals(93, viewModel.state.value.organoSuggestions.size)
+
+        viewModel.onOrganoTextChange("segundo penal")
+        assertEquals(
+            listOf("18"),
+            viewModel.state.value.organoSuggestions.filter { "Colegiado en Materia Penal" in it.name }.map { it.id },
+        )
+
+        viewModel.onKindFilterChange(OrganoKind.OTROS)
+        viewModel.onOrganoTextChange("comision de disciplina")
+        assertEquals(listOf("6316"), viewModel.state.value.organoSuggestions.map { it.id })
+    }
+
+    @Test
+    fun `a typed organismo number takes its name from the circuit's list`() = runTest(main.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onCircuitoSelected(primerCircuito)
+        advanceUntilIdle()
+
+        viewModel.onOrganoTextChange("767")
+
+        assertEquals(KnownOrgano("767", juzgado, "1"), viewModel.state.value.organo)
+    }
+
+    @Test
+    fun `changing the circuit clears an organo from another one`() = runTest(main.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onCircuitoSelected(primerCircuito)
+        advanceUntilIdle()
+        viewModel.onOrganoSelected((viewModel.state.value.organos as Loadable.Loaded).value.single { it.id == "767" })
+        advanceUntilIdle()
+
+        viewModel.onCircuitoSelected(Circuitos.all[1])
+        advanceUntilIdle()
+
+        assertEquals("2", viewModel.state.value.circuito)
+        assertEquals(null, viewModel.state.value.organo)
+        assertEquals(Loadable.Idle, viewModel.state.value.tiposAsunto)
     }
 
     @Test
@@ -77,15 +184,20 @@ class SearchViewModelTest {
         assertEquals("1", state.circuito)
         assertEquals(juzgado, state.organoText)
         assertEquals(10, (state.tiposAsunto as Loadable.Loaded).value.size)
-        assertEquals(1, client.requests.size)
-        assertTrue(client.requests.single().endsWith("Organismo=767&Buscar=Buscar&Circuito=1&CircuitoName="))
+        // Step C needs the CircuitoName, which comes with the circuit's órgano list.
+        assertEquals(2, client.requests.size)
+        assertEquals(organosRequest, client.requests.first())
+        assertTrue(client.requests.last().endsWith("Organismo=767&Buscar=Buscar&Circuito=1&CircuitoName=PRIMER+CIRCUITO"))
+        assertEquals(184, (state.organos as Loadable.Loaded).value.size)
     }
 
     @Test
     fun `a typed organismo loads tipos only when the dropdown opens`() = runTest(main.dispatcher) {
         val viewModel = viewModel()
-        viewModel.onCircuitoChange("1")
+        viewModel.onCircuitoSelected(primerCircuito)
 
+        advanceUntilIdle()
+        client.requests.clear()
         viewModel.onOrganoTextChange("767")
         advanceUntilIdle()
         assertTrue(client.requests.isEmpty())
@@ -99,7 +211,7 @@ class SearchViewModelTest {
     @Test
     fun `buscar fetches the case once and shows the preview`() = runTest(main.dispatcher) {
         val viewModel = viewModel()
-        viewModel.onCircuitoChange("1")
+        viewModel.onCircuitoSelected(primerCircuito)
         viewModel.onOrganoTextChange("767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
@@ -117,7 +229,7 @@ class SearchViewModelTest {
         assertEquals(CaseUrl("1", "767", "1183/2025", "0"), found.url)
         assertEquals("40612904", found.page.neun)
         assertEquals(caseUrl1183, client.requests.last())
-        assertEquals(1, client.requests.count { it.startsWith("GET") })
+        assertEquals(1, client.requests.count { "vercaptura.aspx" in it })
         // The bare number now shows the órgano's name, which is remembered.
         assertEquals(juzgado, state.organoText)
         assertEquals(RecentOrgano("767", juzgado, "1"), settings.recentOrganos.first().first())
@@ -128,7 +240,7 @@ class SearchViewModelTest {
     fun `an unknown expediente is not found`() = runTest(main.dispatcher) {
         client.onGet = { Fixtures.load(Fixtures.CASE_NOT_FOUND) }
         val viewModel = viewModel()
-        viewModel.onCircuitoChange("1")
+        viewModel.onCircuitoSelected(primerCircuito)
         viewModel.onOrganoTextChange("767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
@@ -145,7 +257,7 @@ class SearchViewModelTest {
     @Test
     fun `a tipo with procedimientos loads them and needs one`() = runTest(main.dispatcher) {
         val viewModel = viewModel()
-        viewModel.onCircuitoChange("1")
+        viewModel.onCircuitoSelected(primerCircuito)
         viewModel.onOrganoTextChange("767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
@@ -171,7 +283,7 @@ class SearchViewModelTest {
     fun `a network failure is reported`() = runTest(main.dispatcher) {
         client.onPost = { throw IOException("offline") }
         val viewModel = viewModel()
-        viewModel.onCircuitoChange("1")
+        viewModel.onCircuitoSelected(primerCircuito)
         viewModel.onOrganoTextChange("767")
 
         viewModel.onTiposAsuntoRequested()
@@ -194,7 +306,7 @@ class SearchViewModelTest {
 
     private fun TestScope.foundViewModel(): SearchViewModel {
         val viewModel = viewModel()
-        viewModel.onCircuitoChange("1")
+        viewModel.onCircuitoSelected(primerCircuito)
         viewModel.onOrganoTextChange("767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
@@ -249,6 +361,27 @@ class SearchViewModelTest {
         assertEquals("293/2026", state.expediente)
         assertEquals("18", state.organo?.id)
         assertEquals(FormOption("11", "Amparo en revisión", 0, false), state.tipoAsunto)
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `a related case pre-fills circuit and organo from the cached catalog`() = runTest(main.dispatcher) {
+        CatalogRepository(catalogDao, client, now = { 0L }, parsing = main.dispatcher).organos("1")
+        client.requests.clear()
+
+        val viewModel = viewModel(
+            SearchRoute(
+                expediente = "293/2026",
+                organoName = "Segundo Tribunal Colegiado en Materia Penal del Primer Circuito",
+                tipoAsuntoName = "Amparo en revisión",
+            ),
+        )
+
+        val state = viewModel.state.value
+        assertEquals("1", state.circuito)
+        assertEquals(KnownOrgano("18", "Segundo Tribunal Colegiado en Materia Penal del Primer Circuito", "1"), state.organo)
+        // No tipos cached for it, so the user picks the tipo.
+        assertEquals(null, state.tipoAsunto)
         assertTrue(client.requests.isEmpty())
     }
 

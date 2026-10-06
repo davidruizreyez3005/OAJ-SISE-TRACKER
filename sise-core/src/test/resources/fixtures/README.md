@@ -21,7 +21,9 @@ anything that normalizes line endings).
 | `veracuerdo_293-2026_orden3.html` | Síntesis page for the tribunal colegiado case 293/2026, orden 3. Same capture method and caveats as the one above. |
 | `veracuerdo_1068-2025_orden1.html` | Síntesis page for 1068/2025 (another juzgado de distrito, organismo 721), orden 1: a 21.5k-character síntesis. The portal published three parties' names unredacted; we masked them with same-length asterisks. Same capture caveats as the other VerAcuerdo files. |
 | `vercaptura_not-found_99999-2025.html` | Case page for an expediente that doesn't exist (organismo 767, tipo 1, 99999/2025). Chrome "Download page" capture, so it's the re-serialized DOM. |
-| `expedienteytipo_result_1183-2025.html` | Search form result page (`ExpedienteyTipo.asp`) containing the `iframe#ifr` with the case URL. Originally ISO-8859-1. |
+| `expedienteytipo_result_1183-2025.html` | Search form result page (`ExpedienteyTipo.asp`) containing the `iframe#ifr` with the case URL. Originally windows-1252. |
+| `oaj_circuitos_excerpt.html` | **Excerpt** of the OAJ's "Consulta de Datos de Expedientes" page: only the circuit selector (`form#form2`) is kept, unchanged; the full ~700 KB page is mostly a map SVG. Chrome "Download page" capture. |
+| `circuitos_cir1.html` | Órgano list for the Primer Circuito (`circuitos.asp?Cir=1&Exp=1`). Chrome "Download page" capture, so hidden inputs are missing. Originally windows-1252, converted to UTF-8. |
 | `delta_ver-acuerdo_1183-2025_orden38.txt` | MS AJAX delta response to the "Ver síntesis" postback, orden 38. Reference only. |
 | `delta_ver-acuerdo_293-2026_orden{1,2,3}.txt` | Same, for the tribunal colegiado case 293/2026. Reference only. |
 
@@ -116,12 +118,33 @@ Source URL: `https://www.dgej.cjf.gob.mx/siseinternet/reportes/vercaptura.aspx?t
 - No error message anywhere on the page.
 - The parser must return "not found", with no exception, and must not report an empty-but-valid case.
 
+## Expected values: `oaj_circuitos_excerpt.html`
+
+- `select#circuito`: 33 options. First is the placeholder `-1` → `Seleccione un circuito` (skip it). Then values `1`…`32` in order.
+- `1` → `Primer Circuito Ciudad de México`; `16` → `Decimosexto Circuito Guanuajuato` (typo kept); `21` → `Vigésimo Primer Circuito Guerrero`; `32` → `Trigésimo Segundo Circuito Colima`.
+- The app's bundled circuit list must equal these 32 (value, label) pairs exactly.
+
+## Expected values: `circuitos_cir1.html`
+
+Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=1&Exp=1`
+
+- `select[name=Organismo]`: 184 options, no optgroups, none selected, no placeholder.
+- First: `10` → `Juzgado Primero de Distrito en Materia Administrativa en la Ciudad de México`.
+- Last: `4393` → `Pleno Regional Especializado en Competencia Económica, Radiodifusión y Telecomunicaciones`.
+- Spot checks:
+  - `767` → `Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México` (case 1183/2025).
+  - `18` → `Segundo Tribunal Colegiado en Materia Penal del Primer Circuito` (case 293/2026).
+  - `500` → `Octavo Tribunal Colegiado en Materia Penal del Primer Circuito`.
+  - `1671` → `Décimo Tribunal Colegiado en Materia Penal del Primer Circuito.` (trailing period kept).
+  - `6316` → `Comisión de Disciplina` (kind Otros).
+- Kinds derived from names: 79 Juzgados, 93 Tribunales, 12 Otros.
+- No duplicate values.
+- Page text includes `Circuito: PRIMER CIRCUITO`. The parsed CircuitoName (`td` after the `th` containing "Circuito:", trimmed, no `&nbsp;`) is exactly `PRIMER CIRCUITO`.
+
 ## Still missing (ask the user before writing code that depends on these)
 
 To capture each one, open the page in Chrome on the phone, then use ⋮ → download (saves `.mhtml`). Mask any personal names before committing.
 
-- **Circuit list:** the page on https://www.oaj.gob.mx/ (or wherever it lives) that links to `circuitos.asp?Cir={n}&Exp=1` for every circuit.
-- **Órgano list:** `circuitos.asp?Cir=1&Exp=1`, the `Organismo` dropdown page.
 - **Form for a tribunal colegiado:** the `ExpedienteyTipo.asp` page right after choosing a tribunal. Its tipos de asunto differ from a juzgado's.
 - **Accion=2 response, plus its search result:** the form after choosing a tipo de asunto that shows "Tipo de procedimiento" (6, 9, 125 or 126, wherever one exists). Then, if possible, the result page of a real search with that tipo, whose iframe shows which `tipoprocedimiento` value the case URL uses.
 - **Tribunal case page:** `vercaptura.aspx` for a tribunal colegiado, e.g. 293/2026. Checks grid variations and an empty Captura de Información.

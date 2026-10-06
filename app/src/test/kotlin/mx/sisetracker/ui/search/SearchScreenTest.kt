@@ -1,5 +1,6 @@
 package mx.sisetracker.ui.search
 
+import android.os.Looper
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
@@ -27,6 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -39,7 +41,7 @@ class SearchScreenTest {
 
     private val client = FakeSiseClient().apply {
         onPost = { Fixtures.load(Fixtures.SEARCH_FORM_1183) }
-        onGet = { Fixtures.load(Fixtures.CASE_1183) }
+        onGet = { url -> Fixtures.load(if ("circuitos.asp" in url) Fixtures.ORGANOS_CIR1 else Fixtures.CASE_1183) }
     }
     private val settings = SettingsStore(InMemoryPreferences())
 
@@ -93,17 +95,33 @@ class SearchScreenTest {
         setContent()
 
         compose.onNodeWithText("Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México").performClick()
-        compose.waitUntil(5_000) { client.requests.size == 1 }
+        // The circuit's órgano list (for its CircuitoName), then the tipos.
+        waitForRequests(2)
         compose.onNodeWithText("Tipo de asunto").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodes(hasText("Amparo Indirecto")).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Amparo Indirecto")).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Amparo Indirecto").performClick()
         compose.onNode(hasSetTextAction() and hasText("Número de expediente")).performTextInput("1183/2025")
         compose.onNodeWithText("Buscar").performScrollTo().performClick()
-        compose.waitUntil(5_000) { compose.onAllNodes(hasText("28 acuerdos")).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("28 acuerdos")).fetchSemanticsNodes().isNotEmpty() }
 
         compose.onNodeWithText("Último acuerdo publicado: 01/09/2026").performScrollTo().assertExists()
-        assertEquals(1, client.requests.count { it.startsWith("GET") })
+        assertEquals(1, client.requests.count { "vercaptura.aspx" in it })
         compose.onRoot().saveScreenshot("search_found_light")
+    }
+
+    @Test
+    fun `picking a circuit lists its organos, filtered by kind`() {
+        setContent()
+
+        compose.onNodeWithText("Circuito").performClick()
+        compose.onNodeWithText("Primer Circuito Ciudad de México").performClick()
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Tribunales")).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Tribunales").performClick()
+        compose.onNode(hasSetTextAction() and hasText("Órgano")).performTextInput("segundo colegiado penal")
+
+        compose.onNodeWithText("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito").assertExists()
+        assertEquals(1, client.requests.size)
+        compose.onRoot().saveScreenshot("search_organos_light")
     }
 
     @Test
@@ -112,5 +130,22 @@ class SearchScreenTest {
 
         compose.onNodeWithText("Circuito").assertExists()
         compose.onRoot().saveScreenshot("search_empty_dark")
+    }
+
+    /**
+     * Compose's waitUntil only pumps the main looper while the UI changes, so
+     * a request made after a second hop back to the main thread would never
+     * go out. Idle the looper explicitly.
+     */
+    private fun waitForRequests(count: Int) {
+        compose.waitUntil(TIMEOUT) {
+            shadowOf(Looper.getMainLooper()).idle()
+            client.requests.size == count
+        }
+    }
+
+    private companion object {
+        /** Parsing runs on Dispatchers.Default; the first Jsoup parse in a cold JVM can be slow. */
+        const val TIMEOUT = 15_000L
     }
 }

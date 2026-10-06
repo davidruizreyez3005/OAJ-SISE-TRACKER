@@ -2,6 +2,8 @@ package mx.sisetracker.ui.search
 
 import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.Circuito
+import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.ExpedienteFormat
 import mx.sisetracker.core.FormOption
 import mx.sisetracker.core.OrganoKind
@@ -9,7 +11,10 @@ import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.TipoProcedimientoRule
 import mx.sisetracker.data.net.PortalError
 
-/** An órgano the app already knows the ID of. [name] is blank when the user typed a bare organismo number. */
+/**
+ * An órgano the app knows the ID of: from a circuit's list, a recent search or
+ * a saved case. [name] is blank when the user typed a bare organismo number.
+ */
 data class KnownOrgano(
     val id: String,
     val name: String,
@@ -41,7 +46,10 @@ sealed interface LookupState {
 }
 
 data class SearchUiState(
+    /** The chosen circuit's number (`Cir`), or "" before one is chosen. */
     val circuito: String = "",
+    /** The chosen circuit's órgano list (step B). */
+    val organos: Loadable<List<KnownOrgano>> = Loadable.Idle,
     val kindFilter: OrganoKind? = null,
     val organoText: String = "",
     val organo: KnownOrgano? = null,
@@ -56,11 +64,22 @@ data class SearchUiState(
     /** A case to open (just saved, or already saved): consumed by the screen. */
     val openCase: String? = null,
 ) {
-    /** Known órganos matching the "Tipo de órgano" chip and what's typed, for the type-ahead. */
+    val circuitos: List<Circuito> get() = Circuitos.all
+
+    val circuitoLabel: String get() = Circuitos.byNum(circuito)?.label.orEmpty()
+
+    /** The circuit's órgano list once loaded, else the órganos of recent searches and saved cases. */
+    private val organoSource: List<KnownOrgano>
+        get() = (organos as? Loadable.Loaded)?.value?.takeIf { it.isNotEmpty() } ?: knownOrganos
+
+    /** Whether the "Tipo de órgano" chips have anything to filter. */
+    val showsKindFilter: Boolean get() = organoSource.isNotEmpty()
+
+    /** Órganos matching the "Tipo de órgano" chip and what's typed, for the type-ahead. */
     val organoSuggestions: List<KnownOrgano>
         get() {
             val query = organoText.takeUnless { organo != null && it == organo.name }.orEmpty()
-            return knownOrganos
+            return organoSource
                 .filter { kindFilter == null || it.kind == kindFilter }
                 .filter { SearchText.matches("${it.name} ${it.id}", query) }
                 .take(MAX_SUGGESTIONS)
@@ -85,7 +104,8 @@ data class SearchUiState(
     val canOpenPortal: Boolean get() = circuito.isNotBlank()
 
     companion object {
-        const val MAX_SUGGESTIONS = 50
+        /** Enough for a whole circuit's list (184 órganos in the Primer Circuito). */
+        const val MAX_SUGGESTIONS = 300
 
         /** The portal's `maxlength` for Expediente. */
         const val MAX_EXPEDIENTE_LENGTH = 15

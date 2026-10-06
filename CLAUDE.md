@@ -70,13 +70,22 @@ Private: CI builds the APK, and a small team installs it from the private
 repo. The direct lookup in hard rule 1 depends on this. Don't add Play Store
 publishing or any public distribution. If that's ever considered, revisit hard
 rule 1 first, and restore the portal-form flow (user solves the captcha) as the
-default.
+default. The portal itself points users who want to skip the captcha to the
+official Portal de Servicios en Línea (www.serviciosenlinea.pjf.gob.mx,
+"Consulta de Expediente", with a login or firma electrónica). That's the
+sanctioned no-captcha route for anything beyond a small team.
 
 ## Visual design
 
-Institutional blues in the spirit of the OAJ's site. The hex values below are
-an approximation, not official brand colors. Keep every color in
-`ui/theme/Color.kt` so exact values can be swapped in later.
+Institutional blues, as the user asked, combined with the OAJ's real
+neutrals.
+- The OAJ's "Consulta de Datos de Expedientes" stylesheet doesn't use blue.
+  Its palette is charcoal `#161A1D` (primary buttons, active tabs), slate
+  `#575F71` (hover), text `#333333`, white backgrounds and red `#B31217` for
+  alerts.
+- The blues (primary, tertiary) are therefore our own approximation.
+  Secondary, error and text colors come from the OAJ stylesheet.
+- Keep every color in `ui/theme/Color.kt` so values can be swapped in later.
 
 - Material 3 with `dynamicColor = false`, so Material You never replaces the
   brand blues.
@@ -90,18 +99,18 @@ an approximation, not official brand colors. Keep every color in
 | onPrimary | `#FFFFFF` | `#00315F` |
 | primaryContainer | `#D3E3F8` | `#0F4A85` |
 | onPrimaryContainer | `#001D3D` | `#D3E3F8` |
-| secondary | `#2D6CB5` | `#9EC2EE` |
-| onSecondary | `#FFFFFF` | `#0A2A4F` |
-| secondaryContainer | `#DCE8F7` | `#1E4C80` |
-| onSecondaryContainer | `#0A2A4F` | `#DCE8F7` |
+| secondary (OAJ slate) | `#575F71` | `#BEC5D4` |
+| onSecondary | `#FFFFFF` | `#262B36` |
+| secondaryContainer | `#E1E4EB` | `#3E4554` |
+| onSecondaryContainer | `#161A1D` | `#E1E4EB` |
 | tertiary | `#1A6FCC` | `#8CC2FF` |
 | onTertiary | `#FFFFFF` | `#002E5C` |
 | background / surface | `#F6F8FB` | `#0F151C` |
-| onBackground / onSurface | `#1A1C1F` | `#E2E6EB` |
+| onBackground / onSurface (OAJ text) | `#333333` | `#E2E6EB` |
 | surfaceVariant | `#E2E8F0` | `#2A3440` |
 | onSurfaceVariant | `#44505F` | `#BFC8D3` |
 | outline | `#74808F` | `#8A95A3` |
-| error | `#B3261E` | `#F2B8B5` |
+| error (OAJ red) | `#B31217` | `#F2B8B5` |
 
 ## Architecture
 
@@ -132,7 +141,9 @@ an approximation, not official brand colors. Keep every color in
 - `AsuntoRelacionado`: neun, relatedNeun, expediente, organo, fechaRelacion.
 - `CapturaInfo`: ordered list of (section, label, value) for the case, plus
   partyCount.
-- Catalog tables: `Circuito`(num, name), `Organo`(id, circuito, name, kind),
+- Catalog tables: `Circuito`(num, label from the OAJ list, portalName =
+  CircuitoName, nullable until circuitos.asp has loaded), `Organo`(id,
+  circuito, name, kind),
   `TipoAsunto`(organoId, id, name, position) and
   `TipoProcedimiento`(organoId, tipoAsuntoId, id, name, position). Each table
   also stores fetchedAt.
@@ -146,32 +157,65 @@ As built (`data/db` and `data/catalog` in `:app`):
   record index as `group_index`. Children cascade-delete with their case.
 - `acuerdos_fts` is an FTS4 external-content table over resumen and sintesis
   (unicode61, `remove_diacritics=1`, so searches ignore accents and case).
-- `catalog.db` is only a cache (destructive migrations are fine). Until
-  milestone 4 it holds tipos de asunto/procedimiento per órgano, plus each
-  órgano's search form hidden fields (echoed back in step D).
+- `catalog.db` is only a cache (destructive migrations are fine). It holds
+  each loaded circuit's `portalName` (its CircuitoName) and órgano list
+  (kind stored, derived from the name), tipos de asunto/procedimiento per
+  órgano, and each órgano's search form hidden fields (echoed back in step D).
+  The circuit list itself is bundled in `:sise-core` (`circuitos.tsv`).
+- The search screen loads a circuit's órganos when the user picks the
+  circuit or opens the Órgano field; the remembered last circuit shows only
+  what's cached until then. Step C needs the CircuitoName, so loading an
+  órgano's tipos first loads its circuit's órgano list if it isn't cached
+  (e.g. when the órgano came from "Órganos recientes").
 
 ## SISE protocol reference
 
-### Search pages (classic ASP, ISO-8859-1)
+### Search pages (classic ASP, windows-1252)
 
 The portal's search is a chain of plain form pages. The app reads steps A to D
 for its dropdowns. Those pages have no captcha. It never performs step E; it
 fetches the case page directly instead.
 
-**A. Circuits.** Fixture pending.
-- The user's entry point was https://www.oaj.gob.mx/, which links to
-  `circuitos.asp?Cir={n}&Exp=1`.
-- Circuit names travel as `CircuitoName`, e.g. `PRIMER CIRCUITO`.
-- Don't hardcode a list; parse it from the fixture once it lands.
+**A. Circuits.** Fixture: `oaj_circuitos_excerpt.html`.
+- The list lives on the OAJ's "Consulta de Datos de Expedientes" page
+  (`https://www.oaj.gob.mx/micrositios/dggj/paginas/serviciosTramites.htm?pageName=servicios%2Fexpedientes.htm`).
+  It's `select#circuito` with 32 options, values `1` to `32`, plus a `-1`
+  "Seleccione un circuito" placeholder.
+- Labels combine ordinal and state, e.g. `Primer Circuito Ciudad de México`,
+  `Vigésimo Primer Circuito Guerrero`. Show them exactly as given, typos
+  included (`Decimosexto Circuito Guanuajuato`).
+- The option value is the `Cir` parameter of `circuitos.asp`. The page's own
+  script (not in the capture) does that navigation. Value 1 → `Cir=1` is
+  confirmed by the user's own navigation; the rest is assumed.
+- **Bundle this list in the app** as a static resource, with a test that
+  checks it against the fixture. Don't fetch the OAJ page, which is ~700 KB,
+  mostly map SVG. Circuits change very rarely; when they do, update the
+  fixture and the bundled list together.
+- `CircuitoName`, the value sent in form bodies, is **not** the OAJ label. It
+  is the uppercase name shown on `circuitos.asp` (e.g. `PRIMER CIRCUITO`).
+  Read it from the `td` after the `th` containing "Circuito:", trimmed and
+  without `&nbsp;`, when loading the órgano list, and store it with the
+  circuit.
 
 **B. Órganos.** `GET /internet/expedientes/circuitos.asp?Cir={n}&Exp=1`.
-Fixture pending.
-- Has an `Organismo` select listing the circuit's órganos.
+Fixture: `circuitos_cir1.html`.
+- One flat `select[name=Organismo]` inside `form[name=Editar]`: no optgroups,
+  no type selector and no placeholder option. The Primer Circuito has 184
+  options. Option values are the organismo IDs used everywhere else (767,
+  18, 500…).
+- Options don't have closing `</option>` tags; let Jsoup handle it. Some
+  labels end with a period (`…del Primer Circuito.`); keep labels exactly.
+- The page shows the circuit name as text ("Circuito: PRIMER CIRCUITO").
 - Its form POSTs `Organismo`, `Buscar=Buscar`, `Circuito` and `CircuitoName`
-  to step C.
-- Tipo de órgano: if the page has its own type selector, mirror it exactly.
-  Otherwise derive it from the name: starts with "Juzgado" → Juzgados;
-  contains "Tribunal" → Tribunales; anything else → Otros.
+  to step C. The hidden `Circuito`/`CircuitoName` inputs aren't in the
+  capture (Chrome's page save seems to drop hidden inputs). The app supplies
+  them from the circuit list.
+- The list mixes jurisdictional and administrative bodies (Comisión de
+  Disciplina, Secretaría General de Acuerdos…) and Plenos Regionales.
+- Tipo de órgano, derived from the name because the page has no type
+  selector: starts with "Juzgado" → Juzgados; contains "Tribunal" →
+  Tribunales; anything else → Otros. For the Primer Circuito that gives 79,
+  93 and 12.
 
 **C. Form and tipos de asunto.** `POST /internet/expedientes/ExpedienteyTipo.asp`
 with the four fields from B. No captcha is needed to load it. The response
@@ -190,9 +234,9 @@ form is `name="Editar"`:
 - `div#recaptchaArea`: reCAPTCHA v2 with explicit render.
 - The existing fixture `expedienteytipo_result_1183-2025.html` contains this
   same form, so the parser can be built now.
-- Until the circuit list (A) lands, the app doesn't know circuit names and
-  sends `CircuitoName` empty. Unverified whether the portal needs it to list
-  the tipos; if step C comes back without options, check this first.
+- The app sends the CircuitoName read from the circuit's órgano list (B).
+  If that page doesn't show one, it sends it empty; unverified whether the
+  portal then still lists the tipos.
 
 **D. Tipos de procedimiento.**
 - Changing TipoAsunto submits the form with `Accion=2`. The server re-renders
@@ -207,13 +251,15 @@ On the portal, Buscar posts `Accion=1` plus `g-recaptcha-response`, and the
 page then shows
 `<iframe id="ifr" src="https://www.dgej.cjf.gob.mx/siseinternet/reportes/vercaptura.aspx?tipoasunto=…&organismo=…&expediente=…&tipoprocedimiento=…">`.
 
-**Encoding.** Form bodies must be URL-encoded as ISO-8859-1, because
+**Encoding.** These pages declare `charset=windows-1252` (a superset of
+ISO-8859-1). Decode responses as windows-1252. Form bodies must be URL-encoded
+as windows-1252, because
 `CircuitoName` and `OrgName` contain accents. OkHttp must send those bytes as-is.
 
 **Dropdown parsing.**
 - Keep every option's value and label exactly, in page order.
 - Skip only placeholder options (value `0` or empty).
-- Decode labels from ISO-8859-1 and normalize whitespace.
+- Decode labels as windows-1252 and normalize whitespace.
 
 ### Search flow in the app
 
@@ -390,7 +436,7 @@ Clicking "Ver síntesis" does an UpdatePanel async postback:
 
 ### Formats
 
-- `.asp` pages are ISO-8859-1; `.aspx` pages are UTF-8. Fixtures are saved as
+- `.asp` pages are windows-1252; `.aspx` pages are UTF-8. Fixtures are saved as
   UTF-8; see the fixtures README for how each one was captured.
 - Dates: grid `dd-MM-yyyy`; spans `dd/MM/yyyy`; DoVerAcuerdo args
   `dd/MM/yyyy 12:00:00 a.m.`.

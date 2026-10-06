@@ -3,16 +3,22 @@ package mx.sisetracker.data.catalog
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.testing.FakeCatalogDao
 import mx.sisetracker.testing.FakeSiseClient
 import mx.sisetracker.testing.Fixtures
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CatalogRepositoryTest {
     private val dao = FakeCatalogDao()
     private val client = FakeSiseClient().apply {
+        onGet = { url ->
+            check(url == ORGANOS_URL) { "Unexpected GET $url" }
+            Fixtures.load(Fixtures.ORGANOS_CIR1)
+        }
         // The saved ExpedienteyTipo.asp page has the same form steps C and D return.
         onPost = { Fixtures.load(Fixtures.SEARCH_FORM_1183) }
     }
@@ -20,14 +26,61 @@ class CatalogRepositoryTest {
     private val dispatcher = StandardTestDispatcher()
     private val repository = CatalogRepository(dao, client, now = { now }, parsing = dispatcher)
 
+    private val stepB = "GET $ORGANOS_URL"
     private val stepC = "POST https://www.dgej.cjf.gob.mx/internet/expedientes/ExpedienteyTipo.asp " +
         "Organismo=767&Buscar=Buscar&Circuito=1&CircuitoName=PRIMER+CIRCUITO"
 
     @Test
-    fun `loads the tipos de asunto with one step C request`() = runTest(dispatcher) {
-        val tipos = repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+    fun `the circuits are bundled`() {
+        assertEquals(32, repository.circuitos.size)
+        assertTrue(client.requests.isEmpty())
+    }
 
-        assertEquals(listOf(stepC), client.requests)
+    @Test
+    fun `loads a circuit's organos with one request and caches them for 30 days`() = runTest(dispatcher) {
+        assertNull(repository.cachedOrganos("1"))
+
+        val organos = repository.organos("1")
+        now += TimeUnit.DAYS.toMillis(29)
+        val again = repository.organos("1")
+
+        assertEquals(listOf(stepB), client.requests)
+        assertEquals(184, organos.size)
+        assertEquals(organos, again)
+        assertEquals("PRIMER CIRCUITO", dao.circuitos.getValue("1").portalName)
+        assertEquals(93, dao.organos.count { it.kind == OrganoKind.TRIBUNALES.name })
+    }
+
+    @Test
+    fun `reloads organos after 30 days`() = runTest(dispatcher) {
+        repository.organos("1")
+        now += TimeUnit.DAYS.toMillis(31)
+
+        assertNull(repository.cachedOrganos("1"))
+        repository.organos("1")
+
+        assertEquals(listOf(stepB, stepB), client.requests)
+        assertEquals(184, dao.organos.size)
+    }
+
+    @Test
+    fun `finds cached organos by name without a request`() = runTest(dispatcher) {
+        assertTrue(repository.findCachedOrganos("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito").isEmpty())
+        repository.organos("1")
+
+        val found = repository.findCachedOrganos("Segundo Tribunal  Colegiado en Materia Penal del Primer Circuito ")
+
+        assertEquals(listOf("1" to "18"), found.map { it.circuito to it.organo.id })
+        assertEquals(listOf("1"), repository.cachedCircuitosOf("767"))
+        assertTrue("Exact names only", repository.findCachedOrganos("segundo tribunal colegiado en materia penal del primer circuito").isEmpty())
+        assertEquals(1, client.requests.size)
+    }
+
+    @Test
+    fun `tipos de asunto send the circuit name from the organo list`() = runTest(dispatcher) {
+        val tipos = repository.tiposDeAsunto("1", "767")
+
+        assertEquals(listOf(stepB, stepC), client.requests)
         assertEquals(10, tipos.size)
         assertEquals("1" to "Amparo Indirecto", tipos.first().value to tipos.first().label)
         assertTrue("No portal pre-selection", tipos.none { it.selected })
@@ -36,37 +89,47 @@ class CatalogRepositoryTest {
     }
 
     @Test
+    fun `tipos de asunto reuse a cached organo list`() = runTest(dispatcher) {
+        repository.organos("1")
+
+        repository.tiposDeAsunto("1", "767")
+
+        assertEquals(listOf(stepB, stepC), client.requests)
+    }
+
+    @Test
     fun `uses the cache for 30 days`() = runTest(dispatcher) {
-        repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+        repository.tiposDeAsunto("1", "767")
         now += TimeUnit.DAYS.toMillis(29)
 
-        val cached = repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+        val cached = repository.tiposDeAsunto("1", "767")
 
-        assertEquals(1, client.requests.size)
+        assertEquals(2, client.requests.size)
         assertEquals(10, cached.size)
         assertEquals("Procesos Civiles o Administrativos", cached.last().label)
     }
 
     @Test
     fun `reloads after 30 days`() = runTest(dispatcher) {
-        repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+        repository.tiposDeAsunto("1", "767")
         now += TimeUnit.DAYS.toMillis(31)
 
-        repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+        repository.tiposDeAsunto("1", "767")
 
-        assertEquals(listOf(stepC, stepC), client.requests)
+        assertEquals(listOf(stepB, stepC, stepB, stepC), client.requests)
         assertEquals(10, dao.tipos.size)
     }
 
     @Test
     fun `procedimientos echo the cached hidden fields with Accion 2`() = runTest(dispatcher) {
-        repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+        repository.tiposDeAsunto("1", "767")
 
-        val procedimientos = repository.tiposDeProcedimiento("1", "PRIMER CIRCUITO", "767", "9")
-        repository.tiposDeProcedimiento("1", "PRIMER CIRCUITO", "767", "9")
+        val procedimientos = repository.tiposDeProcedimiento("1", "767", "9")
+        repository.tiposDeProcedimiento("1", "767", "9")
 
         assertEquals(
             listOf(
+                stepB,
                 stepC,
                 "POST https://www.dgej.cjf.gob.mx/internet/expedientes/ExpedienteyTipo.asp " +
                     "Circuito=1&CircuitoName=PRIMER+CIRCUITO&Organismo=767&OrgName=&TipoOrganismo=" +
@@ -80,23 +143,29 @@ class CatalogRepositoryTest {
 
     @Test
     fun `procedimientos reload the form first when the cache was cleared`() = runTest(dispatcher) {
-        repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+        repository.tiposDeAsunto("1", "767")
         repository.clear()
 
-        repository.tiposDeProcedimiento("1", "PRIMER CIRCUITO", "767", "125")
+        repository.tiposDeProcedimiento("1", "767", "125")
 
-        assertEquals(3, client.requests.size)
-        assertEquals(stepC, client.requests[1])
-        assertTrue(client.requests[2].endsWith("TipoAsunto=125&Expediente=&Accion=2"))
+        assertEquals(listOf(stepB, stepC, stepB, stepC), client.requests.take(4))
+        assertTrue(client.requests[4].endsWith("TipoAsunto=125&Expediente=&Accion=2"))
+        assertEquals(5, client.requests.size)
     }
 
     @Test
     fun `clear forgets everything`() = runTest(dispatcher) {
-        repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
+        repository.tiposDeAsunto("1", "767")
 
         repository.clear()
-        repository.tiposDeAsunto("1", "PRIMER CIRCUITO", "767")
 
-        assertEquals(2, client.requests.size)
+        assertNull(repository.cachedOrganos("1"))
+        assertTrue(dao.circuitos.isEmpty())
+        repository.tiposDeAsunto("1", "767")
+        assertEquals(4, client.requests.size)
+    }
+
+    private companion object {
+        const val ORGANOS_URL = "https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=1&Exp=1"
     }
 }

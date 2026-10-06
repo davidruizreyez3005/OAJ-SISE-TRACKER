@@ -31,13 +31,15 @@
     <string name="search_paste_link">Pegar enlace del portal</string>
     <string name="search_paste_no_link">No hay un enlace de expediente del SISE en el portapapeles.</string>
     <string name="search_circuito">Circuito</string>
-    <string name="search_circuito_help">Número del circuito; por ejemplo, 1 para el Primer Circuito.</string>
+    <string name="search_circuito_placeholder">Elige un circuito</string>
+    <string name="search_organos_loading">Cargando los órganos del circuito…</string>
+    <string name="search_organos_failed">Toca el campo para reintentar, o escribe el número del órgano.</string>
     <string name="search_kind">Tipo de órgano</string>
     <string name="kind_juzgados">Juzgados</string>
     <string name="kind_tribunales">Tribunales</string>
     <string name="kind_otros">Otros</string>
     <string name="search_organo">Órgano</string>
-    <string name="search_organo_help">Escribe el nombre de un órgano reciente o su número de organismo.</string>
+    <string name="search_organo_help">Escribe para filtrar los órganos del circuito, o el número de organismo.</string>
     <string name="search_organo_number">Organismo %1$s</string>
     <string name="search_recent_organos">Órganos recientes</string>
     <string name="search_tipo_asunto">Tipo de asunto</string>

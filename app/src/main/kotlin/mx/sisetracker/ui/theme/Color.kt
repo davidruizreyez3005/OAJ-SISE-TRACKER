@@ -2,11 +2,13 @@ package mx.sisetracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Every app color lives in this file so the official OAJ values can be swapped
-// in later. The core tokens follow the "Visual design" table in CLAUDE.md (an
-// approximation, not official brand colors). The rest (tertiary and error
-// containers, inverse and surface-container tones) are derived in the same
-// blue-grey family so Material never falls back to its default purple tints.
+// Every app color lives in this file so values can be swapped in later. The
+// core tokens follow the "Visual design" table in CLAUDE.md: the blues
+// (primary, tertiary) are our own approximation; secondary (slate #575F71),
+// light text (#333333) and error (#B31217) come from the OAJ's "Consulta de
+// Datos de Expedientes" stylesheet. The rest (tertiary and error containers,
+// inverse and surface-container tones) are derived in the same blue-grey
+// family so Material never falls back to its default purple tints.
 // ThemeContrastTest checks the text pairs against WCAG AA (4.5:1).
 
 // Light scheme
@@ -15,18 +17,18 @@ val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFD3E3F8)
 val OnPrimaryContainerLight = Color(0xFF001D3D)
 val InversePrimaryLight = Color(0xFFA8C7F0)
-val SecondaryLight = Color(0xFF2D6CB5)
+val SecondaryLight = Color(0xFF575F71)
 val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFDCE8F7)
-val OnSecondaryContainerLight = Color(0xFF0A2A4F)
+val SecondaryContainerLight = Color(0xFFE1E4EB)
+val OnSecondaryContainerLight = Color(0xFF161A1D)
 val TertiaryLight = Color(0xFF1A6FCC)
 val OnTertiaryLight = Color(0xFFFFFFFF)
 val TertiaryContainerLight = Color(0xFFD6E7FF)
 val OnTertiaryContainerLight = Color(0xFF001C3B)
 val BackgroundLight = Color(0xFFF6F8FB)
-val OnBackgroundLight = Color(0xFF1A1C1F)
+val OnBackgroundLight = Color(0xFF333333)
 val SurfaceLight = Color(0xFFF6F8FB)
-val OnSurfaceLight = Color(0xFF1A1C1F)
+val OnSurfaceLight = Color(0xFF333333)
 val SurfaceVariantLight = Color(0xFFE2E8F0)
 val OnSurfaceVariantLight = Color(0xFF44505F)
 val SurfaceDimLight = Color(0xFFD6DCE3)
@@ -40,7 +42,7 @@ val InverseSurfaceLight = Color(0xFF2E3238)
 val InverseOnSurfaceLight = Color(0xFFEEF1F5)
 val OutlineLight = Color(0xFF74808F)
 val OutlineVariantLight = Color(0xFFC3CBD5)
-val ErrorLight = Color(0xFFB3261E)
+val ErrorLight = Color(0xFFB31217)
 val OnErrorLight = Color(0xFFFFFFFF)
 val ErrorContainerLight = Color(0xFFF9DEDC)
 val OnErrorContainerLight = Color(0xFF410E0B)
@@ -52,10 +54,10 @@ val OnPrimaryDark = Color(0xFF00315F)
 val PrimaryContainerDark = Color(0xFF0F4A85)
 val OnPrimaryContainerDark = Color(0xFFD3E3F8)
 val InversePrimaryDark = Color(0xFF0B3B6E)
-val SecondaryDark = Color(0xFF9EC2EE)
-val OnSecondaryDark = Color(0xFF0A2A4F)
-val SecondaryContainerDark = Color(0xFF1E4C80)
-val OnSecondaryContainerDark = Color(0xFFDCE8F7)
+val SecondaryDark = Color(0xFFBEC5D4)
+val OnSecondaryDark = Color(0xFF262B36)
+val SecondaryContainerDark = Color(0xFF3E4554)
+val OnSecondaryContainerDark = Color(0xFFE1E4EB)
 val TertiaryDark = Color(0xFF8CC2FF)
 val OnTertiaryDark = Color(0xFF002E5C)
 val TertiaryContainerDark = Color(0xFF0B4C8F)
@@ -88,10 +90,10 @@ val PrimaryFixed = Color(0xFFD3E3F8)
 val PrimaryFixedDim = Color(0xFFA8C7F0)
 val OnPrimaryFixed = Color(0xFF001D3D)
 val OnPrimaryFixedVariant = Color(0xFF0F4A85)
-val SecondaryFixed = Color(0xFFDCE8F7)
-val SecondaryFixedDim = Color(0xFF9EC2EE)
-val OnSecondaryFixed = Color(0xFF0A2A4F)
-val OnSecondaryFixedVariant = Color(0xFF1E4C80)
+val SecondaryFixed = Color(0xFFE1E4EB)
+val SecondaryFixedDim = Color(0xFFBEC5D4)
+val OnSecondaryFixed = Color(0xFF161A1D)
+val OnSecondaryFixedVariant = Color(0xFF3E4554)
 val TertiaryFixed = Color(0xFFD6E7FF)
 val TertiaryFixedDim = Color(0xFF8CC2FF)
 val OnTertiaryFixed = Color(0xFF001C3B)

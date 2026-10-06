@@ -4,8 +4,8 @@ Each section is one GitHub issue. Paste the title and body as-is; the body
 starts with `@claude` so the workflow picks it up. Do them in order, one PR
 each.
 
-Milestone 4 is blocked until the catalog fixtures land. The fixtures README
-lists exactly what's needed. Milestones 5 to 7 can go before it if needed.
+All catalog fixtures except the tribunal form and the Accion=2 response are
+in place, so every milestone can start.
 
 ---
 
@@ -53,10 +53,10 @@ Tests: assert every expected value in the fixtures README for these files, inclu
 
 In :sise-core implement:
 - `SearchFormParser.parse(html: String): SearchForm` for the ExpedienteyTipo.asp form: TipoAsunto options (value, label, order, selected), TipoProcedimiento options, whether the procedimiento row is shown (TipoAsunto in {6, 9, 125, 126}), Expediente value and maxlength, and all hidden fields.
-- `SearchRequests`: build the ISO-8859-1 form bodies for step C (load form for an órgano) and step D (Accion=2, procedimiento options). There must be no builder for Accion=1 or anything touching the captcha.
+- `SearchRequests`: build the windows-1252 form bodies for step C (load form for an órgano) and step D (Accion=2, procedimiento options). There must be no builder for Accion=1 or anything touching the captcha.
 - `CaseUrl.forLookup(organismo, tipoAsunto, tipoProcedimientoShown, tipoProcedimiento, expediente)`, with the tipoprocedimiento rule from "Search flow in the app" kept in one function.
 - `CasePageParser` returns a NotFound result when #lblNEUN is empty, tested against vercaptura_not-found_99999-2025.html per the fixtures README.
-- Tests against expedienteytipo_result_1183-2025.html per the fixtures README, plus encoding tests showing that "PRIMER CIRCUITO" and an órgano name with "México" encode as ISO-8859-1.
+- Tests against expedienteytipo_result_1183-2025.html per the fixtures README, plus encoding tests showing that "PRIMER CIRCUITO" and an órgano name with "México" encode as windows-1252.
 ```
 
 ---
@@ -64,10 +64,11 @@ In :sise-core implement:
 ## 4. Circuit and órgano catalogs (needs fixtures)
 
 ```
-@claude Milestone 4. Read CLAUDE.md "Search pages" A and B. First check that the circuit list and circuitos.asp fixtures exist in sise-core/src/test/resources/fixtures/. If they don't, comment on this issue listing what's missing and stop.
+@claude Milestone 4. Read CLAUDE.md "Search pages" A and B.
 
-- `CircuitListParser` and `OrganoListParser` (Organismo dropdown, with any type selector the page has; otherwise derive Juzgados/Tribunales/Otros from the name as CLAUDE.md describes).
-- Expected-value tests: count, first and last options, and a few spot checks; add them to the fixtures README.
+- A bundled circuit list (32 entries) as a static resource, with a test asserting it equals the circuits in oaj_circuitos_excerpt.html. Use a parser for that test only; the app never fetches the OAJ page.
+- `OrganoListParser` for circuitos.asp: the Organismo options, the CircuitoName from the "Circuito:" row, and kinds Juzgados/Tribunales/Otros derived from names as CLAUDE.md describes.
+- Expected-value tests per the fixtures README.
 - In :app: a `CatalogRepository` backed by Room. It fetches on demand through the polite request queue, caches for 30 days, and has a manual refresh.
 ```
 
