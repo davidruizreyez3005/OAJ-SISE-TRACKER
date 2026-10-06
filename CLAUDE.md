@@ -206,11 +206,21 @@ fetches the case page directly instead.
 - Labels combine ordinal and state, e.g. `Primer Circuito Ciudad de México`,
   `Vigésimo Primer Circuito Guerrero`. Show them exactly as given, typos
   included (`Decimosexto Circuito Guanuajuato`).
-- The option value is the `Cir` parameter of `circuitos.asp`. The page's own
-  script (not in the capture) does that navigation. Value 1 → `Cir=1` is
-  confirmed by the user's own navigation; the rest is assumed.
-- **Bundle this list in the app** as a static resource, with a test that
-  checks it against the fixture. Don't fetch the OAJ page, which is ~700 KB,
+- The option value is **not** always the portal's `Cir`. The OAJ page's
+  script opens the `href` that its map data
+  (`…/dggj/data/mapa/datos_expedientes.json`, fixture
+  `oaj_datos_expedientes.json`) gives for that value. Only 1–10, 20 and 30
+  keep their number; e.g. 11 → `Cir=41`, 16 → `Cir=45`, 32 → `Cir=109`.
+  `Cir=16` itself returns an empty page titled "Nombre Indefinido" (seen
+  October 2026; that's why only the Primer Circuito worked at first).
+- The app keeps the OAJ number as the circuit's identity (cache keys,
+  "último circuito") and maps it to the portal's `Cir` only where it builds
+  `circuitos.asp` URLs and the step C `Circuito` field
+  (`Circuitos.portalCir`). The page's own hidden `Circuito` input holds the
+  portal number (e.g. 45).
+- **Bundle this list in the app** as a static resource (`circuitos.tsv`:
+  number, label, portal `Cir`), with tests that check it against both
+  fixtures. Don't fetch the OAJ page, which is ~700 KB,
   mostly map SVG. Circuits change very rarely; when they do, update the
   fixture and the bundled list together.
 - `CircuitoName`, the value sent in form bodies, is **not** the OAJ label. It

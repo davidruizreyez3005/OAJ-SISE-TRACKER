@@ -25,6 +25,7 @@ anything that normalizes line endings).
 | `oaj_circuitos_excerpt.html` | **Excerpt** of the OAJ's "Consulta de Datos de Expedientes" page: only the circuit selector (`form#form2`) is kept, unchanged; the full ~700 KB page is mostly a map SVG. Chrome "Download page" capture. |
 | `expedienteytipo_form_{organismo}.html` | Fresh search forms (step C, after choosing an órgano in the Primer Circuito), one per órgano type: 4157 juzgado, 4 tribunal colegiado, 4343 tribunal colegiado de apelación, 3986 tribunal laboral, 930 comisión de conflictos laborales, 4386 pleno regional, 6315 an órgano with no tipos. Chrome captures, so hidden inputs are missing. Originally windows-1252. |
 | `expedienteytipo_accion2_4343_tipo125.html` | The same form after choosing tipo 125 at órgano 4343: the Accion=2 reload, with the "Tipo de procedimiento" row shown and its real options. Chrome capture, originally windows-1252. |
+| `oaj_datos_expedientes.json` | The OAJ map data behind that selector (`https://www.oaj.gob.mx/micrositios/dggj/data/mapa/datos_expedientes.json`, October 2026): for each OAJ circuit `value` 1–32, the `href` of its `circuitos.asp` page. Unchanged. |
 | `circuitos_cir1.html` | Órgano list for the Primer Circuito (`circuitos.asp?Cir=1&Exp=1`). Chrome "Download page" capture, so hidden inputs are missing. Originally windows-1252, converted to UTF-8. |
 | `delta_ver-acuerdo_1183-2025_orden38.txt` | MS AJAX delta response to the "Ver síntesis" postback, orden 38. Reference only. |
 | `delta_ver-acuerdo_293-2026_orden{1,2,3}.txt` | Same, for the tribunal colegiado case 293/2026. Reference only. |
@@ -162,6 +163,11 @@ Spot checks:
 - TipoProcedimiento: 11 options, none selected, in this order: 22800 Apelación, 22801 Denegada apelación, 22802 Impedimento (excusa), 22803 Impedimento (recusación), 22804 Queja, 22805 Conflicto competencial entre jueces, 22806 Conflicto de acumulación entre jueces, 22807 Sumario, 22808 Conflicto de acumulación, 22809 Impedimento, 22810 Otro.
 - None of these IDs appear in the 9 step-C defaults (276, 979, 1214, 1715, 1719, 1720, 2670, 3042, 4258).
 - Expediente empty, maxlength 15. `iframe#ifr` has no vercaptura.aspx src.
+
+## Expected values: `oaj_datos_expedientes.json`
+
+- 32 entries. The portal's `Cir` equals the OAJ value only for 1–10, 20 and 30; e.g. 11 → `Cir=41`, 16 → `Cir=45`, 32 → `Cir=109`. The bundled `circuitos.tsv` third column must equal these.
+- Checked live (October 2026): `Cir=16` and `Cir=32` return an empty órgano page with circuit name "Nombre Indefinido"; `Cir=45` is "DÉCIMO SEXTO CIRCUITO" with 30 órganos.
 
 ## Expected values: `circuitos_cir1.html`
 

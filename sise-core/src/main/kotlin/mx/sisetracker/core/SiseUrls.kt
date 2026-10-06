@@ -14,7 +14,11 @@ object SiseUrls {
     /** The portal's search form (classic ASP, windows-1252). */
     const val SEARCH_FORM = "https://$HOST/internet/expedientes/ExpedienteyTipo.asp"
 
-    /** A circuit's órgano list, where a search on the portal starts (step B). */
+    /**
+     * A circuit's órgano list, where a search on the portal starts (step B).
+     * [circuito] is the app's (OAJ) circuit number; it's mapped to the
+     * portal's own `Cir` here.
+     */
     fun circuitos(circuito: String): String =
-        "https://$HOST/internet/expedientes/circuitos.asp?Cir=${QueryString.encode(circuito)}&Exp=1"
+        "https://$HOST/internet/expedientes/circuitos.asp?Cir=${QueryString.encode(Circuitos.portalCir(circuito))}&Exp=1"
 }

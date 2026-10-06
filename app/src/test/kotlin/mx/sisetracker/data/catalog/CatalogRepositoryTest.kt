@@ -216,6 +216,19 @@ class CatalogRepositoryTest {
         )
     }
 
+    @Test
+    fun `other circuits use the portal's own Cir number`() = runTest(dispatcher) {
+        client.onGet = { Fixtures.load(Fixtures.ORGANOS_CIR1) }
+
+        repository.organos("16")
+        repository.tiposDeAsunto("16", "313")
+
+        assertEquals("GET https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=45&Exp=1", client.requests[0])
+        assertTrue(client.requests[1].contains("Circuito=45&"))
+        // Cached under the app's (OAJ) number.
+        assertEquals(184, repository.cachedOrganos("16")?.size)
+    }
+
     private companion object {
         const val ORGANOS_URL = "https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=1&Exp=1"
     }

@@ -165,7 +165,7 @@ abstract class CatalogDao {
         TipoProcedimientoEntity::class,
         SearchFormFieldEntity::class,
     ],
-    version = 2,
+    version = 3,
 )
 abstract class CatalogDatabase : RoomDatabase() {
     abstract fun catalogDao(): CatalogDao

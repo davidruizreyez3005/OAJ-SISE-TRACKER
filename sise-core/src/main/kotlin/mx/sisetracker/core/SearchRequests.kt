@@ -58,7 +58,8 @@ object SearchRequests {
             listOf(
                 "Organismo" to organismo,
                 "Buscar" to "Buscar",
-                "Circuito" to circuito,
+                // The portal's own circuit number, as circuitos.asp's hidden input has it.
+                "Circuito" to Circuitos.portalCir(circuito),
                 "CircuitoName" to circuitoName,
             ),
         )
