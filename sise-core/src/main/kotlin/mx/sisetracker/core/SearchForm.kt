@@ -11,9 +11,23 @@ data class FormOption(
 
 /** The portal's search form (`form[name=Editar]` on `ExpedienteyTipo.asp`). */
 data class SearchForm(
+    /** From the "Circuito:" row, e.g. `PRIMER CIRCUITO`. */
+    val circuitoName: String?,
+    /** From the "Órgano Jurisdiccional:" row; blank (null) on some pages. */
+    val organoName: String?,
+    /** In page order. Empty for órganos with nothing searchable (e.g. Secretaría General de Acuerdos). */
     val tipoAsuntoOptions: List<FormOption>,
+    /**
+     * Only meaningful after the Accion=2 reload for a tipo that shows the row
+     * (step D). On the fresh form (step C) these are always the same 8
+     * defaults, whatever the órgano: never offer those.
+     */
     val tipoProcedimientoOptions: List<FormOption>,
-    /** Whether the portal shows the "Tipo de procedimiento" row for the current tipo de asunto. */
+    /**
+     * Whether the portal shows the "Tipo de procedimiento" row: read from
+     * `tr#regTipoProc`'s style, or from [TipoProcedimientoRule] for the
+     * selected tipo when the row is missing.
+     */
     val isTipoProcedimientoShown: Boolean,
     val expediente: String,
     val expedienteMaxLength: Int?,

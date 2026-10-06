@@ -111,8 +111,9 @@ data class CaseUrl(
          */
         fun fromSearchResult(html: String): CaseUrl? {
             val document = Jsoup.parse(html, SiseUrls.SEARCH_FORM)
+            // The fresh form already has an empty iframe#ifr; only a search fills its src.
             val src = document.selectFirst("iframe#ifr")?.absUrl("src")
-            return src?.takeIf { it.isNotEmpty() }?.let(::parse)
+            return src?.takeIf { SiseUrls.CASE_PAGE_PATH in it }?.let(::parse)
         }
     }
 }

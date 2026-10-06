@@ -1,6 +1,9 @@
 package mx.sisetracker.core
 
+import java.time.LocalDate
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -41,7 +44,20 @@ class OrganoListParserTest {
     @Test
     fun `kinds derived from names`() {
         val counts = list.organos.groupingBy { it.kind }.eachCount()
-        assertEquals(mapOf(OrganoKind.JUZGADOS to 79, OrganoKind.TRIBUNALES to 93, OrganoKind.OTROS to 12), counts)
+        assertEquals(mapOf(OrganoKind.JUZGADOS to 79, OrganoKind.TRIBUNALES to 92, OrganoKind.OTROS to 13), counts)
+        // "...del Tribunal de Disciplina Judicial" doesn't make it a tribunal.
+        assertEquals(OrganoKind.OTROS, list.organos.single { it.id == "6207" }.kind)
+    }
+
+    @Test
+    fun `four closed organos, all closed on 31-08-2024`() {
+        val closed = list.organos.filter { it.closedOn != null }
+
+        assertEquals(setOf("25", "52", "60", "555"), closed.map { it.id }.toSet())
+        assertEquals(4, closed.size)
+        assertTrue(closed.all { it.closedOn == LocalDate.of(2024, 8, 31) && it.name.endsWith("31/08/2024)") })
+        assertTrue(closed.all { it.isClosed(LocalDate.of(2026, 10, 6)) })
+        assertFalse(closed.first().isClosed(LocalDate.of(2024, 8, 31)))
     }
 
     @Test

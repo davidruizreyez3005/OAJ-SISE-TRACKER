@@ -132,7 +132,7 @@ class SearchViewModelTest {
         assertEquals(184, viewModel.state.value.organoSuggestions.size)
 
         viewModel.onKindFilterChange(OrganoKind.TRIBUNALES)
-        assertEquals(93, viewModel.state.value.organoSuggestions.size)
+        assertEquals(92, viewModel.state.value.organoSuggestions.size)
 
         viewModel.onOrganoTextChange("segundo penal")
         assertEquals(
@@ -142,7 +142,7 @@ class SearchViewModelTest {
 
         viewModel.onKindFilterChange(OrganoKind.OTROS)
         viewModel.onOrganoTextChange("comision de disciplina")
-        assertEquals(listOf("6316"), viewModel.state.value.organoSuggestions.map { it.id })
+        assertEquals(listOf("6207", "6316"), viewModel.state.value.organoSuggestions.map { it.id }.sorted())
     }
 
     @Test
@@ -383,6 +383,47 @@ class SearchViewModelTest {
         // No tipos cached for it, so the user picks the tipo.
         assertEquals(null, state.tipoAsunto)
         assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `no tipo is preselected, even when the organo has only one`() = runTest(main.dispatcher) {
+        client.onPost = {
+            Fixtures.load(Fixtures.SEARCH_FORM_1183)
+                .replace(Regex("(?s)(<select[^>]*name=\"TipoAsunto\"[^>]*>).*?</select>"), "$1<option value=\"1\" selected>Amparo Indirecto</option></select>")
+        }
+        val viewModel = viewModel()
+        viewModel.onCircuitoSelected(primerCircuito)
+        viewModel.onOrganoTextChange("767")
+        viewModel.onTiposAsuntoRequested()
+        advanceUntilIdle()
+
+        val state = viewModel.state.value
+        assertEquals(1, (state.tiposAsunto as Loadable.Loaded).value.size)
+        assertEquals(null, state.tipoAsunto)
+        assertFalse(state.canSearch)
+    }
+
+    @Test
+    fun `an organo with no tipos can't be searched`() = runTest(main.dispatcher) {
+        client.onPost = { Fixtures.load(Fixtures.FORM_NO_TIPOS_6315) }
+        val viewModel = viewModel()
+        viewModel.onCircuitoSelected(primerCircuito)
+        viewModel.onOrganoTextChange("6315")
+        viewModel.onTiposAsuntoRequested()
+        advanceUntilIdle()
+        viewModel.onExpedienteChange("1/2026")
+
+        val state = viewModel.state.value
+        assertEquals(Loadable.Loaded(emptyList<FormOption>()), state.tiposAsunto)
+        assertFalse(state.canSearch)
+    }
+
+    @Test
+    fun `a closed organo is marked`() {
+        val closed = KnownOrgano("555", "Juzgado X de Procesos Penales Federales en la Ciudad de México (13/12/2001 - 31/08/2024)")
+
+        assertTrue(closed.isClosed(java.time.LocalDate.of(2026, 10, 6)))
+        assertFalse(KnownOrgano("767", juzgado).isClosed())
     }
 
     @Test

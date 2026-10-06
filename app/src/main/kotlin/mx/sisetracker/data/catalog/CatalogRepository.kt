@@ -13,6 +13,7 @@ import mx.sisetracker.core.SearchFormParser
 import mx.sisetracker.core.SearchRequests
 import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.SiseUrls
+import mx.sisetracker.data.capture.PageCapture
 import mx.sisetracker.data.net.SiseClient
 
 /** A cached órgano, with the circuit whose list it came from. */
@@ -28,6 +29,8 @@ class CatalogRepository(
     private val client: SiseClient,
     private val now: () -> Long = System::currentTimeMillis,
     private val parsing: CoroutineDispatcher = Dispatchers.Default,
+    /** Diagnostics: receives each catalog page as loaded (see CaptureStore). */
+    private val capture: PageCapture = PageCapture.None,
 ) {
     /** The 32 circuits, in the OAJ's order. Never makes a request. */
     val circuitos: List<Circuito> get() = Circuitos.all
@@ -60,11 +63,16 @@ class CatalogRepository(
      * Tipos de asunto of [organismo]: from the cache, or one request for the
      * portal's search form (step C). That form needs the circuit's
      * `CircuitoName`, which comes with its órgano list, so the list loads
-     * first if it isn't cached. Empty if the portal lists none, which usually
-     * means a wrong organismo.
+     * first if it isn't cached. Empty when the órgano has nothing searchable
+     * on the portal (e.g. Secretaría General de Acuerdos), which is cached
+     * like any other list.
      */
     suspend fun tiposDeAsunto(circuito: String, organismo: String): List<FormOption> {
-        cachedTiposDeAsunto(organismo).takeIf { it.isNotEmpty() }?.let { return it }
+        // The form's hidden fields mark a cached form, even one with no tipos.
+        val fields = dao.formFields(organismo)
+        if (fields.isNotEmpty() && fields.all { isFresh(it.fetchedAt) }) {
+            return dao.tiposAsunto(organismo).map { FormOption(it.id, it.name, it.position, selected = false) }
+        }
         return fetchForm(circuito, organismo)
     }
 
@@ -86,6 +94,7 @@ class CatalogRepository(
         }
         val hiddenFields = fields.associate { it.name to it.value }
         val html = client.postForm(SearchRequests.loadProcedimientos(hiddenFields, tipoAsunto))
+        capture.save("expedienteytipo_accion2_${organismo}_tipo$tipoAsunto", html)
         val options = withContext(parsing) { SearchFormParser.parse(html) }
             .tipoProcedimientoOptions
             .map { it.copy(selected = false) }
@@ -110,6 +119,7 @@ class CatalogRepository(
 
     private suspend fun fetchOrganos(circuito: String): List<Organo> {
         val html = client.getFormPage(SiseUrls.circuitos(circuito))
+        capture.save("circuitos_cir$circuito", html)
         val list = withContext(parsing) { OrganoListParser.parse(html) }
         val fetchedAt = now()
         dao.replaceOrganos(
@@ -129,8 +139,8 @@ class CatalogRepository(
     private suspend fun fetchForm(circuito: String, organismo: String): List<FormOption> {
         val circuitoName = circuitoName(circuito)
         val html = client.postForm(SearchRequests.loadForm(circuito, circuitoName, organismo))
+        capture.save("expedienteytipo_form_$organismo", html)
         val form = withContext(parsing) { SearchFormParser.parse(html) }
-        if (form.tipoAsuntoOptions.isEmpty()) return emptyList()
         val fetchedAt = now()
         dao.replaceForm(
             organismo,

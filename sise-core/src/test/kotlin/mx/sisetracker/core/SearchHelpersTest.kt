@@ -13,6 +13,15 @@ class SearchHelpersTest {
         assertEquals(OrganoKind.TRIBUNALES, OrganoKind.fromName("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito"))
         assertEquals(OrganoKind.TRIBUNALES, OrganoKind.fromName("Primer Tribunal Unitario del Primer Circuito"))
         assertEquals(OrganoKind.OTROS, OrganoKind.fromName("Centro de Justicia Penal Federal en la Ciudad de México"))
+        assertEquals(OrganoKind.TRIBUNALES, OrganoKind.fromName("Décimo Primer Tribunal Colegiado en Materia Civil del Primer Circuito"))
+        assertEquals(OrganoKind.TRIBUNALES, OrganoKind.fromName("Tribunal Laboral Federal de asuntos colectivos, con sede en la Ciudad de México"))
+        assertEquals(
+            OrganoKind.OTROS,
+            OrganoKind.fromName("Unidad de Instrucción de la Comisión de Conflictos Laborales del Tribunal de Disciplina Judicial"),
+        )
+        assertEquals(OrganoKind.OTROS, OrganoKind.fromName("Pleno Regional en Materias Penal y de Trabajo de la Región Centro-Norte"))
+        // Three words before the noun is past the rule's two.
+        assertEquals(OrganoKind.OTROS, OrganoKind.fromName("Algo Muy Largo Tribunal"))
     }
 
     @Test

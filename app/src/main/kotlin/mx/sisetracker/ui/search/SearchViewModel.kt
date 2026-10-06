@@ -336,7 +336,8 @@ class SearchViewModel(
                 when (result) {
                     is PortalResult.Ok -> current.copy(
                         tiposAsunto = Loadable.Loaded(result.value),
-                        tipoAsunto = current.tipoAsunto ?: result.value.singleOrNull(),
+                        // No preselection: the user picks a tipo explicitly, even when there's only one.
+                        tipoAsunto = current.tipoAsunto?.takeIf { tipo -> result.value.any { it.value == tipo.value } },
                     )
                     is PortalResult.Failed -> current.copy(tiposAsunto = Loadable.Failed(result.error))
                 }
@@ -365,7 +366,7 @@ class SearchViewModel(
                 when (result) {
                     is PortalResult.Ok -> current.copy(
                         tiposProcedimiento = Loadable.Loaded(result.value),
-                        tipoProcedimiento = result.value.singleOrNull(),
+                        tipoProcedimiento = null,
                     )
                     is PortalResult.Failed -> current.copy(tiposProcedimiento = Loadable.Failed(result.error))
                 }

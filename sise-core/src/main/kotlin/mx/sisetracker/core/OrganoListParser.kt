@@ -1,5 +1,8 @@
 package mx.sisetracker.core
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 import org.jsoup.Jsoup
 
 /** An órgano from a circuit's list. [id] is the organismo ID used everywhere else. */
@@ -10,6 +13,26 @@ data class Organo(
     val position: Int,
 ) {
     val kind: OrganoKind get() = OrganoKind.fromName(name)
+
+    /** For a closed órgano, the end of the active period its name carries; else null. */
+    val closedOn: LocalDate? get() = OrganoPeriod.endOf(name)
+
+    /** Closed by [today]: its cases stay searchable, the app only marks it "Cerrado". */
+    fun isClosed(today: LocalDate): Boolean = closedOn?.let { it < today } == true
+}
+
+/**
+ * Closed órganos stay listed with their active period at the end of the name:
+ * `… en la Ciudad de México (13/12/2001 - 31/08/2024)`.
+ */
+object OrganoPeriod {
+    private val period = Regex("""\((\d{2}/\d{2}/\d{4})\s*-\s*(\d{2}/\d{2}/\d{4})\)\s*\.?\s*$""")
+    private val format = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
+
+    fun endOf(name: String): LocalDate? {
+        val end = period.find(name)?.groupValues?.get(2) ?: return null
+        return runCatching { LocalDate.parse(end, format) }.getOrNull()
+    }
 }
 
 /** A circuit's `circuitos.asp` page (step B). */
@@ -34,12 +57,6 @@ object OrganoListParser {
         val select = document.selectFirst("select[name=Organismo]")
             ?: throw SiseParseException("Órgano list has no Organismo select")
         val organos = select.dropdownOptions().map { Organo(it.value, it.label, it.position) }
-        val circuitoName = document.select("th")
-            .firstOrNull { SiseText.normalizeSpace(it.text()).startsWith("Circuito:") }
-            ?.nextElementSibling()
-            ?.takeIf { it.tagName() == "td" }
-            ?.let { SiseText.normalizeSpace(it.text()) }
-            ?.takeIf { it.isNotEmpty() }
-        return OrganoList(circuitoName, organos)
+        return OrganoList(document.rowValue("Circuito:"), organos)
     }
 }

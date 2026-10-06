@@ -3,7 +3,9 @@ package mx.sisetracker
 import android.app.Application
 import androidx.room.Room
 import androidx.work.WorkManager
+import java.io.File
 import java.util.concurrent.TimeUnit
+import mx.sisetracker.data.capture.CaptureStore
 import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.check.DailyCheck
 import mx.sisetracker.data.check.DailyCheckScheduler
@@ -50,8 +52,17 @@ class AppContainer(private val app: Application) {
         Room.databaseBuilder(app, SiseDatabase::class.java, SiseDatabase.NAME).build()
     }
 
+    val captureStore: CaptureStore by lazy {
+        CaptureStore(
+            dir = File(app.filesDir, "captures"),
+            shareDir = File(app.cacheDir, "shared"),
+            settings = settings,
+            versionName = BuildConfig.VERSION_NAME,
+        )
+    }
+
     val catalogRepository: CatalogRepository by lazy {
-        CatalogRepository(catalogDatabase.catalogDao(), siseClient)
+        CatalogRepository(catalogDatabase.catalogDao(), siseClient, capture = captureStore)
     }
 
     val lookupRepository: LookupRepository by lazy { LookupRepository(siseClient) }

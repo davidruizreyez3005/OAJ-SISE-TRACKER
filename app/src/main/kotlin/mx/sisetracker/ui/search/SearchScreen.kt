@@ -34,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
@@ -148,6 +150,8 @@ fun SearchScreen(
                 onSelect = viewModel::onOrganoSelected,
             )
 
+            if (state.organo?.isClosed() == true) ClosedChip()
+
             if (state.knownOrganos.isNotEmpty()) {
                 RecentOrganos(organos = state.knownOrganos, onSelect = viewModel::onOrganoSelected)
             }
@@ -209,6 +213,7 @@ fun SearchScreen(
                 onSave = viewModel::onSave,
                 onOpenSaved = viewModel::onOpenSaved,
                 onOpenPortal = openPortal,
+                offerPortalWhenNotFound = state.showsProcedimiento,
             )
         }
     }
@@ -248,6 +253,22 @@ private fun CircuitoField(
                 )
             }
         }
+    }
+}
+
+/** "Cerrado": the órgano's name carries an active period that has ended. */
+@Composable
+private fun ClosedChip() {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    ) {
+        Text(
+            stringResource(R.string.organo_closed),
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+        )
     }
 }
 
@@ -331,7 +352,12 @@ private fun OrganoField(
             suggestions.forEach { suggestion ->
                 DropdownMenuItem(
                     text = { Text(suggestion.name.ifEmpty { suggestion.id }) },
-                    trailingIcon = { Text(suggestion.id, style = MaterialTheme.typography.labelSmall) },
+                    trailingIcon = {
+                        Column(horizontalAlignment = Alignment.End) {
+                            if (suggestion.isClosed()) ClosedChip()
+                            Text(suggestion.id, style = MaterialTheme.typography.labelSmall)
+                        }
+                    },
                     onClick = {
                         onSelect(suggestion)
                         expanded = false
@@ -395,6 +421,11 @@ private fun OptionField(
             readOnly = true,
             enabled = enabled,
             label = { Text(label) },
+            placeholder = if (enabled && loaded.isNotEmpty()) {
+                { Text(stringResource(R.string.search_select)) }
+            } else {
+                null
+            },
             trailingIcon = {
                 if (options == Loadable.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -487,6 +518,7 @@ private fun LookupResult(
     onSave: () -> Unit,
     onOpenSaved: () -> Unit,
     onOpenPortal: () -> Unit,
+    offerPortalWhenNotFound: Boolean,
 ) {
     when (lookup) {
         LookupState.None, LookupState.Loading -> Unit
@@ -497,7 +529,14 @@ private fun LookupResult(
             onSave = onSave,
             onOpenSaved = onOpenSaved,
         )
-        LookupState.NotFound -> MessageCard(text = stringResource(R.string.search_not_found))
+        // For procedimiento tipos the case URL's tipoprocedimiento is a guess: offer the portal too.
+        LookupState.NotFound -> if (offerPortalWhenNotFound) {
+            MessageCard(text = stringResource(R.string.search_not_found)) {
+                TextButton(onClick = onOpenPortal) { Text(stringResource(R.string.search_open_portal)) }
+            }
+        } else {
+            MessageCard(text = stringResource(R.string.search_not_found))
+        }
         is LookupState.Failed -> MessageCard(text = stringResource(lookup.error.messageRes())) {
             TextButton(onClick = onOpenPortal) { Text(stringResource(R.string.search_open_portal)) }
         }

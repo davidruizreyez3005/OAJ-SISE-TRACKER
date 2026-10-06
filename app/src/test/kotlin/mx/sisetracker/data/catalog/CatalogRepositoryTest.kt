@@ -48,7 +48,7 @@ class CatalogRepositoryTest {
         assertEquals(184, organos.size)
         assertEquals(organos, again)
         assertEquals("PRIMER CIRCUITO", dao.circuitos.getValue("1").portalName)
-        assertEquals(93, dao.organos.count { it.kind == OrganoKind.TRIBUNALES.name })
+        assertEquals(92, dao.organos.count { it.kind == OrganoKind.TRIBUNALES.name })
     }
 
     @Test
@@ -163,6 +163,57 @@ class CatalogRepositoryTest {
         assertTrue(dao.circuitos.isEmpty())
         repository.tiposDeAsunto("1", "767")
         assertEquals(4, client.requests.size)
+    }
+
+    /** Chrome captures drop hidden inputs; the live page has them, so add the ones the portal sends. */
+    private fun withHiddenFields(html: String, organismo: String) = html.replaceFirst(
+        "method=\"POST\">",
+        "method=\"POST\"><input type=\"hidden\" name=\"Circuito\" value=\"1\">" +
+            "<input type=\"hidden\" name=\"Organismo\" value=\"$organismo\">",
+    )
+
+    @Test
+    fun `an organo with no tipos is cached as empty`() = runTest(dispatcher) {
+        client.onPost = { withHiddenFields(Fixtures.load(Fixtures.FORM_NO_TIPOS_6315), "6315") }
+
+        val first = repository.tiposDeAsunto("1", "6315")
+        val again = repository.tiposDeAsunto("1", "6315")
+
+        assertTrue(first.isEmpty())
+        assertTrue(again.isEmpty())
+        assertEquals(listOf(stepB, stepC.replace("767", "6315")), client.requests)
+    }
+
+    @Test
+    fun `procedimientos come from the Accion 2 reload, never the form's defaults`() = runTest(dispatcher) {
+        client.onPost = { request ->
+            val accion2 = request.fields.any { it == "Accion" to "2" }
+            Fixtures.load(if (accion2) Fixtures.ACCION2_4343_125 else Fixtures.SEARCH_FORM_1183)
+        }
+        repository.tiposDeAsunto("1", "4343")
+
+        val procedimientos = repository.tiposDeProcedimiento("1", "4343", "125")
+
+        assertEquals(11, procedimientos.size)
+        assertEquals("22800" to "Apelación", procedimientos.first().value to procedimientos.first().label)
+        assertTrue(procedimientos.none { it.value == "276" || it.selected })
+    }
+
+    @Test
+    fun `catalog pages go to the capture under fixture names`() = runTest(dispatcher) {
+        val captured = mutableListOf<String>()
+        val capturing = CatalogRepository(dao, client, now = { now }, parsing = dispatcher) { name, html ->
+            captured += name
+            assertTrue(html.isNotEmpty())
+        }
+
+        capturing.tiposDeAsunto("1", "767")
+        capturing.tiposDeProcedimiento("1", "767", "125")
+
+        assertEquals(
+            listOf("circuitos_cir1", "expedienteytipo_form_767", "expedienteytipo_accion2_767_tipo125"),
+            captured,
+        )
     }
 
     private companion object {

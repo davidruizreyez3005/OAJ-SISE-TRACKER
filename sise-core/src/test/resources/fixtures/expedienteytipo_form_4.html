@@ -1,0 +1,153 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><meta http-equiv="origin-trial" content="A7vZI3v+Gz7JfuRolKNM4Aff6zaGuT7X0mf3wtoZTnKv6497cVMnhy03KDqX7kBz/q/iidW7srW31oQbBt4VhgoAAACUeyJvcmlnaW4iOiJodHRwczovL3d3dy5nb29nbGUuY29tOjQ0MyIsImZlYXR1cmUiOiJEaXNhYmxlVGhpcmRQYXJ0eVN0b3JhZ2VQYXJ0aXRpb25pbmczIiwiZXhwaXJ5IjoxNzU3OTgwODAwLCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ==">
+    <meta http-equiv="Content-Language" content="en-us">
+    
+    <meta http-equiv="x-ua-compatible" content="IE=11">
+    <title>Acuerdos Por Expediente</title>
+    <base target="_self">
+    
+    
+    
+</head>
+
+<body bgcolor="#FFFFFF">
+    
+    <h1 align="center">
+        
+    </h1>
+    <hr>
+    
+    <form name="Editar" action="https://www.dgej.cjf.gob.mx/internet/expedientes/ExpedienteyTipo.asp" method="POST">
+        <table border="0" width="100%">
+            <tbody><tr>
+                <th colspan="2" bgcolor="#24135f">
+                    <font color="#FFFFFF">Indique los datos solicitados:</font>
+                </th>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Circuito:</font>
+                </th>
+                <td>
+                    PRIMER CIRCUITO&nbsp;
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Órgano Jurisdiccional:</font>
+                </th>
+                <td>
+                    Primer Tribunal Colegiado en Materia Administrativa del Primer Circuito&nbsp;
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Seleccione el Tipo de Expediente:</font>
+                </th>
+                <td>
+                    <select size="1" name="TipoAsunto" tabindex="1">
+                        
+        <option value="29">Amparo contra leyes</option>
+
+        <option value="10">Amparo Directo</option>
+
+        <option value="11">Amparo en revisión</option>
+
+        <option value="12">Conflictos Competenciales</option>
+
+        <option value="17">Conflictos de Acumulación</option>
+
+        <option value="13">Impedimento</option>
+
+        <option value="23">Incidentes de Inejecución</option>
+
+        <option value="25">Inconformidades</option>
+
+        <option value="15">Queja</option>
+
+        <option value="20">Reclamaciones</option>
+
+        <option value="26">Reconocimiento de Inocencia</option>
+
+        <option value="24">Repetición del Acto Reclamado</option>
+
+        <option value="14">Revisión Contenciosa Administrativa</option>
+
+        <option value="16">Revisión Fiscal</option>
+
+                    </select>
+                </td>
+            </tr>
+            <tr style="display:none;" id="regTipoProc">
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Seleccione el Tipo de Procedimiento:</font>
+                </th>
+                <td visible="false">
+                    <select size="1" name="TipoProcedimiento" tabindex="2">
+                        
+        <option value="276">Apelación</option>
+
+        <option value="979">Conflicto competencial entre jueces</option>
+
+        <option value="1214">Denegada apelación</option>
+
+        <option value="1715">Impedimento</option>
+
+        <option value="1719">Impedimento (excusa)</option>
+
+        <option value="1720">Impedimento (recusación)</option>
+
+        <option value="2670">Otro</option>
+
+        <option value="3042">Queja</option>
+
+        <option value="4258">Sumario</option>
+
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Indique el Número de Expediente:</font>
+                </th>
+                <td>
+                    <input type="text" name="Expediente" tabindex="3" value="" maxlength="15" size="20">
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                </th>
+                <td>
+                    <div id="recaptchaArea"><div style="width: 304px; height: 78px;"><div><iframe title="reCAPTCHA" width="304" height="78" role="presentation" name="a-98xkpt9igt5q" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox allow-storage-access-by-user-activation" src="cid:frame-8C3C2E7712CD91BFF75AA2F63AD74F02@mhtml.blink"></iframe></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea></div><iframe style="display: none;"></iframe></div>
+                    <!--<img src="aspcaptcha1.asp" alt="" width="86" height="21" />
+            <br />
+            Escriba el texto de la imagen de arriba, en el siguiente cuadro:
+            <br />
+            <input name="strCAPTCHA" type="text" id="strCAPTCHA" maxlength="8" /></td>-->
+                </td>
+            </tr>
+            <tr>
+                <th colspan="2">
+                    <input type="submit" value="Buscar" id="Buscar" name="Buscar" tabindex="4">
+                    <input type="button" value="Cancelar" name="Cancelar" tabindex="5">
+                    
+                    
+                    
+                    
+                    
+                    
+                </th>
+            </tr>
+        </tbody></table>
+    </form>
+    <hr>
+    <p>
+        <font color="#FFFFFF">Consultas realizadas hasta el momento:
+            
+        </font>
+    </p>
+    <iframe id="ifr" name="ifr" src="cid:frame-D2C4394708CF94B6C8D383046B3EB4C9@mhtml.blink" style="position:absolute; height:0%; width:0%; top:0%; left:0%;">
+    </iframe>
+
+
+
+<div style="background-color: rgb(255, 255, 255); border: 1px solid rgb(204, 204, 204); box-shadow: rgba(0, 0, 0, 0.2) 2px 2px 3px; position: absolute; transition: visibility linear 0.3s, opacity 0.3s linear; opacity: 0; visibility: hidden; z-index: 2000000000; left: 0px; top: -10000px;"><div style="width: 100%; height: 100%; position: fixed; top: 0px; left: 0px; z-index: 2000000000; background-color: rgb(255, 255, 255); opacity: 0.05;"></div><div class="g-recaptcha-bubble-arrow" style="border: 11px solid transparent; width: 0px; height: 0px; position: absolute; pointer-events: none; margin-top: -11px; z-index: 2000000000;"></div><div class="g-recaptcha-bubble-arrow" style="border: 10px solid transparent; width: 0px; height: 0px; position: absolute; pointer-events: none; margin-top: -10px; z-index: 2000000000;"></div><div style="z-index: 2000000000; position: relative;"><iframe title="El reCAPTCHA caduca dentro de dos minutos" name="c-98xkpt9igt5q" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox allow-storage-access-by-user-activation" src="cid:frame-10C805EB7B9FEEB6CAB820F848C3E753@mhtml.blink" style="width: 100%; height: 100%;"></iframe></div></div></body></html>

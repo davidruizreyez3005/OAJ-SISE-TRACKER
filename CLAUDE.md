@@ -167,6 +167,14 @@ As built (`data/db` and `data/catalog` in `:app`):
   what's cached until then. Step C needs the CircuitoName, so loading an
   órgano's tipos first loads its circuit's órgano list if it isn't cached
   (e.g. when the órgano came from "Órganos recientes").
+- Diagnostics, Ajustes → "Capturar páginas del catálogo" (off by default):
+  while on, each catalog page the user's own actions load (órgano lists,
+  step C forms, Accion=2 reloads) is saved under its fixture name
+  (`circuitos_cir{n}`, `expedienteytipo_form_{organismo}`,
+  `expedienteytipo_accion2_{organismo}_tipo{t}`) and can be shared as a zip.
+  Unlike Chrome page saves these keep the hidden inputs. It never loads
+  anything itself (hard rule 3) and never sees case pages or síntesis
+  (hard rule 6). New fixtures from it still need the README entries.
 
 ## SISE protocol reference
 
@@ -212,19 +220,48 @@ Fixture: `circuitos_cir1.html`.
   them from the circuit list.
 - The list mixes jurisdictional and administrative bodies (Comisión de
   Disciplina, Secretaría General de Acuerdos…) and Plenos Regionales.
-- Tipo de órgano, derived from the name because the page has no type
-  selector: starts with "Juzgado" → Juzgados; contains "Tribunal" →
-  Tribunales; anything else → Otros. For the Primer Circuito that gives 79,
-  93 and 12.
+- Closed órganos stay listed, with their active period in the name, e.g.
+  `… Procesos Penales Federales en la Ciudad de México (13/12/2001 -
+  31/08/2024)` (4 in the Primer Circuito: 555, 25, 52, 60). Keep the label
+  as-is. When the end date is in the past, also show a small "Cerrado" chip.
+  Their cases stay searchable.
+- Tipo de órgano is derived from the name, because the page has no type
+  selector. Match only the leading noun, allowing up to two ordinal words
+  before it (`^(?:\p{Lu}\p{Ll}+\s){0,2}Juzgado\b` → Juzgados, same with
+  `Tribunal` → Tribunales, anything else → Otros).
+  - Don't use "contains Tribunal": "Unidad de Instrucción de la Comisión de
+    Conflictos Laborales del Tribunal de Disciplina Judicial" is Otros.
+  - Primer Circuito: 79 Juzgados, 92 Tribunales, 13 Otros. Otros covers the
+    Plenos Regionales and administrative bodies.
 
 **C. Form and tipos de asunto.** `POST /internet/expedientes/ExpedienteyTipo.asp`
 with the four fields from B. No captcha is needed to load it. The response
 form is `name="Editar"`:
+- The chosen órgano's name is the `td` after the `th` containing "Órgano
+  Jurisdiccional:".
 - `select[name=TipoAsunto]`: options depend on the órgano. Its `onchange`
   calls `CargaTipoProcedimiento()`.
+  - The fresh form has no placeholder and nothing selected. The app shows its
+    own "Selecciona…" hint and requires an explicit choice.
+  - Tipo IDs are global: the same ID has the same label at every órgano seen
+    (e.g. 11 = Amparo en revisión at every tribunal colegiado).
+  - Lists differ by órgano type, and may differ between juzgados (not seen
+    yet in the fixtures: 4157 and 767 list the same 10). Always load the
+    list per órgano and cache it per órgano.
+  - Some órganos offer **no tipos at all** (Secretaría General de Acuerdos,
+    Comisión de Disciplina, Comisión de Investigación). Show "Este órgano no
+    tiene expedientes consultables en el portal" and disable Buscar.
+  - Labels sometimes end with a period or are abbreviated ("Amp Ind, Proc Fed
+    Penales en 2a Instancia…"). Keep them exactly.
 - `tr#regTipoProc select[name=TipoProcedimiento]`: the select is always in
   the markup, but the row is shown only when TipoAsunto is 6, 9, 125 or 126
   (see `EjecutaAntes()`). Show it in the app under the same rule.
+  - Tipos 125 and 126 appear at the Tribunales Colegiados de Apelación
+    (e.g. 4343). 6 and 9 haven't been seen yet.
+  - On the fresh form (step C), this select always has the same 9 default
+    options (276 Apelación … 4258 Sumario), whatever the órgano, including
+    the 1183/2025 page. **Don't use them.** The real list comes from the
+    Accion=2 reload for the chosen tipo (step D).
 - `input[name=Expediente]`: maxlength 15. It has been `n/yyyy` so far, but
   don't reject other shapes; just warn.
 - Hidden fields: `Circuito`, `CircuitoName`, `Organismo`, `OrgName`,
@@ -244,7 +281,20 @@ form is `name="Editar"`:
 - Natively, make the same POST (`Circuito`, `CircuitoName`, `Organismo`,
   `OrgName`, `TipoOrganismo`, `TipoAsunto`, `Expediente`, `Accion=2`), and
   only when the tipo shows the row.
-- Fixture pending for a tipo that shows it.
+- **Confirmed** by `expedienteytipo_accion2_4343_tipo125.html` (órgano 4343,
+  tipo 125). The reloaded form:
+  - has tipo 125 `selected`;
+  - shows the row: `tr#regTipoProc` has `style=""` instead of
+    `display:none`, so the parser can read visibility from the markup;
+  - offers 11 procedimientos with IDs that have nothing in common with the
+    9 defaults: 22800 Apelación … 22810 Otro;
+  - has no procedimiento selected (the app requires an explicit choice).
+- It's unknown whether those IDs are per tipo or per órgano + tipo, so cache
+  them per (órgano, tipo), as the data model already does.
+
+- The fresh form already contains an empty, zero-size `iframe#ifr`. It only
+  gets a `vercaptura.aspx` src after a search. Treat `iframe#ifr` as a case
+  URL only when its src contains `/siseinternet/reportes/vercaptura.aspx`.
 
 **E. Portal lookup (not used by the app, except in the WebView fallback).**
 On the portal, Buscar posts `Accion=1` plus `g-recaptcha-response`, and the
@@ -277,9 +327,12 @@ as windows-1252, because
    `vercaptura.aspx?tipoasunto={TipoAsunto}&organismo={Organismo}&expediente={n/yyyy}&tipoprocedimiento={p}`
    and fetches it through the request queue.
    - `p` is `0` unless the tipo shows the procedimiento row; then it's the
-     chosen procedimiento's value. That second part is unverified, since
-     every capture so far had `0`. Confirm it with the pending fixture and
-     keep the choice in one function.
+     chosen procedimiento's value (e.g. 22807 for Sumario under tipo 125).
+     That second part is still unverified, since every case URL seen so far
+     had `0`. Keep the choice in one function.
+   - For those tipos, the not-found message also offers "Abrir en el portal",
+     in case the guess is wrong. Don't retry automatically with other
+     values.
 3. **Result:**
    - If `#lblNEUN` has a value, show a preview (órgano, tipo, number of
      acuerdos, latest acuerdo date) with "Guardar".

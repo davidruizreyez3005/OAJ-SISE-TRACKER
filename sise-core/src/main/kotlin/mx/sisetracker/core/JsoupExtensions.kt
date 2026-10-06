@@ -30,6 +30,19 @@ internal fun Element.tableRows(): List<Element> =
 internal fun Element.cells(): List<Element> = children().filter { it.tagName() == "td" }
 
 /**
+ * The value cell of a label/value row on the classic ASP pages: the `td`
+ * after the `th` whose text starts with [label] ("Circuito:", "Órgano
+ * Jurisdiccional:"), whitespace-normalized; null when missing or blank.
+ */
+internal fun Element.rowValue(label: String): String? =
+    select("th")
+        .firstOrNull { SiseText.normalizeSpace(it.text()).startsWith(label) }
+        ?.nextElementSibling()
+        ?.takeIf { it.tagName() == "td" }
+        ?.let { SiseText.normalizeSpace(it.text()) }
+        ?.takeIf { it.isNotEmpty() }
+
+/**
  * A dropdown's options in page order, value and label exactly as given (labels
  * whitespace-normalized), skipping only placeholders: value `0`, `-1` or empty.
  */

@@ -19,6 +19,7 @@ import mx.sisetracker.testing.Fixtures
 import mx.sisetracker.testing.inMemoryDatabase
 import mx.sisetracker.testing.parseCase
 import mx.sisetracker.testing.saveScreenshot
+import mx.sisetracker.data.capture.CaptureStore
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.check.DailyCheckScheduler
 import mx.sisetracker.testing.FakeCatalogDao
@@ -213,6 +214,12 @@ class CaseScreensTest {
             settings,
             DailyCheckScheduler { androidx.work.WorkManager.getInstance(context) },
             CatalogRepository(FakeCatalogDao(), client),
+            CaptureStore(
+                dir = java.io.File(context.cacheDir, "captures-test"),
+                shareDir = java.io.File(context.cacheDir, "shared-test"),
+                settings = settings,
+                versionName = "test",
+            ),
         )
         compose.setContent { SiseTrackerTheme { SettingsScreen(onBack = {}, viewModel = viewModel) } }
 

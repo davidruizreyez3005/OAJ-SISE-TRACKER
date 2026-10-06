@@ -5,8 +5,8 @@
 name: CI
 
 on:
+  # Every branch, so a work branch gets a downloadable debug APK too.
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 

@@ -6,7 +6,9 @@ import mx.sisetracker.core.Circuito
 import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.ExpedienteFormat
 import mx.sisetracker.core.FormOption
+import java.time.LocalDate
 import mx.sisetracker.core.OrganoKind
+import mx.sisetracker.core.OrganoPeriod
 import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.TipoProcedimientoRule
 import mx.sisetracker.data.net.PortalError
@@ -21,6 +23,9 @@ data class KnownOrgano(
     val circuito: String? = null,
 ) {
     val kind: OrganoKind get() = OrganoKind.fromName(name)
+
+    /** A closed órgano (its name ends with a past active period): still searchable, marked "Cerrado". */
+    fun isClosed(today: LocalDate = LocalDate.now()): Boolean = OrganoPeriod.endOf(name)?.let { it < today } == true
 }
 
 sealed interface Loadable<out T> {

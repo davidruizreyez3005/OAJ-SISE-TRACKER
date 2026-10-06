@@ -44,7 +44,7 @@
     <string name="search_recent_organos">Órganos recientes</string>
     <string name="search_tipo_asunto">Tipo de asunto</string>
     <string name="search_tipo_asunto_disabled">Indica primero el circuito y el órgano.</string>
-    <string name="search_tipo_asunto_empty">El portal no lista tipos de asunto para este órgano. Revisa el número de organismo.</string>
+    <string name="search_tipo_asunto_empty">Este órgano no tiene expedientes consultables en el portal.</string>
     <string name="search_tipo_procedimiento">Tipo de procedimiento</string>
     <string name="search_tipo_procedimiento_empty">El portal no lista tipos de procedimiento para este tipo de asunto.</string>
     <string name="search_loading_options">Cargando las opciones del portal…</string>
@@ -132,8 +132,18 @@
         <item quantity="other">Revisar cada %d días</item>
     </plurals>
     <string name="settings_refresh_catalogs">Actualizar catálogos</string>
-    <string name="settings_refresh_catalogs_help">Borra las listas del portal guardadas en el teléfono (tipos de asunto y de procedimiento); se vuelven a cargar cuando las necesites.</string>
+    <string name="settings_refresh_catalogs_help">Borra las listas del portal guardadas en el teléfono (órganos, tipos de asunto y de procedimiento); se vuelven a cargar cuando las necesites.</string>
     <string name="settings_catalogs_cleared">Catálogos borrados. Se cargarán de nuevo al usarlos.</string>
+    <string name="search_select">Selecciona…</string>
+    <string name="organo_closed">Cerrado</string>
+    <string name="settings_capture">Capturar páginas del catálogo</string>
+    <string name="settings_capture_help">Diagnóstico: guarda en el teléfono cada lista de órganos y formulario de búsqueda que abras (nunca expedientes ni síntesis), para compartirlos con quien desarrolla la app. No hace consultas por su cuenta. Para volver a capturar algo ya cargado, usa antes «Actualizar catálogos».</string>
+    <plurals name="settings_capture_count">
+        <item quantity="one">%d página capturada</item>
+        <item quantity="many">%d páginas capturadas</item>
+        <item quantity="other">%d páginas capturadas</item>
+    </plurals>
+    <string name="settings_capture_share">Compartir</string>
     <string name="settings_privacy">Los expedientes guardados y sus síntesis solo están en este teléfono: no se respaldan en la nube ni se transfieren a otro dispositivo.</string>
 
     <string name="notifications_prompt">Activa las notificaciones para saber cuándo tus expedientes tienen acuerdos nuevos.</string>

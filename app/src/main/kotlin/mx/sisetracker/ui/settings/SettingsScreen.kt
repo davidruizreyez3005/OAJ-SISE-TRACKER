@@ -1,7 +1,9 @@
 package mx.sisetracker.ui.settings
 
 import androidx.compose.foundation.clickable
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -23,7 +25,10 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
+import androidx.core.content.FileProvider
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,6 +55,23 @@ fun SettingsScreen(
         }
     }
     val permission = rememberNotificationPermission()
+    val context = LocalContext.current
+    val shareFile by viewModel.shareFile.collectAsStateWithLifecycle()
+    val shareTitle = stringResource(R.string.settings_capture_share)
+    LaunchedEffect(shareFile) {
+        val file = shareFile ?: return@LaunchedEffect
+        viewModel.onShareHandled()
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+        val send = Intent(Intent.ACTION_SEND)
+            .setType("application/zip")
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        context.startActivity(Intent.createChooser(send, shareTitle))
+    }
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshCaptureCount()
+        onPauseOrDispose {}
+    }
 
     Scaffold(
         topBar = { SiseTopAppBar(stringResource(R.string.settings_title), navigationIcon = { BackButton(onBack) }) },
@@ -99,6 +121,30 @@ fun SettingsScreen(
                 supportingContent = { Text(stringResource(R.string.settings_refresh_catalogs_help)) },
                 modifier = Modifier.clickable(onClick = viewModel::onRefreshCatalogs),
             )
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_capture)) },
+                supportingContent = { Text(stringResource(R.string.settings_capture_help)) },
+                trailingContent = { Switch(checked = state.captureEnabled, onCheckedChange = viewModel::onCaptureChange) },
+                modifier = Modifier.clickable { viewModel.onCaptureChange(!state.captureEnabled) },
+            )
+            if (state.captureCount > 0 || state.captureEnabled) {
+                ListItem(
+                    headlineContent = {
+                        Text(pluralStringResource(R.plurals.settings_capture_count, state.captureCount, state.captureCount))
+                    },
+                    trailingContent = {
+                        Row {
+                            TextButton(onClick = viewModel::onClearCaptures, enabled = state.captureCount > 0) {
+                                Text(stringResource(R.string.action_delete))
+                            }
+                            TextButton(onClick = viewModel::onShareCaptures, enabled = state.captureCount > 0) {
+                                Text(stringResource(R.string.settings_capture_share))
+                            }
+                        }
+                    },
+                )
+            }
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             Text(
                 stringResource(R.string.settings_privacy),

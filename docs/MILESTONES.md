@@ -56,7 +56,7 @@ In :sise-core implement:
 - `SearchRequests`: build the windows-1252 form bodies for step C (load form for an órgano) and step D (Accion=2, procedimiento options). There must be no builder for Accion=1 or anything touching the captcha.
 - `CaseUrl.forLookup(organismo, tipoAsunto, tipoProcedimientoShown, tipoProcedimiento, expediente)`, with the tipoprocedimiento rule from "Search flow in the app" kept in one function.
 - `CasePageParser` returns a NotFound result when #lblNEUN is empty, tested against vercaptura_not-found_99999-2025.html per the fixtures README.
-- Tests against expedienteytipo_result_1183-2025.html per the fixtures README, plus encoding tests showing that "PRIMER CIRCUITO" and an órgano name with "México" encode as windows-1252.
+- Tests against expedienteytipo_result_1183-2025.html, every expedienteytipo_form_*.html and expedienteytipo_accion2_4343_tipo125.html per the fixtures README (including the órgano with no tipos), plus encoding tests showing that "PRIMER CIRCUITO" and an órgano name with "México" encode as windows-1252.
 ```
 
 ---
@@ -68,7 +68,7 @@ In :sise-core implement:
 
 - A bundled circuit list (32 entries) as a static resource, with a test asserting it equals the circuits in oaj_circuitos_excerpt.html. Use a parser for that test only; the app never fetches the OAJ page.
 - `OrganoListParser` for circuitos.asp: the Organismo options, the CircuitoName from the "Circuito:" row, and kinds Juzgados/Tribunales/Otros derived from names as CLAUDE.md describes.
-- Expected-value tests per the fixtures README.
+- Expected-value tests per the fixtures README, including the leading-noun kind rule (6207 is Otros).
 - In :app: a `CatalogRepository` backed by Room. It fetches on demand through the polite request queue, caches for 30 days, and has a manual refresh.
 ```
 
@@ -79,7 +79,7 @@ In :sise-core implement:
 ```
 @claude Milestone 5. Read CLAUDE.md "Search flow in the app", hard rules 1 and 3, and "Distribution".
 
-- Search screen, in order: Circuito dropdown, Tipo de órgano chips, Órgano dropdown with type-ahead, Tipo de asunto dropdown, Tipo de procedimiento dropdown (only when the portal would show it), Número de expediente field, "Buscar". Show every portal option with exact labels in portal order. Include "Órganos recientes" chips, and remember the last circuit.
+- Search screen, in order: Circuito dropdown, Tipo de órgano chips, Órgano dropdown with type-ahead, Tipo de asunto dropdown, Tipo de procedimiento dropdown (only when the portal would show it), Número de expediente field, "Buscar". Show every portal option with exact labels in portal order, with no preselected tipo. For órganos with no tipos, show "Este órgano no tiene expedientes consultables en el portal" and disable Buscar. Load procedimiento options only through the Accion=2 request, never from the default list. Include "Órganos recientes" chips, and remember the last circuit.
 - "Buscar" builds the case URL with CaseUrl.forLookup and fetches it through the request queue. Show a preview with "Guardar", or the not-found message. One lookup per tap: no batch, range or guessed lookups.
 - "Abrir en el portal" fallback: a WebView on circuitos.asp for the chosen circuit, where the user searches and solves the captcha by hand. Observe shouldInterceptRequest for vercaptura.aspx and show the "¿Guardar este expediente?" sheet.
 - Accept ACTION_SEND text containing a vercaptura.aspx link, with the same save sheet.

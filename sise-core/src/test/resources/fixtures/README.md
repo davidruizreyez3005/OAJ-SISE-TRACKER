@@ -23,6 +23,8 @@ anything that normalizes line endings).
 | `vercaptura_not-found_99999-2025.html` | Case page for an expediente that doesn't exist (organismo 767, tipo 1, 99999/2025). Chrome "Download page" capture, so it's the re-serialized DOM. |
 | `expedienteytipo_result_1183-2025.html` | Search form result page (`ExpedienteyTipo.asp`) containing the `iframe#ifr` with the case URL. Originally windows-1252. |
 | `oaj_circuitos_excerpt.html` | **Excerpt** of the OAJ's "Consulta de Datos de Expedientes" page: only the circuit selector (`form#form2`) is kept, unchanged; the full ~700 KB page is mostly a map SVG. Chrome "Download page" capture. |
+| `expedienteytipo_form_{organismo}.html` | Fresh search forms (step C, after choosing an órgano in the Primer Circuito), one per órgano type: 4157 juzgado, 4 tribunal colegiado, 4343 tribunal colegiado de apelación, 3986 tribunal laboral, 930 comisión de conflictos laborales, 4386 pleno regional, 6315 an órgano with no tipos. Chrome captures, so hidden inputs are missing. Originally windows-1252. |
+| `expedienteytipo_accion2_4343_tipo125.html` | The same form after choosing tipo 125 at órgano 4343: the Accion=2 reload, with the "Tipo de procedimiento" row shown and its real options. Chrome capture, originally windows-1252. |
 | `circuitos_cir1.html` | Órgano list for the Primer Circuito (`circuitos.asp?Cir=1&Exp=1`). Chrome "Download page" capture, so hidden inputs are missing. Originally windows-1252, converted to UTF-8. |
 | `delta_ver-acuerdo_1183-2025_orden38.txt` | MS AJAX delta response to the "Ver síntesis" postback, orden 38. Reference only. |
 | `delta_ver-acuerdo_293-2026_orden{1,2,3}.txt` | Same, for the tribunal colegiado case 293/2026. Reference only. |
@@ -124,6 +126,43 @@ Source URL: `https://www.dgej.cjf.gob.mx/siseinternet/reportes/vercaptura.aspx?t
 - `1` → `Primer Circuito Ciudad de México`; `16` → `Decimosexto Circuito Guanuajuato` (typo kept); `21` → `Vigésimo Primer Circuito Guerrero`; `32` → `Trigésimo Segundo Circuito Colima`.
 - The app's bundled circuit list must equal these 32 (value, label) pairs exactly.
 
+## Expected values: `expedienteytipo_form_{organismo}.html`
+
+For every file:
+- Circuit text `PRIMER CIRCUITO`.
+- Nothing selected in TipoAsunto, and no placeholder.
+- The TipoProcedimiento row is hidden.
+- TipoProcedimiento has the same 9 default options: 276 Apelación, 979 Conflicto competencial entre jueces, 1214 Denegada apelación, 1715 Impedimento, 1719 Impedimento (excusa), 1720 Impedimento (recusación), 2670 Otro, 3042 Queja, 4258 Sumario. (The same 9 as in `expedienteytipo_result_1183-2025.html`.)
+- Expediente is empty, maxlength 15.
+
+Per file (órgano name from the "Órgano Jurisdiccional:" row; TipoAsunto count; first and last option):
+
+| File | Órgano | Tipos | First | Last |
+|---|---|---|---|---|
+| `_4157` | Juzgado Primero de Distrito en Materia de Concursos Mercantiles, con residencia en la Ciudad de México y jurisdicción en toda la República Mexicana | 10 | 1 Amparo Indirecto | 4 Procesos Civiles o Administrativos |
+| `_4` | Primer Tribunal Colegiado en Materia Administrativa del Primer Circuito | 14 | 29 Amparo contra leyes | 16 Revisión Fiscal |
+| `_4343` | Primer Tribunal Colegiado de Apelación en Materia Penal del Primer Circuito | 6 | 128 Amp Ind, Proc Fed Penales en 2a Instancia y Proc Fed Adm y Civ en 2a Instancia. | 127 Reconocimiento de Inocencia y Anulación de Sentencia. |
+| `_3986` | Tribunal Laboral Federal de asuntos colectivos, con sede en la Ciudad de México | 8 | 115 Conflictos Colectivos de Naturaleza Económica | 120 Procedimientos Paraprocesales o Voluntarios |
+| `_930` | Comisión de Conflictos Laborales del Poder Judicial de la Federación | 3 | 136 Designación Beneficiarios | 134 Procedimiento Ordinario. |
+| `_4386` | Pleno Regional en Materias Administrativa y Civil de la Región Centro-Norte, con residencia en la Ciudad de México. | 3 | 131 Conflictos Competenciales. | 130 Solicitud de Declaratoria General de Inconstitucionalidad |
+| `_6315` | Secretaría General de Acuerdos | 0 | (none) | (none) |
+
+Spot checks:
+- `_4` includes `11` → `Amparo en revisión`.
+- `_4343` includes `126` → `Procedimientos federales administrativos y civiles en segunda instancia.` 125 and 126 are the tipos that show the procedimiento row.
+- `_4157` has the same 10 tipos, in the same order, as 767 in `expedienteytipo_result_1183-2025.html` (including `4` Procesos Civiles o Administrativos).
+- Counts and last options above were corrected against the markup: an earlier version of this table dropped the last option of every list.
+- Every file contains an `iframe#ifr` without a vercaptura.aspx src. The case-URL extractor must return nothing for all of them.
+
+## Expected values: `expedienteytipo_accion2_4343_tipo125.html`
+
+- Órgano `Primer Tribunal Colegiado de Apelación en Materia Penal del Primer Circuito`, circuit `PRIMER CIRCUITO`.
+- TipoAsunto: the same 6 options as `expedienteytipo_form_4343.html`, with `125` selected.
+- Procedimiento row shown (`tr#regTipoProc` style has no `display:none`).
+- TipoProcedimiento: 11 options, none selected, in this order: 22800 Apelación, 22801 Denegada apelación, 22802 Impedimento (excusa), 22803 Impedimento (recusación), 22804 Queja, 22805 Conflicto competencial entre jueces, 22806 Conflicto de acumulación entre jueces, 22807 Sumario, 22808 Conflicto de acumulación, 22809 Impedimento, 22810 Otro.
+- None of these IDs appear in the 9 step-C defaults (276, 979, 1214, 1715, 1719, 1720, 2670, 3042, 4258).
+- Expediente empty, maxlength 15. `iframe#ifr` has no vercaptura.aspx src.
+
 ## Expected values: `circuitos_cir1.html`
 
 Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=1&Exp=1`
@@ -137,7 +176,8 @@ Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=
   - `500` → `Octavo Tribunal Colegiado en Materia Penal del Primer Circuito`.
   - `1671` → `Décimo Tribunal Colegiado en Materia Penal del Primer Circuito.` (trailing period kept).
   - `6316` → `Comisión de Disciplina` (kind Otros).
-- Kinds derived from names: 79 Juzgados, 93 Tribunales, 12 Otros.
+- Closed órganos (name ends with a `(dd/MM/yyyy - dd/MM/yyyy)` period): exactly 4, namely `555`, `25`, `52` and `60`, all ending in `31/08/2024)`.
+- Kinds derived from names (leading-noun rule in CLAUDE.md): 79 Juzgados, 92 Tribunales, 13 Otros. `6207` (Unidad de Instrucción de la Comisión de Conflictos Laborales del Tribunal de Disciplina Judicial) is Otros.
 - No duplicate values.
 - Page text includes `Circuito: PRIMER CIRCUITO`. The parsed CircuitoName (`td` after the `th` containing "Circuito:", trimmed, no `&nbsp;`) is exactly `PRIMER CIRCUITO`.
 
@@ -145,6 +185,5 @@ Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=
 
 To capture each one, open the page in Chrome on the phone, then use ⋮ → download (saves `.mhtml`). Mask any personal names before committing.
 
-- **Form for a tribunal colegiado:** the `ExpedienteyTipo.asp` page right after choosing a tribunal. Its tipos de asunto differ from a juzgado's.
-- **Accion=2 response, plus its search result:** the form after choosing a tipo de asunto that shows "Tipo de procedimiento" (6, 9, 125 or 126, wherever one exists). Then, if possible, the result page of a real search with that tipo, whose iframe shows which `tipoprocedimiento` value the case URL uses.
+- **Optional: a real case under a procedimiento tipo.** The search result page (or just the case URL) of a real expediente with tipo 125 or 126 would confirm which `tipoprocedimiento` value case URLs use.
 - **Tribunal case page:** `vercaptura.aspx` for a tribunal colegiado, e.g. 293/2026. Checks grid variations and an empty Captura de Información.

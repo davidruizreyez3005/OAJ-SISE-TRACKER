@@ -45,6 +45,13 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
     /** When the last background check started (epoch millis). */
     val lastBackgroundCheckAt: Flow<Long?> = dataStore.data.map { it[LAST_BACKGROUND_CHECK] }
 
+    /** Diagnostics: keep the catalog pages the app loads (see CaptureStore). Off by default. */
+    val captureEnabled: Flow<Boolean> = dataStore.data.map { it[CAPTURE] ?: false }
+
+    suspend fun setCaptureEnabled(enabled: Boolean) {
+        dataStore.edit { it[CAPTURE] = enabled }
+    }
+
     val notificationPromptDismissed: Flow<Boolean> = dataStore.data.map { it[NOTIFICATION_PROMPT_DISMISSED] ?: false }
 
     suspend fun setDailyCheckEnabled(enabled: Boolean) {
@@ -95,6 +102,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         private val CHECK_INTERVAL_DAYS = intPreferencesKey("check_interval_days")
         private val LAST_BACKGROUND_CHECK = longPreferencesKey("last_background_check")
         private val NOTIFICATION_PROMPT_DISMISSED = booleanPreferencesKey("notification_prompt_dismissed")
+        private val CAPTURE = booleanPreferencesKey("capture_catalog_pages")
         private val json = Json { ignoreUnknownKeys = true }
     }
 }

@@ -19,9 +19,14 @@ object SearchFormParser {
             ?: throw SiseParseException("Search form has no TipoAsunto select")
         val expediente = form.selectFirst("input[name=Expediente]")
         return SearchForm(
+            circuitoName = form.rowValue("Circuito:"),
+            organoName = form.rowValue("Órgano Jurisdiccional:"),
             tipoAsuntoOptions = tipoAsunto.dropdownOptions(),
             tipoProcedimientoOptions = form.selectFirst("select[name=TipoProcedimiento]")?.dropdownOptions().orEmpty(),
-            isTipoProcedimientoShown = currentValue(tipoAsunto)?.let(TipoProcedimientoRule::isShown) ?: false,
+            isTipoProcedimientoShown = form.selectFirst("tr#regTipoProc")
+                ?.let { row -> !row.attr("style").replace(" ", "").contains("display:none", ignoreCase = true) }
+                ?: selectedValue(tipoAsunto)?.let(TipoProcedimientoRule::isShown)
+                ?: false,
             expediente = expediente?.attr("value").orEmpty(),
             expedienteMaxLength = expediente?.attr("maxlength")?.trim()?.toIntOrNull(),
             hiddenFields = form.select("input[type=hidden]")
@@ -30,9 +35,6 @@ object SearchFormParser {
         )
     }
 
-    /** What the browser would read as the select's value: the selected option, else the first. */
-    private fun currentValue(select: Element): String? {
-        val options = select.select("option")
-        return (options.firstOrNull { it.hasAttr("selected") } ?: options.firstOrNull())?.attr("value")
-    }
+    private fun selectedValue(select: Element): String? =
+        select.select("option").firstOrNull { it.hasAttr("selected") }?.attr("value")
 }

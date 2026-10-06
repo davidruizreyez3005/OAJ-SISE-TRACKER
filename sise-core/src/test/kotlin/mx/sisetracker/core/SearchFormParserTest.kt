@@ -57,13 +57,17 @@ class SearchFormParserTest {
     }
 
     @Test
-    fun `the procedimiento row shows for a tipo in 6, 9, 125 or 126`() {
-        // Same markup with a selected tipo 125 added before the others.
-        val with125 = html
-            .replace("<option value=\"1\" selected>", "<option value=\"1\">")
-            .replace("<option value=\"1\">", "<option value=\"125\" selected>Tipo 125</option><option value=\"1\">")
+    fun `without the row in the markup, visibility follows the selected tipo`() {
+        val noRow = "<form name=\"Editar\"><select name=\"TipoAsunto\"><option value=\"125\" selected>T</option></select></form>"
 
-        assertTrue(SearchFormParser.parse(with125).isTipoProcedimientoShown)
+        assertTrue(SearchFormParser.parse(noRow).isTipoProcedimientoShown)
+        assertFalse(SearchFormParser.parse(noRow.replace("125", "1")).isTipoProcedimientoShown)
+    }
+
+    @Test
+    fun `circuit and blank organo rows`() {
+        assertEquals("PRIMER CIRCUITO", form.circuitoName)
+        assertEquals(null, form.organoName)
     }
 
     @Test
