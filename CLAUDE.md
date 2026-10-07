@@ -302,10 +302,12 @@ form is `name="Editar"`:
     own "Selecciona…" hint and requires an explicit choice.
   - Tipo IDs are global: the same ID has the same label at every órgano seen
     (e.g. 11 = Amparo en revisión at every tribunal colegiado).
-  - Lists differ by órgano type, and may differ between juzgados (not seen
-    yet in the fixtures: 4157 and 767 list the same 10, colegiados 4 and 500 of different
-    materias the same 14). Always load the
-    list per órgano and cache it per órgano.
+  - Lists differ by órgano type, and may differ between juzgados, but no
+    such difference has been seen yet: 10 juzgados of four specialties in
+    two circuits (4157, 767, 10, 41, 534, 726, 727, 728, and 721 in
+    Guerrero) list the same 10 tipos, and colegiados 4 and 500 of
+    different materias the same 14. Always load the list per órgano and
+    cache it per órgano.
   - Some órganos offer **no tipos at all** (Secretaría General de Acuerdos,
     Comisión de Disciplina, Comisión de Investigación). Show "Este órgano no
     tiene expedientes consultables en el portal" and disable Buscar.

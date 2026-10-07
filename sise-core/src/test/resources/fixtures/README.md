@@ -23,7 +23,7 @@ anything that normalizes line endings).
 | `vercaptura_not-found_99999-2025.html` | Case page for an expediente that doesn't exist (organismo 767, tipo 1, 99999/2025). Chrome "Download page" capture, so it's the re-serialized DOM. |
 | `expedienteytipo_result_1183-2025.html` | Search form result page (`ExpedienteyTipo.asp`) containing the `iframe#ifr` with the case URL. Originally windows-1252. |
 | `oaj_circuitos_excerpt.html` | **Excerpt** of the OAJ's "Consulta de Datos de Expedientes" page: only the circuit selector (`form#form2`) is kept, unchanged; the full ~700 KB page is mostly a map SVG. Chrome "Download page" capture. |
-| `expedienteytipo_form_{organismo}.html` | Fresh search forms (step C, after choosing an órgano in the Primer Circuito), one per órgano type: 4157 juzgado, 4 tribunal colegiado, 4343 tribunal colegiado de apelación, 3986 tribunal laboral, 930 comisión de conflictos laborales, 4386 pleno regional, 6315 an órgano with no tipos. Chrome captures, so hidden inputs are missing. Originally windows-1252. `expedienteytipo_form_500.html` (Octavo Tribunal Colegiado en Materia Penal) is a device capture instead, with all hidden inputs, `OrgName` filled in. |
+| `expedienteytipo_form_{organismo}.html` | Fresh search forms (step C, after choosing an órgano in the Primer Circuito), one per órgano type: 4157 juzgado, 4 tribunal colegiado, 4343 tribunal colegiado de apelación, 3986 tribunal laboral, 930 comisión de conflictos laborales, 4386 pleno regional, 6315 an órgano with no tipos. Chrome captures, so hidden inputs are missing. Originally windows-1252. `expedienteytipo_form_500.html` (Octavo Tribunal Colegiado en Materia Penal) is a device capture instead, with all hidden inputs, `OrgName` filled in. So are the juzgado forms `10`, `726`, `534`, `41`, `727`, `728` (Juzgados Primero to Sexto de Distrito en Materia Administrativa, Ciudad de México) and `721` (Juzgado Séptimo de Distrito en el Estado de Guerrero, Vigésimo Primer Circuito: hidden `Circuito` = `51`). |
 | `expedienteytipo_accion2_4343_tipo125.html` | The same form after choosing tipo 125 at órgano 4343: the Accion=2 reload, with the "Tipo de procedimiento" row shown and its real options. Chrome capture, originally windows-1252. |
 | `oaj_datos_expedientes.json` | The OAJ map data behind that selector (`https://www.oaj.gob.mx/micrositios/dggj/data/mapa/datos_expedientes.json`, October 2026): for each OAJ circuit `value` 1–32, the `href` of its `circuitos.asp` page. Unchanged. |
 | `circuitos_cir1.html` | Órgano list for the Primer Circuito (`circuitos.asp?Cir=1&Exp=1`). Captured on a device with the app's "Capturar páginas del catálogo" (SISE Tracker 0.1.0, October 2026): exactly what the app received, decoded from windows-1252 and saved as UTF-8, hidden inputs included. Replaces an earlier Chrome capture with the same 184 options. |
@@ -203,6 +203,11 @@ Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=
 - Órgano Jurisdiccional cell and `OrgName`: `Octavo Tribunal Colegiado en Materia Penal del Primer Circuito`.
 - Hidden fields in order: `Circuito` 1, `CircuitoName` PRIMER CIRCUITO, `Organismo` 500, `OrgName` (as above), `TipoOrganismo` 0, `Accion` 0.
 - The same 14 tipos, in the same order, as `expedienteytipo_form_4.html` (a colegiado of another materia).
+
+## Expected values: the juzgado device captures
+
+- `10`, `41`, `534`, `726`, `727`, `728` and `721` all list the same 10 tipos, in the same order and with the same labels, as `4157` and the 1183/2025 page (767): 1 Amparo Indirecto … 4 Procesos Civiles o Administrativos. That's 10 juzgados of four specialties (administrativa, penal, concursos mercantiles, mixed) in two circuits.
+- `721`: CircuitoName `VIGÉSIMO PRIMER CIRCUITO`, hidden `Circuito` `51`, `Organismo` `721`, `TipoOrganismo` `0`.
 
 ## Bundled lists checked against these fixtures
 

@@ -1,0 +1,205 @@
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Language" content="en-us">
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta http-equiv="x-ua-compatible" content="IE=11">
+    <title>Acuerdos Por Expediente</title>
+    <base target="_self">
+    <script src="https://www.google.com/recaptcha/api.js?onload=myCallBack&render=explicit&hl=es" async defer></script>
+    <script id="clientEventHandlersJS" language="javascript">
+        function Buscar_onclick() {
+            if (validar()) {
+                document.Editar.Accion.value = 1;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function CargaTipoProcedimiento(comboTipoAsunto) {
+            document.Editar.Accion.value = 2;
+            document.Editar.submit();     
+
+        }
+
+        function validar() {
+            if (window.Editar.TipoAsunto.options[window.Editar.TipoAsunto.selectedIndex].value == 0) {
+                alert("Tiene que indicar el tipo de expediente a buscar");
+                window.Editar.TipoAsunto.focus();
+                return false;
+            }
+
+            if (window.Editar.Expediente.value == "") {
+                alert("Tiene que indicar el número de expediente");
+                window.Editar.Expediente.focus();
+                return false;
+            }
+
+            return true
+        }
+
+        function EjecutaAntes() {
+            window.Editar.TipoAsunto.focus();
+            fila = document.getElementById("regTipoProc");
+            comboTipoAsunto = document.Editar.TipoAsunto;
+            if (comboTipoAsunto.value == 6 || comboTipoAsunto.value == 9 || comboTipoAsunto.value == 125 || comboTipoAsunto.value == 126) {
+                fila.style.display = ""; //mostrar fila
+            }
+            else {
+                fila.style.display = "none";  //ocultar fila
+            }
+        }
+
+        function MM_openBrWindow(theURL,winName,features) { //v2.0
+          window.open(theURL,winName,features);
+        }
+        
+        
+</script>
+    <script>
+        //$(document).ready(function(){
+        var recaptchaArea;
+        var myCallBack = function() {
+            recaptchaArea = grecaptcha.render('recaptchaArea', {
+            'sitekey': '6LeLhuwUAAAAAKjHVkZzba4i2pPoJckOARPebyIs',
+            'lang' : 'es'
+           });};
+        //});
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" onLoad="JavaScript:EjecutaAntes();">
+    
+    <h1 align="center">
+        
+    </h1>
+    <hr>
+    
+    <form name="Editar" action="" method="POST">
+        <table border="0" width="100%">
+            <tr>
+                <th colspan="2" bgcolor="#24135f">
+                    <font color="#FFFFFF">Indique los datos solicitados:</font>
+                </th>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Circuito:</font>
+                </th>
+                <td>
+                    PRIMER CIRCUITO&nbsp;
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Órgano Jurisdiccional:</font>
+                </th>
+                <td>
+                    Juzgado Cuarto de Distrito en Materia Administrativa en la Ciudad de México&nbsp;
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Seleccione el Tipo de Expediente:</font>
+                </th>
+                <td>
+                    <select size="1" name="TipoAsunto" tabindex="1" onchange="JavaScript:return CargaTipoProcedimiento(this);">
+                        
+        <option value="1">Amparo Indirecto</option>
+
+        <option value="2">Causa Penal</option>
+
+        <option value="46">Concursos Mercantiles</option>
+
+        <option value="71">Denuncia por Incumplimiento de la Declaratoria General de Inconstitucionalidad</option>
+
+        <option value="67">Ejecución de Penas</option>
+
+        <option value="58">Extinción de Dominio</option>
+
+        <option value="68">Juicio Oral Mercantil</option>
+
+        <option value="18">Medidas Precautorias</option>
+
+        <option value="19">Procedimientos de Extradición</option>
+
+        <option value="4">Procesos Civiles o Administrativos</option>
+
+                    </select>
+                </td>
+            </tr>
+            <tr style="display:none;" id="regTipoProc">
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Seleccione el Tipo de Procedimiento:</font>
+                </th>
+                <td visible="false">
+                    <select size="1" name="TipoProcedimiento" tabindex="2">
+                        
+        <option value="276">Apelación</option>
+
+        <option value="979">Conflicto competencial entre jueces</option>
+
+        <option value="1214">Denegada apelación</option>
+
+        <option value="1715">Impedimento</option>
+
+        <option value="1719">Impedimento (excusa)</option>
+
+        <option value="1720">Impedimento (recusación)</option>
+
+        <option value="2670">Otro</option>
+
+        <option value="3042">Queja</option>
+
+        <option value="4258">Sumario</option>
+
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                    <font color="#FFFFFF">Indique el Número de Expediente:</font>
+                </th>
+                <td>
+                    <input type="text" name="Expediente" tabindex="3" value="" maxlength="15" size="20">
+                </td>
+            </tr>
+            <tr>
+                <th bgcolor="#24135f">
+                </th>
+                <td>
+                    <div id="recaptchaArea"></div>
+                    <!--<img src="aspcaptcha1.asp" alt="" width="86" height="21" />
+            <br />
+            Escriba el texto de la imagen de arriba, en el siguiente cuadro:
+            <br />
+            <input name="strCAPTCHA" type="text" id="strCAPTCHA" maxlength="8" /></td>-->
+                </td>
+            </tr>
+            <tr>
+                <th colspan="2">
+                    <input type="submit" value="Buscar" id="Buscar" name="Buscar" tabindex="4" onClick="JavaScript:return Buscar_onclick();">
+                    <input type="button" value="Cancelar" name="Cancelar" tabindex="5" onClick="JavaScript:window.history.back();">
+                    <input type="hidden" name="Circuito" value="1">
+                    <input type="hidden" name="CircuitoName" value="PRIMER CIRCUITO">
+                    <input type="hidden" name="Organismo" value="41">
+                    <input type="hidden" name="OrgName" value="Juzgado Cuarto de Distrito en Materia Administrativa en la Ciudad de México">
+                    <input type="hidden" name="TipoOrganismo" value="0">
+                    <input type="hidden" name="Accion" value="0">
+                </th>
+            </tr>
+        </table>
+    </form>
+    <hr>
+    <p>
+        <font color="#FFFFFF">Consultas realizadas hasta el momento:
+            
+        </font>
+    </p>
+    <iframe id="ifr" name="ifr" src="" style="position:absolute; height:0%; width:0%; top:0%; left:0%;">
+    </iframe>
+</body>
+
+</html>

@@ -9,6 +9,14 @@ class TiposDeAsuntoTest {
     private val forms = mapOf(
         "expedienteytipo_form_4157.html" to OrganoClase.JUZGADO_DISTRITO,
         "expedienteytipo_result_1183-2025.html" to OrganoClase.JUZGADO_DISTRITO,
+        // Device captures: six administrativa juzgados and a mixed one in Guerrero, same 10 tipos.
+        "expedienteytipo_form_10.html" to OrganoClase.JUZGADO_DISTRITO,
+        "expedienteytipo_form_41.html" to OrganoClase.JUZGADO_DISTRITO,
+        "expedienteytipo_form_534.html" to OrganoClase.JUZGADO_DISTRITO,
+        "expedienteytipo_form_726.html" to OrganoClase.JUZGADO_DISTRITO,
+        "expedienteytipo_form_727.html" to OrganoClase.JUZGADO_DISTRITO,
+        "expedienteytipo_form_728.html" to OrganoClase.JUZGADO_DISTRITO,
+        "expedienteytipo_form_721.html" to OrganoClase.JUZGADO_DISTRITO,
         "expedienteytipo_form_4.html" to OrganoClase.COLEGIADO_CIRCUITO,
         "expedienteytipo_form_500.html" to OrganoClase.COLEGIADO_CIRCUITO,
         "expedienteytipo_form_4343.html" to OrganoClase.COLEGIADO_APELACION,
@@ -18,7 +26,9 @@ class TiposDeAsuntoTest {
         "expedienteytipo_form_6315.html" to OrganoClase.OTRO,
     )
 
-    private val organos = OrganoListParser.parse(Fixtures.load("circuitos_cir1.html")).organos
+    private val organos = listOf("circuitos_cir1.html", "circuitos_cir21.html")
+        .flatMap { OrganoListParser.parse(Fixtures.load(it)).organos }
+        .distinctBy { it.id }
 
     @Test
     fun `fixture classes match the organo names`() {

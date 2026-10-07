@@ -25,7 +25,7 @@ class SearchFormFixturesTest {
     )
 
     @ParameterizedTest
-    @ValueSource(strings = ["4157", "4", "500", "4343", "3986", "930", "4386", "6315"])
+    @ValueSource(strings = ["4157", "10", "41", "534", "726", "727", "728", "4", "500", "4343", "3986", "930", "4386", "6315"])
     fun `every fresh form`(organismo: String) {
         val html = Fixtures.load("expedienteytipo_form_$organismo.html")
         val form = SearchFormParser.parse(html)
@@ -150,6 +150,21 @@ class SearchFormFixturesTest {
         // Another colegiado de circuito, another materia: the same 14 tipos as órgano 4.
         assertEquals(
             form("4").tipoAsuntoOptions.map { it.value to it.label },
+            form.tipoAsuntoOptions.map { it.value to it.label },
+        )
+    }
+
+    @Test
+    fun `a juzgado in another circuit echoes that circuit's portal Cir`() {
+        val form = form("721")
+
+        assertEquals("VIGÉSIMO PRIMER CIRCUITO", form.circuitoName)
+        assertEquals("Juzgado Séptimo de Distrito en el Estado de Guerrero", form.organoName)
+        assertEquals("51", form.hiddenFields["Circuito"])
+        assertEquals("721", form.hiddenFields["Organismo"])
+        // A mixed-materia juzgado in Guerrero: the same 10 tipos as the specialized ones in Mexico City.
+        assertEquals(
+            form("10").tipoAsuntoOptions.map { it.value to it.label },
             form.tipoAsuntoOptions.map { it.value to it.label },
         )
     }
