@@ -6,10 +6,12 @@ package mx.sisetracker.core
  * Circuito Ciudad de México"), shown exactly as given. [portalCir] is the
  * portal's own number for it: the `Cir` parameter of `circuitos.asp` and the
  * `Circuito` form field. It equals [num] only for some circuits (e.g. the
- * Decimosexto is `Cir=45`). Neither is the `CircuitoName` the search form
- * sends: that one comes from the órgano list ([OrganoList.circuitoName]).
+ * Decimosexto is `Cir=45`). [portalName] is the `CircuitoName` the search
+ * form sends ("DÉCIMO SEXTO CIRCUITO"), as the circuit's órgano list showed
+ * it in the October 2026 crawl; a freshly loaded list
+ * ([OrganoList.circuitoName]) takes precedence.
  */
-data class Circuito(val num: String, val label: String, val portalCir: String) {
+data class Circuito(val num: String, val label: String, val portalCir: String, val portalName: String = "") {
     /** The label's ordinal part, for display: "Primer Circuito". */
     val ordinal: String get() = label.substringBefore(SEPARATOR, "").let { if (it.isEmpty()) label else "$it Circuito" }
 
@@ -22,8 +24,8 @@ data class Circuito(val num: String, val label: String, val portalCir: String) {
 }
 
 /**
- * The 32 circuits, bundled as `circuitos.tsv` (num, label, portal `Cir`;
- * step A in CLAUDE.md). The app never fetches the OAJ pages they come from;
+ * The 32 circuits, bundled as `circuitos.tsv` (num, label, portal `Cir`,
+ * CircuitoName; step A in CLAUDE.md). The app never fetches the OAJ pages they come from;
  * tests check the labels against `oaj_circuitos_excerpt.html` and the portal
  * numbers against `oaj_datos_expedientes.json`. Update them together.
  */
@@ -34,8 +36,8 @@ object Circuitos {
         stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
             lines.filter { it.isNotBlank() }
                 .map { line ->
-                    val (num, label, portalCir) = line.split('\t', limit = 3)
-                    Circuito(num, label, portalCir)
+                    val (num, label, portalCir, portalName) = line.split('\t', limit = 4)
+                    Circuito(num, label, portalCir, portalName)
                 }
                 .toList()
         }

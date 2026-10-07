@@ -209,9 +209,20 @@ Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=
 - `10`, `41`, `534`, `726`, `727`, `728` and `721` all list the same 10 tipos, in the same order and with the same labels, as `4157` and the 1183/2025 page (767): 1 Amparo Indirecto … 4 Procesos Civiles o Administrativos. That's 10 juzgados of four specialties (administrativa, penal, concursos mercantiles, mixed) in two circuits.
 - `721`: CircuitoName `VIGÉSIMO PRIMER CIRCUITO`, hidden `Circuito` `51`, `Organismo` `721`, `TipoOrganismo` `0`.
 
+## Expected values: the October 2026 crawl
+
+Captured on a device with the app's "Recorrer todos los circuitos" (zip `sise-capturas-20261007-0008`): all 32 circuits' órgano lists, the step C form of each of the 949 distinct órganos, and the 78 Accion=2 reloads (tipos 125 and 126 at the 39 apelación tribunals). Committed from it: every `circuitos_cir{1..32}.html` (OAJ numbering; each was fetched with its portal `Cir`), and the forms `1288` (a Centro Auxiliar juzgado with no tipos), `6207` (Unidad de Instrucción, Conflictos Laborales list), `4345` (an apelación tribunal outside the Primer Circuito), `4260` (a tribunal laboral) and the reload `expedienteytipo_accion2_4343_tipo126.html`. The rest isn't committed; its findings are bundled as `organos.tsv`, `tipos_procedimiento.tsv` and the CircuitoName column of `circuitos.tsv`.
+
+- Órgano counts per circuit, from 184 (1) down to 11 (26 and 32); 1083 list entries, 949 distinct (Plenos Regionales appear in every circuit of their region). 55 closed órganos; periods like `(28/10/2003- 30/09/2024)` (space on one side only) occur.
+- Each circuit page's hidden `Circuito` is its portal number and `CircuitoName` its uppercase name, e.g. `109` / `TRIGÉSIMO SEGUNDO CIRCUITO`.
+- Every form lists exactly one class's tipos (see CLAUDE.md, step C), the class its name gives, except the 10 órganos with none: 6315–6320 and the Centro Auxiliar de la Segunda Región juzgados 1275, 1277, 1288, 1293.
+- Procedimientos: identical at all 39 apelación tribunals, 11 for tipo 125 and 12 for tipo 126.
+
 ## Bundled lists checked against these fixtures
 
-- `circuitos.tsv` (32 circuits) against `oaj_circuitos_excerpt.html`.
+- `circuitos.tsv` (32 circuits) against `oaj_circuitos_excerpt.html`, `oaj_datos_expedientes.json` and the 32 `circuitos_cir{n}.html` (CircuitoName).
+- `organos.tsv` against the 32 `circuitos_cir{n}.html`, and its tipo classes against every committed form (`CatalogoTest`).
+- `tipos_procedimiento.tsv` against the two `expedienteytipo_accion2_4343_tipo{125,126}.html`.
 - `tipos_asunto.tsv` (44 tipos de asunto, grouped by the class of órgano they were seen at, `J` juzgado de distrito, `C` colegiado de circuito, `A` colegiado de apelación, `L` tribunal laboral, `P` pleno regional, `K` Comisión de Conflictos Laborales, each in the portal's order) against every `expedienteytipo_form_*.html` and `expedienteytipo_result_1183-2025.html`. When a new form fixture adds tipos, add them there too.
 
 ## Empty grids (no fixture file)

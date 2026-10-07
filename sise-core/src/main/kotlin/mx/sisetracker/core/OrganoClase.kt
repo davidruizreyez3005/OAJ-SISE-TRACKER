@@ -22,7 +22,10 @@ enum class OrganoClase(val kind: OrganoKind, internal val code: Char) {
     /** Plenos Regionales. */
     PLENO_REGIONAL(OrganoKind.OTROS, 'P'),
 
-    /** The Comisión de Conflictos Laborales del Poder Judicial de la Federación. */
+    /**
+     * The Comisión de Conflictos Laborales del Poder Judicial de la Federación
+     * and its Unidad de Instrucción (both list the same 3 tipos).
+     */
     CONFLICTOS_LABORALES(OrganoKind.OTROS, 'K'),
 
     /** Administrative bodies and anything not recognized. */
@@ -33,7 +36,7 @@ enum class OrganoClase(val kind: OrganoKind, internal val code: Char) {
         private val apelacion = Regex("""\btribunal (?:colegiado de apelacion|unitario)\b""")
         private val laboral = Regex("""\btribunal laboral\b""")
         private val pleno = Regex("""^pleno\b""")
-        private val conflictos = Regex("""^comision de conflictos laborales\b""")
+        private val conflictos = Regex("""\bcomision de conflictos laborales\b""")
 
         fun fromName(name: String): OrganoClase {
             val folded = SearchText.fold(name)

@@ -72,7 +72,8 @@ class SearchViewModelTest {
 
         assertEquals("7", state.circuito)
         assertEquals("Séptimo Circuito Veracruz de Ignacio de la Llave", state.circuitoLabel)
-        assertEquals(Loadable.Idle, state.organos)
+        // The bundled snapshot of the circuit's list.
+        assertEquals(40, (state.organos as Loadable.Loaded).value.size)
         assertTrue(client.requests.isEmpty())
     }
 
@@ -101,14 +102,26 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `the remembered circuit's organos load when the organo field opens`() = runTest(main.dispatcher) {
+    fun `the remembered circuit's bundled organos need no request`() = runTest(main.dispatcher) {
         settings.setLastCircuito("1")
         val viewModel = viewModel()
-        assertTrue(client.requests.isEmpty())
 
         viewModel.onOrganosRequested()
         advanceUntilIdle()
 
+        assertTrue(client.requests.isEmpty())
+        assertEquals(184, (viewModel.state.value.organos as Loadable.Loaded).value.size)
+    }
+
+    @Test
+    fun `picking a circuit shows the bundled list, then refreshes it once in the background`() = runTest(main.dispatcher) {
+        client.onGet = { throw IOException("offline") }
+        val viewModel = viewModel()
+
+        viewModel.onCircuitoSelected(primerCircuito)
+        advanceUntilIdle()
+
+        // The refresh failed: the bundled list stays.
         assertEquals(listOf(organosRequest), client.requests)
         assertEquals(184, (viewModel.state.value.organos as Loadable.Loaded).value.size)
     }
@@ -214,7 +227,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `a picked organo gets its own tipos from the portal, with the circuit name`() = runTest(main.dispatcher) {
+    fun `a picked organo shows its own tipos from the bundled catalog, with no request`() = runTest(main.dispatcher) {
         settings.addRecentOrgano(RecentOrgano("767", juzgado, circuito = "1"))
         val viewModel = viewModel()
 
@@ -230,23 +243,31 @@ class SearchViewModelTest {
         assertTrue(state.tiposFromPortal)
         assertFalse(state.checkingOrganoTipos)
         assertFalse(state.canLoadOrganoTipos)
-        // Step C needs the CircuitoName, which comes with the circuit's órgano list.
-        assertEquals(2, client.requests.size)
-        assertEquals(organosRequest, client.requests.first())
-        assertTrue(client.requests.last().endsWith("Organismo=767&Buscar=Buscar&Circuito=1&CircuitoName=PRIMER+CIRCUITO"))
+        assertTrue(client.requests.isEmpty())
         assertEquals(184, (state.organos as Loadable.Loaded).value.size)
-
-        // Cached: picking it again makes no request.
-        viewModel.onOrganoTextChange("")
-        viewModel.onOrganoSelected(viewModel.state.value.knownOrganos.single())
-        advanceUntilIdle()
-        assertEquals(2, client.requests.size)
-        assertTrue(viewModel.state.value.tiposFromPortal)
     }
 
     @Test
-    fun `the bundled tipos stay usable when the organo's own list fails`() = runTest(main.dispatcher) {
-        settings.addRecentOrgano(RecentOrgano("767", juzgado, circuito = "1"))
+    fun `an organo missing from the catalog gets its own tipos from the portal, with the bundled circuit name`() = runTest(main.dispatcher) {
+        settings.addRecentOrgano(RecentOrgano("99999", "Juzgado Vigésimo de Distrito en Materia Penal en la Ciudad de México", "1"))
+        val viewModel = viewModel()
+
+        viewModel.onOrganoSelected(viewModel.state.value.knownOrganos.single())
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.tiposFromPortal)
+        assertEquals(
+            listOf(
+                "POST https://www.dgej.cjf.gob.mx/internet/expedientes/ExpedienteyTipo.asp " +
+                    "Organismo=99999&Buscar=Buscar&Circuito=1&CircuitoName=PRIMER+CIRCUITO",
+            ),
+            client.requests,
+        )
+    }
+
+    @Test
+    fun `the guessed tipos stay usable when an unknown organo's own list fails`() = runTest(main.dispatcher) {
+        settings.addRecentOrgano(RecentOrgano("99999", "Juzgado Vigésimo de Distrito en Materia Penal en la Ciudad de México", "1"))
         client.onPost = { throw IOException("offline") }
         val viewModel = viewModel()
 
@@ -254,7 +275,7 @@ class SearchViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.state.value
-        // The juzgado class's bundled list, in the portal's order.
+        // Not in the catalog: the juzgado class's list, in the portal's order.
         assertEquals(10, (state.tiposAsunto as Loadable.Loaded).value.size)
         assertFalse(state.tiposFromPortal)
         assertFalse(state.checkingOrganoTipos)
@@ -270,15 +291,13 @@ class SearchViewModelTest {
     @Test
     fun `an amparo directo lookup is one GET of the case page`() = runTest(main.dispatcher) {
         client.onGet = { url -> Fixtures.load(if ("circuitos.asp" in url) Fixtures.ORGANOS_CIR1 else Fixtures.CASE_1183) }
-        client.onPost = { Fixtures.load(Fixtures.FORM_500) }
         settings.addRecentOrgano(RecentOrgano("18", "Segundo Tribunal Colegiado en Materia Penal del Primer Circuito", "1"))
         val viewModel = viewModel()
         viewModel.onOrganoSelected(viewModel.state.value.knownOrganos.single())
         advanceUntilIdle()
         val tipos = (viewModel.state.value.tiposAsunto as Loadable.Loaded).value
-        // A colegiado de circuito: its 14 tipos.
+        // A colegiado de circuito: its 14 tipos, from the bundled catalog.
         assertEquals(14, tipos.size)
-        client.requests.clear()
 
         viewModel.onTipoAsuntoSelected(tipos.single { it.label == "Amparo Directo" })
         viewModel.onExpedienteChange("293/2026")
@@ -292,7 +311,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `a typed organismo shows its tipos when the dropdown opens`() = runTest(main.dispatcher) {
+    fun `a typed organismo shows its own tipos when the dropdown opens, with no request`() = runTest(main.dispatcher) {
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
 
@@ -303,10 +322,10 @@ class SearchViewModelTest {
         assertTrue(client.requests.isEmpty())
         assertEquals("767", viewModel.state.value.organo?.id)
 
-        // Opening the dropdown shows the tipos, then checks the órgano's own list once.
+        // Opening the dropdown shows the órgano's own tipos from the catalog.
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
-        assertEquals(1, client.requests.size)
+        assertTrue(client.requests.isEmpty())
         assertTrue(viewModel.state.value.tiposFromPortal)
         assertEquals(10, (viewModel.state.value.tiposAsunto as Loadable.Loaded).value.size)
     }

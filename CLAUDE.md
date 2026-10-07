@@ -41,9 +41,11 @@ milestone per PR.
 3. **Be polite to the server.** One request at a time, at least 2 s apart.
    - Refreshes are user-triggered, plus at most one background check per day
      (acuerdos publish at most once per business day).
-   - Catalogs load on demand: one circuit or órgano at a time, when the user
-     opens it. They're cached for 30 days, with a manual "Actualizar catálogos"
-     action.
+   - Catalogs come from the bundled snapshot (`Catalogo`, see "Search flow
+     in the app"); live lists load on demand only: one circuit's list in the
+     background when the user picks it (once per 30 days), or one órgano's
+     form when it isn't in the snapshot. They're cached for 30 days, with a
+     manual "Actualizar catálogos" action.
    - Lookups happen only for an expediente a user typed, picked from a related
      case, or shared, one per tap. Never generate, guess or iterate expediente
      numbers: no ranges, no "nearby" searches, no batch lookups.
@@ -302,12 +304,17 @@ form is `name="Editar"`:
     own "Selecciona…" hint and requires an explicit choice.
   - Tipo IDs are global: the same ID has the same label at every órgano seen
     (e.g. 11 = Amparo en revisión at every tribunal colegiado).
-  - Lists differ by órgano type, and may differ between juzgados, but no
-    such difference has been seen yet: 10 juzgados of four specialties in
-    two circuits (4157, 767, 10, 41, 534, 726, 727, 728, and 721 in
-    Guerrero) list the same 10 tipos, and colegiados 4 and 500 of
-    different materias the same 14. Always load the list per órgano and
-    cache it per órgano.
+  - **The list depends only on the órgano's class** (crawl of all 32
+    circuits, October 2026: 949 distinct órganos). Every form listed
+    exactly its class's list from `tipos_asunto.tsv`: 481 juzgados the
+    same 10, 264 colegiados de circuito the same 14, 39 colegiados de
+    apelación 6, 143 tribunales laborales 8, 10 plenos regionales 3, and
+    the Comisión de Conflictos Laborales (930) and its Unidad de
+    Instrucción (6207) the same 3. No other tipo ID or label appeared.
+  - Exceptions, with **no tipos at all**: the six administrative bodies
+    (6315–6320) and four juzgados of the Centro Auxiliar de la Segunda
+    Región (1275, 1277, 1288, 1293). The Centro Auxiliar de la Primera
+    Región's juzgados have the normal list.
   - Some órganos offer **no tipos at all** (Secretaría General de Acuerdos,
     Comisión de Disciplina, Comisión de Investigación). Show "Este órgano no
     tiene expedientes consultables en el portal" and disable Buscar.
@@ -352,8 +359,10 @@ form is `name="Editar"`:
   - offers 11 procedimientos with IDs that have nothing in common with the
     9 defaults: 22800 Apelación … 22810 Otro;
   - has no procedimiento selected (the app requires an explicit choice).
-- It's unknown whether those IDs are per tipo or per órgano + tipo, so cache
-  them per (órgano, tipo), as the data model already does.
+- **They're per tipo**: all 39 apelación tribunals return the same 11 for
+  tipo 125 (22800–22810) and the same 12 for tipo 126 (22450–22461, in the
+  portal's own non-numeric order) (crawl, October 2026). The cache stays
+  per (órgano, tipo).
 
 - The fresh form already contains an empty, zero-size `iframe#ifr`. It only
   gets a `vercaptura.aspx` src after a search. Treat `iframe#ifr` as a case
@@ -379,6 +388,17 @@ as windows-1252, because
 1. **Native search screen**, in this order:
    - Circuito dropdown (from A), each item as ordinal over state
      ("Primer Circuito" / "Ciudad de México"); the field shows the label.
+   - **Bundled snapshot** (`Catalogo` in `:sise-core`, from the October
+     2026 crawl): every circuit's órgano list (`organos.tsv`), each
+     órgano's tipo list class (or none), the procedimientos of tipos 125
+     and 126 (`tipos_procedimiento.tsv`), and each circuit's CircuitoName
+     (`circuitos.tsv`). Picking a circuit shows its bundled list at once;
+     the live list then loads in the background (once per 30 days) and
+     replaces it, and the snapshot stays if that fails. Step C requests
+     use the bundled CircuitoName, so they never need the órgano list
+     first. Refresh the snapshot by rerunning the crawl and regenerating
+     the TSVs from its pages (`CatalogoTest` checks them against the
+     committed circuit pages and forms).
    - Filter chips, each row offering only what the loaded list has:
      Tipo de órgano (Juzgados / Tribunales / Otros), then the class within
      it (`OrganoClase`: Colegiados de Circuito / de Apelación / Laborales,
@@ -391,26 +411,21 @@ as windows-1252, because
    - Órgano dropdown with type-ahead filtering (from B), names only (no
      IDs), with a count of matches; once chosen, the field describes it
      ("Tribunal Colegiado de Circuito · Penal").
-   - Tipo de asunto dropdown. Lists differ between órganos, even of the
-     same class, so the órgano's own list (step C) is what counts. To keep
-     the screen fast (most lookups are amparos directos at tribunales
-     colegiados), it shows a list **at once** and never blocks on step C:
+   - Tipo de asunto dropdown, shown **at once**, with no request for any
+     órgano in the snapshot (most lookups are amparos directos at
+     tribunales colegiados, so Buscar is a single GET of the case page):
      - from the cache if the órgano's list was loaded in the last 30 days;
-     - otherwise the bundled tipos of the órgano's class
-       (`tipos_asunto.tsv` in `:sise-core`, IDs are global; no tipo was
-       seen at two classes), in the portal's order. Órganos whose class has
-       no known list (administrative bodies, a bare organismo number) get
-       every known tipo.
-     Then, when the órgano is picked (or the dropdown opened), one step C
-     request loads its own list in the background ("Consultando los tipos
-     de este órgano…") and replaces the bundled one, dropping a chosen tipo
-     the órgano doesn't offer. That's a request for an órgano the user
-     opened, so it's on-demand under hard rule 3; with capture on, it also
-     saves the form. If it fails the bundled list stays, and "¿No aparece
-     el tipo? Cargar la lista de este órgano del portal" retries. A tipo
-     the órgano doesn't have just gives "No se encontró…".
+     - else the órgano's own list from the bundled snapshot (`Catalogo`);
+     - else (an órgano created after the snapshot, or a typed organismo
+       number it doesn't have) the tipos of its name's class
+       (`tipos_asunto.tsv`), or every known tipo if the class has none,
+       and one step C request then loads its own list in the background
+       ("Consultando los tipos de este órgano…"), dropping a chosen tipo
+       it doesn't offer. If that fails the guess stays, and "¿No aparece
+       el tipo? Cargar la lista de este órgano del portal" retries.
    - Tipo de procedimiento dropdown, only when the portal would show it
-     (from D).
+     (from D): cached, else bundled for tipos 125 and 126, else the
+     Accion=2 reload.
    - Número de expediente field, with a numeric keyboard that allows `/`.
    - "Órganos recientes" chips for quick re-selection.
    - Remember the last circuit used.

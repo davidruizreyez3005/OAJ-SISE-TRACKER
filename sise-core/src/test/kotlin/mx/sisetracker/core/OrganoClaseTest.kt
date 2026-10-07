@@ -17,8 +17,9 @@ class OrganoClaseTest {
                 OrganoClase.COLEGIADO_APELACION to 4,
                 OrganoClase.TRIBUNAL_LABORAL to 18,
                 OrganoClase.PLENO_REGIONAL to 5,
-                OrganoClase.CONFLICTOS_LABORALES to 1,
-                OrganoClase.OTRO to 7,
+                // The Comisión and its Unidad de Instrucción (6207), which lists the same tipos.
+                OrganoClase.CONFLICTOS_LABORALES to 2,
+                OrganoClase.OTRO to 6,
             ),
             organos.groupingBy { it.clase }.eachCount(),
         )
@@ -35,7 +36,7 @@ class OrganoClaseTest {
         assertEquals(OrganoClase.TRIBUNAL_LABORAL, organo("4272").clase)
         assertEquals(OrganoClase.PLENO_REGIONAL, organo("4386").clase)
         assertEquals(OrganoClase.CONFLICTOS_LABORALES, organo("930").clase)
-        assertEquals(OrganoClase.OTRO, organo("6207").clase)
+        assertEquals(OrganoClase.CONFLICTOS_LABORALES, organo("6207").clase)
         assertEquals(OrganoClase.OTRO, organo("6315").clase)
         // Former name of the apelación tribunals, still used in older lists.
         assertEquals(OrganoClase.COLEGIADO_APELACION, OrganoClase.fromName("Primer Tribunal Unitario del Segundo Circuito"))

@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import mx.sisetracker.core.Catalogo
 import mx.sisetracker.core.Circuito
 import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.FormOption
@@ -20,9 +21,10 @@ import mx.sisetracker.data.net.SiseClient
 data class CatalogOrgano(val circuito: String, val organo: Organo)
 
 /**
- * The search screen's dropdown options. The circuits are bundled; everything
- * else loads on demand, one circuit or órgano (or one of its tipos) at a time,
- * and is cached for [TTL_MILLIS] (hard rule 3).
+ * The search screen's dropdown options. The circuits, and a snapshot of every
+ * circuit's órganos, tipos and procedimientos ([Catalogo]), are bundled;
+ * live lists load on demand, one circuit or órgano (or one of its tipos) at
+ * a time, are cached for [TTL_MILLIS] (hard rule 3) and win over the snapshot.
  */
 class CatalogRepository(
     private val dao: CatalogDao,
@@ -49,15 +51,30 @@ class CatalogRepository(
         return cached.map { Organo(it.id, it.name, it.position) }
     }
 
-    /** Cached órganos named exactly [name] (apart from whitespace runs). Never makes a request. */
+    /** The bundled snapshot of [circuito]'s órgano list. Never makes a request. */
+    fun bundledOrganos(circuito: String): List<Organo> = Catalogo.organos(circuito)
+
+    /** Órganos named exactly [name] (apart from whitespace runs): cached, else bundled. Never makes a request. */
     suspend fun findCachedOrganos(name: String): List<CatalogOrgano> =
         dao.allOrganos()
             .filter { isFresh(it.fetchedAt) && SearchText.sameName(it.name, name) }
             .map { CatalogOrgano(it.circuito, Organo(it.id, it.name, it.position)) }
+            .ifEmpty { Catalogo.findByName(name).map { CatalogOrgano(it.circuito, it.organo) } }
 
-    /** The circuits whose cached lists include [organismo]. Never makes a request. */
+    /** The circuits whose cached or bundled lists include [organismo]. Never makes a request. */
     suspend fun cachedCircuitosOf(organismo: String): List<String> =
-        dao.allOrganos().filter { it.id == organismo && isFresh(it.fetchedAt) }.map { it.circuito }.distinct()
+        (
+            dao.allOrganos().filter { it.id == organismo && isFresh(it.fetchedAt) }.map { it.circuito } +
+                Catalogo.entries(organismo).map { it.circuito }
+            ).distinct()
+
+    /**
+     * [organismo]'s own tipos de asunto without a request: from the cache,
+     * else from the bundled snapshot. Null if neither has the órgano (e.g. one
+     * created after the snapshot); empty if it offers none.
+     */
+    suspend fun knownTiposDeAsunto(organismo: String): List<FormOption>? =
+        cachedTiposDeAsunto(organismo).ifEmpty { null } ?: Catalogo.tiposDeAsunto(organismo)
 
     /**
      * Tipos de asunto of [organismo]: from the cache, or one request for the
@@ -77,9 +94,10 @@ class CatalogRepository(
     }
 
     /**
-     * Tipos de procedimiento of one tipo de asunto: from the cache, or one
-     * request re-rendering the form for that tipo (step D). Only call it for
-     * tipos that show the procedimiento row.
+     * Tipos de procedimiento of one tipo de asunto: from the cache, else the
+     * bundled snapshot (the same at every órgano seen), else one request
+     * re-rendering the form for that tipo (step D). Only call it for tipos
+     * that show the procedimiento row.
      */
     suspend fun tiposDeProcedimiento(
         circuito: String,
@@ -92,6 +110,7 @@ class CatalogRepository(
         if (!reload && cached.isNotEmpty() && cached.all { isFresh(it.fetchedAt) }) {
             return cached.map { FormOption(it.id, it.name, it.position, selected = false) }
         }
+        if (!reload) Catalogo.tiposDeProcedimiento(tipoAsunto)?.let { return it }
         var fields = dao.formFields(organismo)
         if (fields.isEmpty()) {
             // The cache was cleared since the tipos were shown: reload the form first.
@@ -141,10 +160,15 @@ class CatalogRepository(
         return list.organos
     }
 
-    /** The circuit's `CircuitoName`, loading its órgano list if needed; empty if the page doesn't show it. */
+    /**
+     * The circuit's `CircuitoName`: from its cached órgano list, else the
+     * bundled one, else by loading the list; empty if the page doesn't show it.
+     */
     private suspend fun circuitoName(circuito: String): String {
         val cached = dao.circuito(circuito)?.takeIf { isFresh(it.fetchedAt) && cachedOrganos(circuito) != null }
-        if (cached == null) fetchOrganos(circuito)
+        if (cached != null) return cached.portalName.orEmpty()
+        Circuitos.byNum(circuito)?.portalName?.takeIf { it.isNotEmpty() }?.let { return it }
+        fetchOrganos(circuito)
         return dao.circuito(circuito)?.portalName.orEmpty()
     }
 

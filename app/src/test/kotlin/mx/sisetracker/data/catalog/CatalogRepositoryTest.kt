@@ -64,23 +64,37 @@ class CatalogRepositoryTest {
     }
 
     @Test
-    fun `finds cached organos by name without a request`() = runTest(dispatcher) {
-        assertTrue(repository.findCachedOrganos("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito").isEmpty())
-        repository.organos("1")
-
-        val found = repository.findCachedOrganos("Segundo Tribunal  Colegiado en Materia Penal del Primer Circuito ")
-
-        assertEquals(listOf("1" to "18"), found.map { it.circuito to it.organo.id })
+    fun `finds organos by name in the cache or the bundled catalog, without a request`() = runTest(dispatcher) {
+        // Nothing cached yet: the bundled snapshot answers.
+        val bundled = repository.findCachedOrganos("Segundo Tribunal  Colegiado en Materia Penal del Primer Circuito ")
+        assertEquals(listOf("1" to "18"), bundled.map { it.circuito to it.organo.id })
         assertEquals(listOf("1"), repository.cachedCircuitosOf("767"))
         assertTrue("Exact names only", repository.findCachedOrganos("segundo tribunal colegiado en materia penal del primer circuito").isEmpty())
+        assertTrue(client.requests.isEmpty())
+
+        repository.organos("1")
+        val cached = repository.findCachedOrganos("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito")
+        assertEquals(listOf("1" to "18"), cached.map { it.circuito to it.organo.id })
         assertEquals(1, client.requests.size)
     }
 
     @Test
-    fun `tipos de asunto send the circuit name from the organo list`() = runTest(dispatcher) {
+    fun `bundled lists need no request`() = runTest(dispatcher) {
+        assertEquals(184, repository.bundledOrganos("1").size)
+        assertEquals(10, repository.knownTiposDeAsunto("767")?.size)
+        assertEquals(listOf("29", "10", "11"), repository.knownTiposDeAsunto("18")?.take(3)?.map { it.value })
+        assertEquals(emptyList<String>(), repository.knownTiposDeAsunto("6315")?.map { it.value })
+        assertNull(repository.knownTiposDeAsunto("999999"))
+        assertEquals(11, repository.tiposDeProcedimiento("1", "4343", "125").size)
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `tipos de asunto send the bundled circuit name`() = runTest(dispatcher) {
         val tipos = repository.tiposDeAsunto("1", "767")
 
-        assertEquals(listOf(stepB, stepC), client.requests)
+        // No órgano list needed: the CircuitoName is bundled with the circuit.
+        assertEquals(listOf(stepC), client.requests)
         assertEquals(10, tipos.size)
         assertEquals("1" to "Amparo Indirecto", tipos.first().value to tipos.first().label)
         assertTrue("No portal pre-selection", tipos.none { it.selected })
@@ -104,7 +118,7 @@ class CatalogRepositoryTest {
 
         val cached = repository.tiposDeAsunto("1", "767")
 
-        assertEquals(2, client.requests.size)
+        assertEquals(1, client.requests.size)
         assertEquals(10, cached.size)
         assertEquals("Procesos Civiles o Administrativos", cached.last().label)
     }
@@ -116,7 +130,7 @@ class CatalogRepositoryTest {
 
         repository.tiposDeAsunto("1", "767")
 
-        assertEquals(listOf(stepB, stepC, stepB, stepC), client.requests)
+        assertEquals(listOf(stepC, stepC), client.requests)
         assertEquals(10, dao.tipos.size)
     }
 
@@ -127,9 +141,9 @@ class CatalogRepositoryTest {
         val procedimientos = repository.tiposDeProcedimiento("1", "767", "9")
         repository.tiposDeProcedimiento("1", "767", "9")
 
+        // Tipo 9 isn't in the bundled catalog (never seen), so it takes the Accion=2 reload.
         assertEquals(
             listOf(
-                stepB,
                 stepC,
                 "POST https://www.dgej.cjf.gob.mx/internet/expedientes/ExpedienteyTipo.asp " +
                     "Circuito=1&CircuitoName=PRIMER+CIRCUITO&Organismo=767&OrgName=&TipoOrganismo=" +
@@ -146,11 +160,11 @@ class CatalogRepositoryTest {
         repository.tiposDeAsunto("1", "767")
         repository.clear()
 
-        repository.tiposDeProcedimiento("1", "767", "125")
+        repository.tiposDeProcedimiento("1", "767", "9")
 
-        assertEquals(listOf(stepB, stepC, stepB, stepC), client.requests.take(4))
-        assertTrue(client.requests[4].endsWith("TipoAsunto=125&Expediente=&Accion=2"))
-        assertEquals(5, client.requests.size)
+        assertEquals(listOf(stepC, stepC), client.requests.take(2))
+        assertTrue(client.requests[2].endsWith("TipoAsunto=9&Expediente=&Accion=2"))
+        assertEquals(3, client.requests.size)
     }
 
     @Test
@@ -162,7 +176,7 @@ class CatalogRepositoryTest {
         assertNull(repository.cachedOrganos("1"))
         assertTrue(dao.circuitos.isEmpty())
         repository.tiposDeAsunto("1", "767")
-        assertEquals(4, client.requests.size)
+        assertEquals(2, client.requests.size)
     }
 
     /** Chrome captures drop hidden inputs; the live page has them, so add the ones the portal sends. */
@@ -181,7 +195,7 @@ class CatalogRepositoryTest {
 
         assertTrue(first.isEmpty())
         assertTrue(again.isEmpty())
-        assertEquals(listOf(stepB, stepC.replace("767", "6315")), client.requests)
+        assertEquals(listOf(stepC.replace("767", "6315")), client.requests)
     }
 
     @Test
@@ -192,8 +206,9 @@ class CatalogRepositoryTest {
         }
         repository.tiposDeAsunto("1", "4343")
 
-        val procedimientos = repository.tiposDeProcedimiento("1", "4343", "125")
+        val procedimientos = repository.tiposDeProcedimiento("1", "4343", "125", reload = true)
 
+        assertTrue(client.requests.last().endsWith("TipoAsunto=125&Expediente=&Accion=2"))
         assertEquals(11, procedimientos.size)
         assertEquals("22800" to "Apelación", procedimientos.first().value to procedimientos.first().label)
         assertTrue(procedimientos.none { it.value == "276" || it.selected })
@@ -208,10 +223,11 @@ class CatalogRepositoryTest {
         }
 
         capturing.tiposDeAsunto("1", "767")
-        capturing.tiposDeProcedimiento("1", "767", "125")
+        capturing.tiposDeProcedimiento("1", "767", "125", reload = true)
+        capturing.organos("1")
 
         assertEquals(
-            listOf("circuitos_cir1", "expedienteytipo_form_767", "expedienteytipo_accion2_767_tipo125"),
+            listOf("expedienteytipo_form_767", "expedienteytipo_accion2_767_tipo125", "circuitos_cir1"),
             captured,
         )
     }

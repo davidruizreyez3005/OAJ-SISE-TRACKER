@@ -23,6 +23,7 @@ import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.FormOption
 import mx.sisetracker.core.Materia
 import mx.sisetracker.core.OrganoClase
+import mx.sisetracker.core.Organo
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.TipoProcedimientoRule
@@ -282,13 +283,13 @@ class SearchViewModel(
     private class Tipos(val options: List<FormOption>, val fromPortal: Boolean)
 
     /**
-     * The órgano's own list when it's cached, else the bundled tipos of its
-     * class (IDs are global), or every known tipo for an órgano whose class
-     * has no known list. Never makes a request.
+     * The órgano's own list, cached or from the bundled snapshot; for an
+     * órgano neither has, the bundled tipos of its name's class (IDs are
+     * global), or every known tipo if the class has no known list. Never
+     * makes a request.
      */
     private suspend fun tiposFor(organo: KnownOrgano): Tipos {
-        val cached = catalog.cachedTiposDeAsunto(organo.id)
-        if (cached.isNotEmpty()) return Tipos(cached, fromPortal = true)
+        catalog.knownTiposDeAsunto(organo.id)?.let { return Tipos(it, fromPortal = true) }
         val clase = organo.clase.takeIf { organo.name.isNotBlank() }
         return Tipos(TiposDeAsunto.forClase(clase), fromPortal = false)
     }
@@ -361,27 +362,34 @@ class SearchViewModel(
         loadOrganos(fetch)
     }
 
+    /**
+     * Shows the circuit's órganos at once: the cached list, else the bundled
+     * snapshot. Without a fresh cached list and with [fetch], the live list
+     * then loads in the background (one request per circuit per 30 days) and
+     * replaces the snapshot, which stays if the request fails.
+     */
     private fun loadOrganos(fetch: Boolean) {
         val circuito = _state.value.circuito.takeIf { it.isNotBlank() } ?: return
         organosJob?.cancel()
         organosJob = viewModelScope.launch {
             val cached = catalog.cachedOrganos(circuito)
-            if (cached == null && !fetch) return@launch
-            val result = if (cached != null) {
-                PortalResult.Ok(cached)
-            } else {
-                _state.update { if (it.circuito == circuito) it.copy(organos = Loadable.Loading) else it }
-                portalCall { catalog.organos(circuito) }
-            }
-            _state.update { current ->
-                if (current.circuito != circuito) return@update current
-                when (result) {
-                    is PortalResult.Ok -> current.copy(
-                        organos = Loadable.Loaded(result.value.map { KnownOrgano(it.id, it.name, circuito) }),
-                    )
-                    is PortalResult.Failed -> current.copy(organos = Loadable.Failed(result.error))
+            val shown = cached ?: catalog.bundledOrganos(circuito).ifEmpty { null }
+            if (shown != null) showOrganos(circuito, shown)
+            if (cached != null || !fetch) return@launch
+            if (shown == null) _state.update { if (it.circuito == circuito) it.copy(organos = Loadable.Loading) else it }
+            when (val result = portalCall { catalog.organos(circuito) }) {
+                is PortalResult.Ok -> showOrganos(circuito, result.value)
+                is PortalResult.Failed -> if (shown == null) {
+                    _state.update { if (it.circuito == circuito) it.copy(organos = Loadable.Failed(result.error)) else it }
                 }
             }
+        }
+    }
+
+    private fun showOrganos(circuito: String, organos: List<Organo>) {
+        _state.update { current ->
+            if (current.circuito != circuito) return@update current
+            current.copy(organos = Loadable.Loaded(organos.map { KnownOrgano(it.id, it.name, circuito) }))
         }
     }
 

@@ -76,11 +76,11 @@ data class SearchUiState(
     val knownOrganos: List<KnownOrgano> = emptyList(),
     val tiposAsunto: Loadable<List<FormOption>> = Loadable.Idle,
     /**
-     * Whether [tiposAsunto] is the órgano's own list from the portal (step C),
-     * rather than the bundled list of every known tipo.
+     * Whether [tiposAsunto] is the órgano's own list (from the portal, step C,
+     * or the bundled snapshot of it), rather than a guess from its name's class.
      */
     val tiposFromPortal: Boolean = false,
-    /** The órgano's own list is loading in the background, over the bundled one. */
+    /** The órgano's own list is loading in the background, over the guessed one. */
     val checkingOrganoTipos: Boolean = false,
     val tipoAsunto: FormOption? = null,
     val tiposProcedimiento: Loadable<List<FormOption>> = Loadable.Idle,
