@@ -125,6 +125,31 @@ class CaseRepositoryTest {
     }
 
     @Test
+    fun `an unpublished acuerdo shows its resumen, then refresh fills in the publication`() = runTest {
+        // Saved while orden 38 had no publication date yet.
+        val unpublished = page.acuerdos.map {
+            if (it.orden == 38) it.copy(fechaPublicacion = null, link = it.link.copy(fechaPublicacion = "")) else it
+        }
+        repository.save(url, page.copy(acuerdos = unpublished))
+        val stored = db.caseDao().getAcuerdo(neun, 38)!!
+        assertNull(stored.fechaPublicacion)
+        assertTrue(stored.verAcuerdoUrl.endsWith("&listaFPublicacion="))
+
+        // The portal can't show its síntesis yet: the résumé, with no request.
+        assertEquals(stored.resumen, repository.sintesis(neun, 38))
+        assertTrue(client.requests.isEmpty())
+        assertNull(db.caseDao().getAcuerdo(neun, 38)!!.sintesis)
+
+        client.onGet = { Fixtures.load(Fixtures.CASE_1183) }
+        val result = repository.refresh(neun)
+
+        assertTrue((result as RefreshResult.Updated).newAcuerdos.isEmpty())
+        val published = db.caseDao().getAcuerdo(neun, 38)!!
+        assertEquals(LocalDate.of(2026, 9, 1), published.fechaPublicacion)
+        assertEquals(sintesis38Url, published.verAcuerdoUrl)
+    }
+
+    @Test
     fun `refresh keeps fetched sintesis`() = runTest {
         repository.save(url, page)
         db.caseDao().setSintesis(neun, 38, "Síntesis guardada")

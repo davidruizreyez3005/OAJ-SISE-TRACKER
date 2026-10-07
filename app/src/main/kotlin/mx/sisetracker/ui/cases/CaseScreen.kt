@@ -279,7 +279,7 @@ private fun AcuerdoCard(acuerdo: AcuerdoEntity, isNew: Boolean, onClick: () -> U
                 stringResource(
                     R.string.acuerdo_dates,
                     SiseDates.formatSpan(acuerdo.fechaAuto),
-                    SiseDates.formatSpan(acuerdo.fechaPublicacion),
+                    acuerdo.fechaPublicacion?.let(SiseDates::formatSpan) ?: stringResource(R.string.acuerdo_sin_publicar),
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

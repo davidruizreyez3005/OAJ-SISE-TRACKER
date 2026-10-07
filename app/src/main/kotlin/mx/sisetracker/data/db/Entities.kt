@@ -43,7 +43,8 @@ data class AcuerdoEntity(
     /** The displayed "No.". */
     val numero: String,
     val fechaAuto: LocalDate,
-    val fechaPublicacion: LocalDate,
+    /** Null while the acuerdo isn't published; a refresh fills it in (database version 2). */
+    val fechaPublicacion: LocalDate?,
     val tipoCuaderno: String,
     val resumen: String,
     /** The full síntesis, once fetched. Null until then, or when the résumé is already complete. */
@@ -124,7 +125,7 @@ data class AcuerdoSearchResult(
     val neun: String,
     val orden: Int,
     val numero: String,
-    val fechaPublicacion: LocalDate,
+    val fechaPublicacion: LocalDate?,
     val expediente: String,
     val organoName: String,
     /** A short excerpt, with each match between [SnippetMarkers.START] and [SnippetMarkers.END]. */

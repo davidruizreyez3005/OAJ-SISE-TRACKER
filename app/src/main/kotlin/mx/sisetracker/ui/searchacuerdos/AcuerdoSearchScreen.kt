@@ -129,7 +129,7 @@ private fun ResultCard(result: AcuerdoSearchResult, onOpenAcuerdo: () -> Unit, o
                     R.string.acuerdo_search_result,
                     result.expediente,
                     result.numero,
-                    SiseDates.formatSpan(result.fechaPublicacion),
+                    result.fechaPublicacion?.let(SiseDates::formatSpan) ?: stringResource(R.string.acuerdo_sin_publicar),
                 ),
                 style = MaterialTheme.typography.labelLarge,
             )

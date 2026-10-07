@@ -144,6 +144,9 @@ class CaseRepository(
         val acuerdo = dao.getAcuerdo(neun, orden) ?: throw IllegalArgumentException("No acuerdo $orden in $neun")
         acuerdo.sintesis?.let { return it }
         if (!Resumen.isTruncated(acuerdo.resumen)) return acuerdo.resumen
+        // Unpublished: the portal's síntesis page only answers "Error al recibir
+        // los parámetros de consulta" until there's a publication date.
+        if (acuerdo.fechaPublicacion == null) return acuerdo.resumen
 
         val html = client.getPage(acuerdo.verAcuerdoUrl)
         val sintesis = withContext(parsing) { SintesisPageParser.parse(html) }

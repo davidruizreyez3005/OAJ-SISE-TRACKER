@@ -62,4 +62,18 @@ class EmptyGridsTest {
         assertTrue(page.acuerdos.isEmpty())
         assertEquals("40612904", page.neun)
     }
+
+    /** Verbatim from 1068/2025 at órgano 721 (October 2026): a placeholder row instead of the message cell. */
+    private val noRelatedPlaceholder =
+        """<table cellspacing="0" rules="all" border="1" id="grvAsuntosRelacionados" style="color:#180C3E;background-color:#9F8AE8;border-collapse:collapse;">
+            <tr> <th scope="col">Neun</th><th scope="col">Número de Expediente</th><th scope="col">Órgano Jurisdiccional</th><th scope="col">Fecha relación</th> </tr><tr> <td align="center" style="width:80px;"> <span id="grvAsuntosRelacionados_ctl02_lblContenido">0</span> </td><td align="justify" style="width:80px;"> <span id="grvAsuntosRelacionados_ctl02_lblNúmeroExpediente"></span> </td><td align="left" style="width:450px;"> <span id="grvAsuntosRelacionados_ctl02_lblOrgano">ASUNTO NO RELACIONADO</span> </td><td align="center" style="width:100px;"> <span id="grvAsuntosRelacionados_ctl02_lblFechaPresentacion"></span> </td> </tr>
+        </table>"""
+
+    @Test
+    fun `the ASUNTO NO RELACIONADO placeholder row means no related cases`() {
+        val page = parse(replaceTable(base, "grvAsuntosRelacionados", noRelatedPlaceholder))
+
+        assertTrue(page.asuntosRelacionados.isEmpty())
+        assertEquals(28, page.acuerdos.size)
+    }
 }

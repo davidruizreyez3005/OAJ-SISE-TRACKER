@@ -3,7 +3,8 @@ package mx.sisetracker.core
 /**
  * Arguments of the acuerdos grid's
  * `javascript:DoVerAcuerdo(org, orden, neun, asuntoId, "dd/MM/yyyy 12:00:00 a.m.", "dd/MM/yyyy 12:00:00 a.m.", "n/yyyy")`
- * link. Dates are kept as their `dd/MM/yyyy` part, exactly as given.
+ * link. Dates are kept as their `dd/MM/yyyy` part, exactly as given;
+ * [fechaPublicacion] is empty for an acuerdo not published yet.
  *
  * [asuntoId] is not necessarily the case URL's `tipoasunto`: at a tribunal
  * colegiado (293/2026) it is 1 while the case page uses `tipoasunto=11`.
@@ -36,7 +37,7 @@ data class DoVerAcuerdo(
                 neun = args[2],
                 asuntoId = args[3],
                 fechaAuto = SiseDates.datePart(args[4]),
-                fechaPublicacion = SiseDates.datePart(args[5]),
+                fechaPublicacion = SiseDates.datePartOrEmpty(args[5]),
                 expediente = args[6],
             )
         }

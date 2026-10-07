@@ -130,6 +130,8 @@
     <string name="acuerdo_title">Acuerdo %1$s</string>
     <string name="acuerdo_fecha_auto">Fecha del auto: %1$s</string>
     <string name="acuerdo_fecha_publicacion">Fecha de publicación: %1$s</string>
+    <string name="acuerdo_sin_publicar">sin publicar</string>
+    <string name="acuerdo_sintesis_pendiente">Este acuerdo aún no se publica. El portal muestra la síntesis completa hasta que se publica; aquí aparece el resumen. Actualiza el expediente más tarde.</string>
     <string name="acuerdo_cuaderno">Cuaderno: %1$s</string>
     <string name="acuerdo_loading">Cargando la síntesis completa…</string>
     <string name="acuerdo_resumen_only">Por ahora se muestra el resumen.</string>

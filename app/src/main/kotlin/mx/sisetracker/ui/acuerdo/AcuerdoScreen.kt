@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.sisetracker.R
+import mx.sisetracker.core.Resumen
 import mx.sisetracker.core.SintesisFormat
 import mx.sisetracker.core.SiseDates
 import mx.sisetracker.ui.components.BackButton
@@ -73,9 +74,19 @@ fun AcuerdoScreen(
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
-                stringResource(R.string.acuerdo_fecha_publicacion, SiseDates.formatSpan(acuerdo.fechaPublicacion)),
+                stringResource(
+                    R.string.acuerdo_fecha_publicacion,
+                    acuerdo.fechaPublicacion?.let(SiseDates::formatSpan) ?: stringResource(R.string.acuerdo_sin_publicar),
+                ),
                 style = MaterialTheme.typography.bodyMedium,
             )
+            if (acuerdo.fechaPublicacion == null && Resumen.isTruncated(acuerdo.resumen)) {
+                Text(
+                    stringResource(R.string.acuerdo_sintesis_pendiente),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(
                 stringResource(R.string.acuerdo_cuaderno, acuerdo.tipoCuaderno),
                 style = MaterialTheme.typography.bodyMedium,

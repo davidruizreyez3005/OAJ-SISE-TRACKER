@@ -6,6 +6,8 @@ import org.jsoup.nodes.Element
 
 /** Parses the public case page, `vercaptura.aspx`. */
 object CasePageParser {
+    private const val NO_RELATED_NEUN = "0"
+
     private val resolucionesCount = Regex("\\((\\d+)\\)")
     private val abrirVentana = Regex("AbrirVentana\\(\\s*'([^']*)'")
     private val partyPanelId = Regex("^pBody\\d+$")
@@ -59,7 +61,7 @@ object CasePageParser {
                 ),
                 fechaAuto = SiseDates.parseGrid(cells[1].text()),
                 tipoCuaderno = SiseText.normalizeSpace(cells[2].text()),
-                fechaPublicacion = SiseDates.parseGrid(cells[3].text()),
+                fechaPublicacion = SiseDates.parseGridOrNull(cells[3].text()),
                 resumen = cells[4].multilineText(),
                 link = DoVerAcuerdo.parse(href),
             )
@@ -107,8 +109,12 @@ object CasePageParser {
                 val element = row.selectFirst("span[id$=$idSuffix]") ?: cells.getOrNull(column)
                 return element?.let { SiseText.normalizeSpace(it.text()) }.orEmpty()
             }
+            val neun = field("_lblContenido", 0)
+            // Another "no rows" form (1068/2025 at 721, October 2026): NEUN 0,
+            // no expediente or date, órgano "ASUNTO NO RELACIONADO".
+            if (neun == NO_RELATED_NEUN && field("_lblNúmeroExpediente", 1).isEmpty()) return@mapNotNull null
             AsuntoRelacionado(
-                neun = field("_lblContenido", 0),
+                neun = neun,
                 expediente = field("_lblNúmeroExpediente", 1),
                 organo = field("_lblOrgano", 2),
                 fechaRelacion = SiseDates.parseSpan(field("_lblFechaPresentacion", 3)),

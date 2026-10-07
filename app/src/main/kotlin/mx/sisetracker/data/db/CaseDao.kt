@@ -82,7 +82,7 @@ abstract class CaseDao {
         JOIN acuerdos a ON a.rowid = acuerdos_fts.rowid
         JOIN cases c ON c.neun = a.neun
         WHERE acuerdos_fts MATCH :match
-        ORDER BY a.fechaPublicacion DESC, a.orden DESC
+        ORDER BY a.fechaPublicacion IS NULL DESC, a.fechaPublicacion DESC, a.orden DESC
         LIMIT :limit
         """,
     )

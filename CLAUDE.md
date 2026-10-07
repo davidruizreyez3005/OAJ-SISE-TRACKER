@@ -166,7 +166,11 @@ As built (`data/db` and `data/catalog` in `:app`):
 - `sise.db` holds the saved cases (user data: schema changes need migrations;
   schemas are exported to `app/schemas/`). `Acuerdo` adds `seen` (false for
   acuerdos a refresh found, until the case is opened: the "Nuevo" badge).
-  `Case` adds partyCount. Resoluciones, relacionados and captura rows are
+  `Case` adds partyCount. Version 2 made `acuerdos.fechaPublicacion`
+  nullable (unpublished acuerdos): `Migration1To2` rebuilds the table
+  keeping rowids, then recreates the FTS triggers and rebuilds the index;
+  `SiseDatabaseMigrationTest` checks it against `schemas/…/1.json`.
+  Resoluciones, relacionados and captura rows are
   keyed by (neun, position) and replaced on every read; captura rows keep the
   record index as `group_index`. Children cascade-delete with their case.
 - `acuerdos_fts` is an FTS4 external-content table over resumen and sintesis
@@ -478,7 +482,8 @@ The slash in `expediente` may be raw or `%2f`; both work.
 - `#lblNEUN`: NEUN, the stable unique case ID. Use it as the primary key.
 - `#lblNoExpedienteAsignado`: the expediente.
 - `#lblNoControlOCC`: control number of the Oficina de Correspondencia Común.
-- `#lblNumResultado`: contains "Listado de Resoluciones (N)".
+- `#lblNumResultado`: contains "Listado de Resoluciones (N)"; empty when
+  the case has none (1068/2025).
 
 **Captura de Información** (`div#pnlVista`):
 - One accordion per party. The header is `div.accordionHeader > span`, with
@@ -508,6 +513,9 @@ The slash in `expediente` may be raw or `%2f`; both work.
 - Per-row span IDs end in `_lblContenido` (NEUN), `_lblNúmeroExpediente`
   (non-ASCII `ú` in the ID!), `_lblOrgano` and `_lblFechaPresentacion`
   (header "Fecha relación").
+- With no related cases, the grid shows either the message cell (see
+  "Empty grids") or one placeholder row: NEUN `0`, empty expediente and
+  date, órgano `ASUNTO NO RELACIONADO` (1068/2025 at 721). Skip both.
 - This links instances: 1183/2025 (juzgado) ↔ 293/2026 (tribunal colegiado,
   revisión). The app should offer to open or save the related case. A related
   case's tipoasunto/organismo IDs aren't in this table; resolve them from the
@@ -537,7 +545,16 @@ Resumen, Ver síntesis completa.
 - `td[1]`: fecha auto, `dd-MM-yyyy`.
 - `td[2]`: tipo cuaderno (Principal / Incidental; at tribunals it shows the
   asunto type).
-- `td[3]`: fecha publicación, `dd-MM-yyyy`.
+- `td[3]`: fecha publicación, `dd-MM-yyyy`, or `&nbsp;` for an acuerdo
+  **not published yet** (1068/2025 at 721, October 2026: its newest acuerdo
+  had an auto date only). The DoVerAcuerdo link then passes `""` as the
+  publication date, and `VerAcuerdo.aspx` with an empty
+  `listaFPublicacion` answers "Error al recibir los parámetros de
+  consulta" with every span empty. So `Acuerdo.fechaPublicacion` is
+  nullable: the app shows "sin publicar", shows the résumé instead of
+  fetching the síntesis, and a later refresh fills the date in (the
+  acuerdo keeps its orden, so it's not "new" again). Before this, the
+  whole page failed with "formato inesperado".
 - `td[4]`: resumen. HTML entities and newlines; truncated with `" ..."` when
   long. The cell text uses `\n` (the markup around it uses CRLF), some cells
   start with a line break and some end with `" \n"`; the parser drops leading

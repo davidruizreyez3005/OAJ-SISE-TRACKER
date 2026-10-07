@@ -52,7 +52,9 @@ class AppContainer(private val app: Application) {
 
     /** Saved cases: user data, so schema changes need real migrations. */
     private val database: SiseDatabase by lazy {
-        Room.databaseBuilder(app, SiseDatabase::class.java, SiseDatabase.NAME).build()
+        Room.databaseBuilder(app, SiseDatabase::class.java, SiseDatabase.NAME)
+            .addMigrations(*SiseDatabase.MIGRATIONS)
+            .build()
     }
 
     val captureStore: CaptureStore by lazy {

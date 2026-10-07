@@ -13,6 +13,9 @@ object SiseDates {
     /** Acuerdos grid cells: `dd-MM-yyyy`. */
     fun parseGrid(text: String): LocalDate = parse(text, gridFormat)
 
+    /** A grid cell that may be blank (`&nbsp;`): null when it is, else as [parseGrid]. */
+    fun parseGridOrNull(text: String): LocalDate? = if (SiseText.normalizeSpace(text).isEmpty()) null else parseGrid(text)
+
     /** Spans on the case and síntesis pages: `dd/MM/yyyy`. */
     fun parseSpan(text: String): LocalDate = parse(text, spanFormat)
 
@@ -27,6 +30,9 @@ object SiseDates {
         parseSpan(date)
         return date
     }
+
+    /** As [datePart], but an empty argument (an unpublished acuerdo's publication date) stays empty. */
+    fun datePartOrEmpty(argument: String): String = if (argument.isBlank()) "" else datePart(argument)
 
     private fun parse(text: String, format: DateTimeFormatter): LocalDate {
         val value = text.trim()

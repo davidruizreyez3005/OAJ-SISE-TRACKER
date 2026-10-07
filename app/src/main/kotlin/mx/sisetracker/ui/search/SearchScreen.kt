@@ -672,7 +672,7 @@ private fun CasePreview(
                 pluralStringResource(R.plurals.preview_acuerdos, page.acuerdos.size, page.acuerdos.size),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            val latest = page.acuerdos.maxOfOrNull { it.fechaPublicacion }
+            val latest = page.acuerdos.mapNotNull { it.fechaPublicacion }.maxOrNull()
             if (latest != null) {
                 Text(
                     stringResource(R.string.preview_latest_acuerdo, SiseDates.formatSpan(latest)),

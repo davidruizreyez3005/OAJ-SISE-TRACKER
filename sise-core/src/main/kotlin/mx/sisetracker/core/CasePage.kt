@@ -37,7 +37,11 @@ data class Acuerdo(
     val numero: String,
     val fechaAuto: LocalDate,
     val tipoCuaderno: String,
-    val fechaPublicacion: LocalDate,
+    /**
+     * Null while the acuerdo isn't published yet: the grid shows `&nbsp;` and
+     * the link passes `""` (seen October 2026, 1068/2025 at órgano 721).
+     */
+    val fechaPublicacion: LocalDate?,
     /** The grid's résumé, line breaks kept. */
     val resumen: String,
     /** The "Ver síntesis" link, which also carries the acuerdo's key. */
@@ -45,6 +49,8 @@ data class Acuerdo(
 ) {
     /** The acuerdo's key within its case. Has gaps (1, 2, 4, 5…). */
     val orden: Int get() = link.orden
+
+    val isPublished: Boolean get() = fechaPublicacion != null
 
     /** Whether the résumé was cut short, so the full síntesis must be fetched. */
     val isResumenTruncated: Boolean get() = Resumen.isTruncated(resumen)

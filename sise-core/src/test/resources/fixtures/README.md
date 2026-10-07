@@ -28,6 +28,7 @@ anything that normalizes line endings).
 | `oaj_datos_expedientes.json` | The OAJ map data behind that selector (`https://www.oaj.gob.mx/micrositios/dggj/data/mapa/datos_expedientes.json`, October 2026): for each OAJ circuit `value` 1–32, the `href` of its `circuitos.asp` page. Unchanged. |
 | `circuitos_cir1.html` | Órgano list for the Primer Circuito (`circuitos.asp?Cir=1&Exp=1`). Captured on a device with the app's "Capturar páginas del catálogo" (SISE Tracker 0.1.0, October 2026): exactly what the app received, decoded from windows-1252 and saved as UTF-8, hidden inputs included. Replaces an earlier Chrome capture with the same 184 options. |
 | `circuitos_cir21.html` | Órgano list for the Vigésimo Primer Circuito, Guerrero (OAJ circuit 21, fetched as `circuitos.asp?Cir=51&Exp=1`; the app names captures by the OAJ number). Device capture like the one above. |
+| `vercaptura_acuerdo-sin-publicar_row.html` | One acuerdos grid row, verbatim from the case page of 1068/2025 at órgano 721 (October 2026): an acuerdo not published yet, with `&nbsp;` as its publication date and `""` in its DoVerAcuerdo link. The résumé was already masked by the portal. `UnpublishedAcuerdoTest` appends it to the 1183/2025 grid. The full page isn't committed (it may carry names). |
 | `delta_ver-acuerdo_1183-2025_orden38.txt` | MS AJAX delta response to the "Ver síntesis" postback, orden 38. Reference only. |
 | `delta_ver-acuerdo_293-2026_orden{1,2,3}.txt` | Same, for the tribunal colegiado case 293/2026. Reference only. |
 
