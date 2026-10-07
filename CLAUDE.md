@@ -47,8 +47,18 @@ milestone per PR.
    - Lookups happen only for an expediente a user typed, picked from a related
      case, or shared, one per tap. Never generate, guess or iterate expediente
      numbers: no ranges, no "nearby" searches, no batch lookups.
-   - The site's robots.txt disallows automated crawling, so never add
-     crawling, or prefetching of catalogs or cases the user didn't open.
+   - No crawling or prefetching of cases, ever, and no prefetching of
+     catalogs the user didn't open, with **one exception**: the opt-in
+     catalog crawl (Ajustes → "Recorrer todos los circuitos", asked for by
+     the user in October 2026 because fields vary per órgano). It is
+     user-started and stoppable, off by default, catalog pages only (steps
+     B–D, never case pages or síntesis), at least 10 s between requests,
+     Wi-Fi and battery-not-low only, and never fetches a page it already
+     saved (see `CatalogCrawl`). Don't speed it up or extend it to cases.
+   - The portal host has **no robots.txt** (`/robots.txt` is a 404, checked
+     October 2026; an earlier version of this file wrongly said it
+     disallowed crawling). The limits above are about server load and
+     courtesy.
 4. **Don't edit `.github/workflows/`.** The GitHub App can't push workflow
    changes. If one is needed, put the proposed YAML in the PR description.
 5. **Keep `:sise-core` free of Android dependencies** so its tests run on the
@@ -173,9 +183,26 @@ As built (`data/db` and `data/catalog` in `:app`):
   step C forms, Accion=2 reloads) is saved under its fixture name
   (`circuitos_cir{n}`, `expedienteytipo_form_{organismo}`,
   `expedienteytipo_accion2_{organismo}_tipo{t}`) and can be shared as a zip.
-  Unlike Chrome page saves these keep the hidden inputs. It never loads
-  anything itself (hard rule 3) and never sees case pages or síntesis
-  (hard rule 6). New fixtures from it still need the README entries.
+  Unlike Chrome page saves these keep the hidden inputs. Capture itself
+  never loads anything and never sees case pages or síntesis (hard
+  rule 6). New fixtures from it still need the README entries.
+  - "Guardar en Descargas" writes the zip straight to Downloads
+    (MediaStore, Android 10+, no permission); on Android 8–9 it opens the
+    system "save as" picker instead. "Compartir" still uses the share sheet.
+- Catalog crawl, Ajustes → "Recorrer todos los circuitos" (opt-in, see hard
+  rule 3): `CatalogCrawl` walks the 32 circuits' órgano lists, every
+  distinct órgano's step C form, and the Accion=2 reload of each tipo that
+  shows the procedimiento row, saving each page through the capture store
+  (it captures even with the capture switch off). The saved pages are its
+  progress: a page already saved is parsed from the store, not requested,
+  so runs resume where they stopped and never fetch a page twice (deleting
+  the captures starts it over). `CatalogCrawlWorker` runs it in 8-minute
+  chunks (WorkManager's 10-minute limit), each queueing the next, on Wi-Fi
+  with battery not low; a failed request ends the chunk and retries with
+  exponential backoff, and after 6 failed runs in a row the crawl turns
+  itself off and says why. A page that doesn't parse (e.g. a "Nombre
+  Indefinido" circuit) is kept and skipped. Estimated at ~1,500 pages,
+  several hours.
 
 ## SISE protocol reference
 
@@ -379,11 +406,6 @@ as windows-1252, because
      saves the form. If it fails the bundled list stays, and "¿No aparece
      el tipo? Cargar la lista de este órgano del portal" retries. A tipo
      the órgano doesn't have just gives "No se encontró…".
-   - **No bulk catalog collection.** The user asked (October 2026) to
-     capture every circuit's data because fields vary per juzgado. That
-     would be crawling (robots.txt, hard rule 3), so instead each órgano's
-     real lists load as above, and real variations reach the fixtures
-     through capture mode as the team uses the app.
    - Tipo de procedimiento dropdown, only when the portal would show it
      (from D).
    - Número de expediente field, with a numeric keyboard that allows `/`.

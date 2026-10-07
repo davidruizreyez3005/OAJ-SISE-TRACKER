@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import kotlinx.coroutines.runBlocking
 import mx.sisetracker.core.CaseUrl
@@ -220,6 +221,8 @@ class CaseScreensTest {
                 settings = settings,
                 versionName = "test",
             ),
+            mx.sisetracker.data.crawl.CatalogCrawlScheduler { androidx.work.WorkManager.getInstance(context) },
+            mx.sisetracker.data.capture.DownloadsSaver(context),
         )
         compose.setContent { SiseTrackerTheme { SettingsScreen(onBack = {}, viewModel = viewModel) } }
 
@@ -228,5 +231,15 @@ class CaseScreensTest {
         compose.onRoot().saveScreenshot("settings_light")
         compose.onNodeWithText("Actualizar catálogos").performClick()
         waitForText("Catálogos borrados. Se cargarán de nuevo al usarlos.")
+
+        // The crawl starts only after confirming, and only queues work (Wi-Fi, battery).
+        compose.onNodeWithText("Recorrer todos los circuitos").performScrollTo().performClick()
+        waitForText("¿Recorrer todos los circuitos?")
+        compose.onNodeWithText("Iniciar").performClick()
+        waitForText("En espera de Wi-Fi y batería suficiente…")
+        val work = androidx.work.WorkManager.getInstance(context)
+            .getWorkInfosForUniqueWork(mx.sisetracker.data.crawl.CatalogCrawlScheduler.WORK_NAME).get()
+        assertEquals(1, work.size)
+        compose.onRoot().saveScreenshot("settings_crawl_light")
     }
 }

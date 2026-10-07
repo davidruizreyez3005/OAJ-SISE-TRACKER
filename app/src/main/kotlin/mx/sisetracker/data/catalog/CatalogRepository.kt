@@ -81,9 +81,15 @@ class CatalogRepository(
      * request re-rendering the form for that tipo (step D). Only call it for
      * tipos that show the procedimiento row.
      */
-    suspend fun tiposDeProcedimiento(circuito: String, organismo: String, tipoAsunto: String): List<FormOption> {
+    suspend fun tiposDeProcedimiento(
+        circuito: String,
+        organismo: String,
+        tipoAsunto: String,
+        /** Ignore the cache (for the opt-in catalog crawl). */
+        reload: Boolean = false,
+    ): List<FormOption> {
         val cached = dao.tiposProcedimiento(organismo, tipoAsunto)
-        if (cached.isNotEmpty() && cached.all { isFresh(it.fetchedAt) }) {
+        if (!reload && cached.isNotEmpty() && cached.all { isFresh(it.fetchedAt) }) {
             return cached.map { FormOption(it.id, it.name, it.position, selected = false) }
         }
         var fields = dao.formFields(organismo)
@@ -113,6 +119,12 @@ class CatalogRepository(
         if (cached.isEmpty() || !cached.all { isFresh(it.fetchedAt) }) return emptyList()
         return cached.map { FormOption(it.id, it.name, it.position, selected = false) }
     }
+
+    /** One request for [circuito]'s órgano list, ignoring the cache (for the opt-in catalog crawl). */
+    suspend fun reloadOrganos(circuito: String): List<Organo> = fetchOrganos(circuito)
+
+    /** One request for [organismo]'s search form, ignoring the cache (for the opt-in catalog crawl). */
+    suspend fun reloadTiposDeAsunto(circuito: String, organismo: String): List<FormOption> = fetchForm(circuito, organismo)
 
     /** "Actualizar catálogos": forget everything; options reload the next time they're needed. */
     suspend fun clear() = dao.clear()

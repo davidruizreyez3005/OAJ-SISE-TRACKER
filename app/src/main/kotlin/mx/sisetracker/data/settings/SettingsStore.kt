@@ -25,6 +25,17 @@ data class RecentOrgano(
     val circuito: String? = null,
 )
 
+/** The catalog crawl's progress. [circuito] is the OAJ number being walked. */
+@Serializable
+data class CrawlStatus(
+    val state: State = State.IDLE,
+    val circuito: String? = null,
+    /** A PortalError name, while waiting to retry or after stopping on errors. */
+    val error: String? = null,
+) {
+    enum class State { IDLE, RUNNING, WAITING, FINISHED, STOPPED }
+}
+
 /** Small preferences. Nothing here is case text. */
 class SettingsStore(private val dataStore: DataStore<Preferences>) {
 
@@ -50,6 +61,30 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setCaptureEnabled(enabled: Boolean) {
         dataStore.edit { it[CAPTURE] = enabled }
+    }
+
+    /** The opt-in catalog crawl (see CatalogCrawl): on while the user wants it running. Off by default. */
+    val crawlEnabled: Flow<Boolean> = dataStore.data.map { it[CRAWL] ?: false }
+
+    suspend fun setCrawlEnabled(enabled: Boolean) {
+        dataStore.edit { it[CRAWL] = enabled }
+    }
+
+    /** Where the crawl is, for the settings screen. */
+    val crawlStatus: Flow<CrawlStatus> = dataStore.data.map { prefs ->
+        prefs[CRAWL_STATUS]?.let {
+            try {
+                json.decodeFromString<CrawlStatus>(it)
+            } catch (e: SerializationException) {
+                null
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        } ?: CrawlStatus()
+    }
+
+    suspend fun setCrawlStatus(status: CrawlStatus) {
+        dataStore.edit { it[CRAWL_STATUS] = json.encodeToString(status) }
     }
 
     val notificationPromptDismissed: Flow<Boolean> = dataStore.data.map { it[NOTIFICATION_PROMPT_DISMISSED] ?: false }
@@ -103,6 +138,8 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         private val LAST_BACKGROUND_CHECK = longPreferencesKey("last_background_check")
         private val NOTIFICATION_PROMPT_DISMISSED = booleanPreferencesKey("notification_prompt_dismissed")
         private val CAPTURE = booleanPreferencesKey("capture_catalog_pages")
+        private val CRAWL = booleanPreferencesKey("catalog_crawl")
+        private val CRAWL_STATUS = stringPreferencesKey("catalog_crawl_status")
         private val json = Json { ignoreUnknownKeys = true }
     }
 }

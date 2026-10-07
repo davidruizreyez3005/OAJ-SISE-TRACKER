@@ -10,6 +10,9 @@ import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.check.DailyCheck
 import mx.sisetracker.data.check.DailyCheckScheduler
 import mx.sisetracker.data.check.SystemNewAcuerdosNotifier
+import mx.sisetracker.data.crawl.CatalogCrawl
+import mx.sisetracker.data.crawl.CatalogCrawlScheduler
+import mx.sisetracker.data.capture.DownloadsSaver
 import mx.sisetracker.data.catalog.CatalogDatabase
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.db.SiseDatabase
@@ -78,4 +81,13 @@ class AppContainer(private val app: Application) {
     val dailyCheckScheduler: DailyCheckScheduler by lazy {
         DailyCheckScheduler { WorkManager.getInstance(app) }
     }
+
+    /** Opt-in, user-started: see CatalogCrawl. */
+    val catalogCrawl: CatalogCrawl by lazy { CatalogCrawl(catalogRepository, captureStore, settings) }
+
+    val catalogCrawlScheduler: CatalogCrawlScheduler by lazy {
+        CatalogCrawlScheduler { WorkManager.getInstance(app) }
+    }
+
+    val downloadsSaver: DownloadsSaver by lazy { DownloadsSaver(app) }
 }

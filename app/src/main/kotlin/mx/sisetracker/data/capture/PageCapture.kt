@@ -26,11 +26,12 @@ fun interface PageCapture {
 }
 
 /**
- * "Capturar páginas del catálogo" (diagnostics): while on, each catalog page
- * the user's own actions load is saved to app-private storage under a fixture
- * name (`circuitos_cir5.html`, `expedienteytipo_form_767.html`…), and can be
- * shared as a zip. It never loads anything by itself: what's captured is
- * exactly what the user opened.
+ * "Capturar páginas del catálogo" (diagnostics): while on, or while the
+ * opt-in catalog crawl runs, each catalog page the app loads is saved to
+ * app-private storage under a fixture name (`circuitos_cir5.html`,
+ * `expedienteytipo_form_767.html`…), and can be shared or saved as a zip.
+ * The store itself never loads anything. The crawl uses it as its progress:
+ * a page already saved isn't requested again.
  */
 class CaptureStore(
     private val dir: File,
@@ -40,12 +41,22 @@ class CaptureStore(
 ) : PageCapture {
 
     override suspend fun save(name: String, html: String) {
-        if (!settings.captureEnabled.first()) return
+        if (!settings.captureEnabled.first() && !settings.crawlEnabled.first()) return
         withContext(Dispatchers.IO) {
             dir.mkdirs()
-            File(dir, safeName(name) + ".html").writeText(html, Charsets.UTF_8)
+            file(name).writeText(html, Charsets.UTF_8)
         }
     }
+
+    /** Whether a page was saved under [name] (as passed to [save]). */
+    suspend fun has(name: String): Boolean = withContext(Dispatchers.IO) { file(name).isFile }
+
+    /** The page saved under [name], or null. */
+    suspend fun read(name: String): String? = withContext(Dispatchers.IO) {
+        file(name).takeIf { it.isFile }?.readText(Charsets.UTF_8)
+    }
+
+    private fun file(name: String) = File(dir, safeName(name) + ".html")
 
     suspend fun count(): Int = withContext(Dispatchers.IO) { files().size }
 

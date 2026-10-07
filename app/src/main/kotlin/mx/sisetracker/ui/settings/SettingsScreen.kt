@@ -1,13 +1,17 @@
 package mx.sisetracker.ui.settings
 
-import androidx.compose.foundation.clickable
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,11 +40,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
 import mx.sisetracker.R
+import mx.sisetracker.core.Circuitos
+import mx.sisetracker.data.capture.DownloadsSaver
+import mx.sisetracker.data.net.PortalError
+import mx.sisetracker.data.settings.CrawlStatus
 import mx.sisetracker.data.settings.SettingsStore
 import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.SiseTopAppBar
+import mx.sisetracker.ui.components.messageRes
 import mx.sisetracker.ui.components.rememberNotificationPermission
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
@@ -68,6 +79,49 @@ fun SettingsScreen(
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         context.startActivity(Intent.createChooser(send, shareTitle))
     }
+    val message by viewModel.message.collectAsStateWithLifecycle()
+    val savedText = message?.let {
+        when (it) {
+            is SettingsMessage.Saved -> stringResource(R.string.settings_capture_saved, it.fileName)
+            SettingsMessage.SaveFailed -> stringResource(R.string.settings_capture_save_failed)
+        }
+    }
+    LaunchedEffect(message) {
+        val text = savedText ?: return@LaunchedEffect
+        viewModel.onMessageShown()
+        snackbar.showSnackbar(text)
+    }
+    // Before Android 10 there's no permission-free way into Downloads: let the user pick the file.
+    val createDocument = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(DownloadsSaver.MIME_TYPE),
+        viewModel::onSaveLocationPicked,
+    )
+    val pickSaveLocation by viewModel.pickSaveLocation.collectAsStateWithLifecycle()
+    LaunchedEffect(pickSaveLocation) {
+        val zip = pickSaveLocation ?: return@LaunchedEffect
+        viewModel.onPickSaveLocationHandled()
+        createDocument.launch(zip.name)
+    }
+    var confirmCrawl by remember { mutableStateOf(false) }
+    if (confirmCrawl) {
+        AlertDialog(
+            onDismissRequest = { confirmCrawl = false },
+            title = { Text(stringResource(R.string.settings_crawl_confirm_title)) },
+            text = { Text(stringResource(R.string.settings_crawl_confirm_text)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmCrawl = false
+                        viewModel.onCrawlChange(true)
+                    },
+                ) { Text(stringResource(R.string.settings_crawl_start)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmCrawl = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+    val onCrawlToggle: (Boolean) -> Unit = { enable -> if (enable) confirmCrawl = true else viewModel.onCrawlChange(false) }
     LifecycleResumeEffect(Unit) {
         viewModel.refreshCaptureCount()
         onPauseOrDispose {}
@@ -128,18 +182,38 @@ fun SettingsScreen(
                 trailingContent = { Switch(checked = state.captureEnabled, onCheckedChange = viewModel::onCaptureChange) },
                 modifier = Modifier.clickable { viewModel.onCaptureChange(!state.captureEnabled) },
             )
-            if (state.captureCount > 0 || state.captureEnabled) {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_crawl)) },
+                supportingContent = {
+                    Column {
+                        Text(stringResource(R.string.settings_crawl_help))
+                        crawlStatusText(state.crawlStatus)?.let { status ->
+                            Text(
+                                status,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                    }
+                },
+                trailingContent = { Switch(checked = state.crawlEnabled, onCheckedChange = onCrawlToggle) },
+                modifier = Modifier.clickable { onCrawlToggle(!state.crawlEnabled) },
+            )
+            if (state.captureCount > 0 || state.captureEnabled || state.crawlEnabled) {
                 ListItem(
                     headlineContent = {
                         Text(pluralStringResource(R.plurals.settings_capture_count, state.captureCount, state.captureCount))
                     },
-                    trailingContent = {
-                        Row {
-                            TextButton(onClick = viewModel::onClearCaptures, enabled = state.captureCount > 0) {
-                                Text(stringResource(R.string.action_delete))
+                    supportingContent = {
+                        FlowRow {
+                            TextButton(onClick = viewModel::onSaveCaptures, enabled = state.captureCount > 0) {
+                                Text(stringResource(R.string.settings_capture_save))
                             }
                             TextButton(onClick = viewModel::onShareCaptures, enabled = state.captureCount > 0) {
                                 Text(stringResource(R.string.settings_capture_share))
+                            }
+                            TextButton(onClick = viewModel::onClearCaptures, enabled = state.captureCount > 0) {
+                                Text(stringResource(R.string.action_delete))
                             }
                         }
                     },
@@ -153,5 +227,23 @@ fun SettingsScreen(
                 modifier = Modifier.padding(16.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun crawlStatusText(status: CrawlStatus): String? {
+    val error = status.error?.let { name -> PortalError.entries.firstOrNull { it.name == name } }
+    val errorText = error?.let { stringResource(it.messageRes()) }.orEmpty()
+    return when (status.state) {
+        CrawlStatus.State.IDLE -> null
+        CrawlStatus.State.WAITING ->
+            if (error == null) stringResource(R.string.crawl_status_queued) else stringResource(R.string.crawl_status_retry, errorText)
+        CrawlStatus.State.RUNNING -> stringResource(
+            R.string.crawl_status_running,
+            status.circuito?.let(Circuitos::byNum)?.label ?: status.circuito.orEmpty(),
+        )
+        CrawlStatus.State.FINISHED -> stringResource(R.string.crawl_status_finished)
+        CrawlStatus.State.STOPPED ->
+            if (error == null) stringResource(R.string.crawl_status_stopped) else stringResource(R.string.crawl_status_stopped_error, errorText)
     }
 }

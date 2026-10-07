@@ -165,13 +165,27 @@
     <string name="settings_catalogs_cleared">Catálogos borrados. Se cargarán de nuevo al usarlos.</string>
     <string name="organo_closed">Cerrado</string>
     <string name="settings_capture">Capturar páginas del catálogo</string>
-    <string name="settings_capture_help">Diagnóstico: guarda en el teléfono cada lista de órganos y formulario de búsqueda que abras (nunca expedientes ni síntesis), para compartirlos con quien desarrolla la app. No hace consultas por su cuenta. Para volver a capturar algo ya cargado, usa antes «Actualizar catálogos».</string>
+    <string name="settings_capture_help">Diagnóstico: guarda en el teléfono cada lista de órganos y formulario de búsqueda que abras (nunca expedientes ni síntesis), para compartirlos con quien desarrolla la app. Por sí solo no hace consultas. Para volver a capturar algo ya cargado, usa antes «Actualizar catálogos».</string>
     <plurals name="settings_capture_count">
         <item quantity="one">%d página capturada</item>
         <item quantity="many">%d páginas capturadas</item>
         <item quantity="other">%d páginas capturadas</item>
     </plurals>
     <string name="settings_capture_share">Compartir</string>
+    <string name="settings_capture_save">Guardar en Descargas</string>
+    <string name="settings_capture_saved">Guardado en Descargas: %1$s</string>
+    <string name="settings_capture_save_failed">No se pudo guardar el archivo.</string>
+    <string name="settings_crawl">Recorrer todos los circuitos</string>
+    <string name="settings_crawl_help">Descarga los catálogos de los 32 circuitos (órganos, tipos de asunto y de procedimiento) y los guarda en las capturas. Nunca consulta expedientes. Va despacio: una página cada 10 segundos, solo con Wi-Fi, y continúa donde se quedó.</string>
+    <string name="settings_crawl_confirm_title">¿Recorrer todos los circuitos?</string>
+    <string name="settings_crawl_confirm_text">Son alrededor de 1,500 páginas del portal, una cada 10 segundos: varias horas. Corre en segundo plano solo con Wi-Fi y batería suficiente, y puedes detenerlo cuando quieras. Al terminar, guarda o comparte las capturas.</string>
+    <string name="settings_crawl_start">Iniciar</string>
+    <string name="crawl_status_queued">En espera de Wi-Fi y batería suficiente…</string>
+    <string name="crawl_status_running">Recorriendo: %1$s</string>
+    <string name="crawl_status_retry">En pausa por un error; reintentará solo. %1$s</string>
+    <string name="crawl_status_finished">Recorrido completo.</string>
+    <string name="crawl_status_stopped">Detenido. Al reanudarlo, continúa donde se quedó.</string>
+    <string name="crawl_status_stopped_error">Detenido tras varios errores. %1$s</string>
     <string name="settings_privacy">Los expedientes guardados y sus síntesis solo están en este teléfono: no se respaldan en la nube ni se transfieren a otro dispositivo.</string>
 
     <string name="notifications_prompt">Activa las notificaciones para saber cuándo tus expedientes tienen acuerdos nuevos.</string>
