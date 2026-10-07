@@ -18,6 +18,7 @@ object Fixtures {
     const val ORGANOS_CIR1 = "circuitos_cir1.html"
     const val FORM_NO_TIPOS_6315 = "expedienteytipo_form_6315.html"
     const val FORM_4343 = "expedienteytipo_form_4343.html"
+    const val FORM_500 = "expedienteytipo_form_500.html"
     const val ACCION2_4343_125 = "expedienteytipo_accion2_4343_tipo125.html"
     const val SINTESIS_1183_38 = "veracuerdo_1183-2025_orden38.html"
 }

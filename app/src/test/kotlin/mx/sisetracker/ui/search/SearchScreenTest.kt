@@ -94,7 +94,7 @@ class SearchScreenTest {
         setContent()
 
         compose.onNodeWithText("Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México").performClick()
-        // The bundled tipos show without any request.
+        // The tipos show at once; the órgano's own list loads behind them.
         compose.waitForIdle()
         compose.onNodeWithText("Tipo de asunto").performClick()
         compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Amparo Indirecto")).fetchSemanticsNodes().isNotEmpty() }
@@ -104,9 +104,9 @@ class SearchScreenTest {
         compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("28 acuerdos")).fetchSemanticsNodes().isNotEmpty() }
 
         compose.onNodeWithText("Último acuerdo publicado: 01/09/2026").performScrollTo().assertExists()
-        // One request in all: the case page itself.
-        assertEquals(1, client.requests.size)
-        assertTrue("vercaptura.aspx" in client.requests.single())
+        // The circuit's órgano list and the órgano's form (step C), then the case page.
+        assertEquals(3, client.requests.size)
+        assertTrue("vercaptura.aspx" in client.requests.last())
         compose.onRoot().saveScreenshot("search_found_light")
     }
 

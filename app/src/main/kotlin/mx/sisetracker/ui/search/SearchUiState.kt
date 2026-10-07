@@ -80,6 +80,8 @@ data class SearchUiState(
      * rather than the bundled list of every known tipo.
      */
     val tiposFromPortal: Boolean = false,
+    /** The órgano's own list is loading in the background, over the bundled one. */
+    val checkingOrganoTipos: Boolean = false,
     val tipoAsunto: FormOption? = null,
     val tiposProcedimiento: Loadable<List<FormOption>> = Loadable.Idle,
     val tipoProcedimiento: FormOption? = null,
@@ -151,7 +153,8 @@ data class SearchUiState(
 
     /** "Ver solo los tipos de este órgano" needs the circuit for step C. */
     val canLoadOrganoTipos: Boolean
-        get() = organo != null && circuito.isNotBlank() && !tiposFromPortal && tiposAsunto is Loadable.Loaded
+        get() = organo != null && circuito.isNotBlank() && !tiposFromPortal && !checkingOrganoTipos &&
+            tiposAsunto is Loadable.Loaded
 
     val expedienteWarning: Boolean
         get() = expediente.isNotBlank() && !ExpedienteFormat.isUsual(expediente)

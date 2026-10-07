@@ -361,18 +361,29 @@ as windows-1252, because
    - Órgano dropdown with type-ahead filtering (from B), names only (no
      IDs), with a count of matches; once chosen, the field describes it
      ("Tribunal Colegiado de Circuito · Penal").
-   - Tipo de asunto dropdown. By default (the user's request: most lookups
-     are amparos directos at tribunales colegiados, and every request
-     costs time) it shows only the bundled tipos of the órgano's class
-     (`tipos_asunto.tsv` in `:sise-core`, IDs are global; each class has its
-     own list on the portal and no tipo was seen at two classes), in the
-     portal's order, with **no request**. Órganos whose class has no known
-     list (administrative bodies, a bare organismo number) get every known
-     tipo: Buscar is then a single GET of the
-     case page. The órgano's own list (step C) loads only from the cache or
-     when the user taps "¿No aparece el tipo? Cargar la lista de este
-     órgano del portal". A tipo the
-     órgano doesn't have just gives "No se encontró…".
+   - Tipo de asunto dropdown. Lists differ between órganos, even of the
+     same class, so the órgano's own list (step C) is what counts. To keep
+     the screen fast (most lookups are amparos directos at tribunales
+     colegiados), it shows a list **at once** and never blocks on step C:
+     - from the cache if the órgano's list was loaded in the last 30 days;
+     - otherwise the bundled tipos of the órgano's class
+       (`tipos_asunto.tsv` in `:sise-core`, IDs are global; no tipo was
+       seen at two classes), in the portal's order. Órganos whose class has
+       no known list (administrative bodies, a bare organismo number) get
+       every known tipo.
+     Then, when the órgano is picked (or the dropdown opened), one step C
+     request loads its own list in the background ("Consultando los tipos
+     de este órgano…") and replaces the bundled one, dropping a chosen tipo
+     the órgano doesn't offer. That's a request for an órgano the user
+     opened, so it's on-demand under hard rule 3; with capture on, it also
+     saves the form. If it fails the bundled list stays, and "¿No aparece
+     el tipo? Cargar la lista de este órgano del portal" retries. A tipo
+     the órgano doesn't have just gives "No se encontró…".
+   - **No bulk catalog collection.** The user asked (October 2026) to
+     capture every circuit's data because fields vary per juzgado. That
+     would be crawling (robots.txt, hard rule 3), so instead each órgano's
+     real lists load as above, and real variations reach the fixtures
+     through capture mode as the team uses the app.
    - Tipo de procedimiento dropdown, only when the portal would show it
      (from D).
    - Número de expediente field, with a numeric keyboard that allows `/`.

@@ -170,6 +170,7 @@ fun SearchScreen(
                 enabled = state.canLoadTipos,
                 disabledHelp = stringResource(R.string.search_tipo_asunto_disabled),
                 emptyHelp = stringResource(R.string.search_tipo_asunto_empty),
+                busyHelp = if (state.checkingOrganoTipos) stringResource(R.string.search_tipos_checking) else null,
                 onOpen = viewModel::onTiposAsuntoRequested,
                 onSelect = viewModel::onTipoAsuntoSelected,
             )
@@ -503,6 +504,8 @@ private fun OptionField(
     emptyHelp: String,
     onOpen: () -> Unit,
     onSelect: (FormOption) -> Unit,
+    /** Shown, with a spinner, while a fresher list loads behind the current one. */
+    busyHelp: String? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val loaded = (options as? Loadable.Loaded)?.value.orEmpty()
@@ -521,7 +524,7 @@ private fun OptionField(
             enabled = enabled,
             label = { Text(label) },
             trailingIcon = {
-                if (options == Loadable.Loading) {
+                if (options == Loadable.Loading || busyHelp != null) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu)
@@ -531,6 +534,7 @@ private fun OptionField(
                 val help = when {
                     !enabled -> disabledHelp
                     options == Loadable.Loading -> stringResource(R.string.search_loading_options)
+                    busyHelp != null -> busyHelp
                     options is Loadable.Failed -> stringResource(options.error.messageRes()) + " " +
                         stringResource(R.string.search_tap_to_retry)
                     options is Loadable.Loaded && options.value.isEmpty() -> emptyHelp

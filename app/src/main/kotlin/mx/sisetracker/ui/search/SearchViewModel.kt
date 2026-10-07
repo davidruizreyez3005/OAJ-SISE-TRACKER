@@ -293,10 +293,14 @@ class SearchViewModel(
         return Tipos(TiposDeAsunto.forClase(clase), fromPortal = false)
     }
 
-    /** Shows the tipos with no request, so Buscar is one GET of the case page. */
+    /**
+     * Shows the tipos at once, from the cache or the bundled list, so Buscar
+     * never waits; then checks the órgano's own list (see [checkOrganoTipos]).
+     */
     private fun showTiposAsunto() {
         val organo = _state.value.organo ?: return
         tiposJob?.cancel()
+        _state.update { it.copy(checkingOrganoTipos = false) }
         tiposJob = viewModelScope.launch {
             val tipos = tiposFor(organo)
             _state.update { current ->
@@ -307,6 +311,40 @@ class SearchViewModel(
                     tipoAsunto = current.tipoAsunto?.takeIf { tipo -> tipos.options.any { it.value == tipo.value } },
                 )
             }
+            if (!tipos.fromPortal) checkOrganoTipos(organo)
+        }
+    }
+
+    /**
+     * Lists differ between órganos of the same class, so the órgano the user
+     * picked gets its own list from the portal (step C, one request, cached
+     * for 30 days). The bundled list stays usable meanwhile, and stays if
+     * the request fails ("Cargar la lista…" retries). Runs in [tiposJob].
+     */
+    private suspend fun checkOrganoTipos(organo: KnownOrgano) {
+        val circuito = _state.value.circuito.takeIf { it.isNotBlank() } ?: return
+        _state.update { it.copy(checkingOrganoTipos = true) }
+        // Whoever cancels this job resets the flag (setOrgano, showTiposAsunto, loadTiposAsunto).
+        val result = portalCall { catalog.tiposDeAsunto(circuito, organo.id) }
+        _state.update { it.copy(checkingOrganoTipos = false) }
+        if (result !is PortalResult.Ok) return
+        _state.update { current ->
+            if (current.organo?.id != organo.id || current.tiposFromPortal) return@update current
+            val kept = current.tipoAsunto?.takeIf { tipo -> result.value.any { it.value == tipo.value } }
+            current.copy(
+                tiposAsunto = Loadable.Loaded(result.value),
+                tiposFromPortal = true,
+                tipoAsunto = kept,
+                // A tipo this órgano doesn't offer is dropped, with its procedimientos.
+                tiposProcedimiento = if (kept == null) Loadable.Idle else current.tiposProcedimiento,
+                tipoProcedimiento = if (kept == null) null else current.tipoProcedimiento,
+            )
+        }
+        // Loading the tipos may have cached the circuit's órgano list.
+        if (_state.value.organos !is Loadable.Loaded) loadOrganos(fetch = false)
+        val tipo = _state.value.tipoAsunto
+        if (tipo != null && TipoProcedimientoRule.isShown(tipo.value) && _state.value.tiposProcedimiento == Loadable.Idle) {
+            loadTiposProcedimiento()
         }
     }
 
@@ -367,6 +405,7 @@ class SearchViewModel(
                     organo = organo,
                     tiposAsunto = Loadable.Idle,
                     tiposFromPortal = false,
+                    checkingOrganoTipos = false,
                     tipoAsunto = null,
                     tiposProcedimiento = Loadable.Idle,
                     tipoProcedimiento = null,
@@ -383,7 +422,7 @@ class SearchViewModel(
         val organo = state.organo ?: return
         if (state.circuito.isBlank()) return
         tiposJob?.cancel()
-        _state.update { it.copy(tiposAsunto = Loadable.Loading) }
+        _state.update { it.copy(tiposAsunto = Loadable.Loading, checkingOrganoTipos = false) }
         tiposJob = viewModelScope.launch {
             val result = portalCall { catalog.tiposDeAsunto(state.circuito, organo.id) }
             _state.update { current ->
