@@ -9,7 +9,17 @@ package mx.sisetracker.core
  * Decimosexto is `Cir=45`). Neither is the `CircuitoName` the search form
  * sends: that one comes from the órgano list ([OrganoList.circuitoName]).
  */
-data class Circuito(val num: String, val label: String, val portalCir: String)
+data class Circuito(val num: String, val label: String, val portalCir: String) {
+    /** The label's ordinal part, for display: "Primer Circuito". */
+    val ordinal: String get() = label.substringBefore(SEPARATOR, "").let { if (it.isEmpty()) label else "$it Circuito" }
+
+    /** The label's state part, for display: "Ciudad de México" (empty if the label has none). */
+    val region: String get() = label.substringAfter(SEPARATOR, "")
+
+    private companion object {
+        const val SEPARATOR = " Circuito "
+    }
+}
 
 /**
  * The 32 circuits, bundled as `circuitos.tsv` (num, label, portal `Cir`;

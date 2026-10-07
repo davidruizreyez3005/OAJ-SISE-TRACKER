@@ -21,6 +21,8 @@ import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.core.Circuito
 import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.FormOption
+import mx.sisetracker.core.Materia
+import mx.sisetracker.core.OrganoClase
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.TipoProcedimientoRule
@@ -90,9 +92,26 @@ class SearchViewModel(
         }
     }
 
+    /** A new kind resets the narrower filters, which may not apply to it. */
     fun onKindFilterChange(kind: OrganoKind?) {
-        _state.update { it.copy(kindFilter = kind) }
+        _state.update { it.copy(kindFilter = kind, claseFilter = null).keepingMateria() }
     }
+
+    fun onClaseFilterChange(clase: OrganoClase?) {
+        _state.update { it.copy(claseFilter = clase).keepingMateria() }
+    }
+
+    fun onMateriaFilterChange(materia: Materia?) {
+        _state.update { it.copy(materiaFilter = materia) }
+    }
+
+    fun onShowClosedChange(show: Boolean) {
+        _state.update { it.copy(showClosed = show) }
+    }
+
+    /** Drops the materia filter when no órgano left by the other filters hears it. */
+    private fun SearchUiState.keepingMateria(): SearchUiState =
+        if (materiaFilter == null || ofClase.any { materiaFilter in it.materias }) this else copy(materiaFilter = null)
 
     /** Free text: a known órgano's name, or a bare organismo number. */
     fun onOrganoTextChange(text: String) {
@@ -263,14 +282,15 @@ class SearchViewModel(
     private class Tipos(val options: List<FormOption>, val fromPortal: Boolean)
 
     /**
-     * The órgano's own list when it's cached, else the bundled list of every
-     * known tipo (IDs are global), its kind's tipos first. Never makes a request.
+     * The órgano's own list when it's cached, else the bundled tipos of its
+     * class (IDs are global), or every known tipo for an órgano whose class
+     * has no known list. Never makes a request.
      */
     private suspend fun tiposFor(organo: KnownOrgano): Tipos {
         val cached = catalog.cachedTiposDeAsunto(organo.id)
         if (cached.isNotEmpty()) return Tipos(cached, fromPortal = true)
-        val kind = organo.kind.takeIf { organo.name.isNotBlank() }
-        return Tipos(TiposDeAsunto.forKind(kind), fromPortal = false)
+        val clase = organo.clase.takeIf { organo.name.isNotBlank() }
+        return Tipos(TiposDeAsunto.forClase(clase), fromPortal = false)
     }
 
     /** Shows the tipos with no request, so Buscar is one GET of the case page. */

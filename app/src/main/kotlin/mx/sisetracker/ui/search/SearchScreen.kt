@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,7 +43,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +63,8 @@ import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.core.Circuito
 import mx.sisetracker.core.FormOption
+import mx.sisetracker.core.Materia
+import mx.sisetracker.core.OrganoClase
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SiseDates
 import mx.sisetracker.ui.components.BackButton
@@ -137,7 +137,13 @@ fun SearchScreen(
             )
 
             if (state.showsKindFilter) {
-                KindChips(selected = state.kindFilter, onSelect = viewModel::onKindFilterChange)
+                OrganoFilters(
+                    state = state,
+                    onKind = viewModel::onKindFilterChange,
+                    onClase = viewModel::onClaseFilterChange,
+                    onMateria = viewModel::onMateriaFilterChange,
+                    onShowClosed = viewModel::onShowClosedChange,
+                )
             }
 
             OrganoField(
@@ -145,6 +151,7 @@ fun SearchScreen(
                 organo = state.organo,
                 organos = state.organos,
                 suggestions = state.organoSuggestions,
+                filtering = state.showsKindFilter,
                 onOpen = viewModel::onOrganosRequested,
                 onTextChange = viewModel::onOrganoTextChange,
                 onSelect = viewModel::onOrganoSelected,
@@ -248,7 +255,18 @@ private fun CircuitoField(
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             circuitos.forEach { circuito ->
                 DropdownMenuItem(
-                    text = { Text(circuito.label) },
+                    text = {
+                        Column {
+                            Text(circuito.ordinal, style = MaterialTheme.typography.bodyLarge)
+                            if (circuito.region.isNotEmpty()) {
+                                Text(
+                                    circuito.region,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    },
                     onClick = {
                         onSelect(circuito)
                         expanded = false
@@ -276,19 +294,56 @@ private fun ClosedChip() {
     }
 }
 
+/**
+ * Narrows the órgano list step by step: tipo de órgano, then (for Tribunales
+ * and Otros) the class, then the materia. Each row only offers what the
+ * current list has, and closed órganos stay hidden unless asked for.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun KindChips(selected: OrganoKind?, onSelect: (OrganoKind?) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+private fun OrganoFilters(
+    state: SearchUiState,
+    onKind: (OrganoKind?) -> Unit,
+    onClase: (OrganoClase?) -> Unit,
+    onMateria: (Materia?) -> Unit,
+    onShowClosed: (Boolean) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(stringResource(R.string.search_kind), style = MaterialTheme.typography.labelLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OrganoKind.entries.forEach { kind ->
-                val isSelected = kind == selected
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onSelect(if (isSelected) null else kind) },
-                    label = { Text(stringResource(kind.labelRes())) },
-                )
-            }
+        ChipRow(state.kindOptions, state.kindFilter, onKind) { stringResource(it.labelRes()) }
+        if (state.claseOptions.isNotEmpty()) {
+            ChipRow(state.claseOptions, state.claseFilter, onClase) { stringResource(it.pluralRes()) }
+        }
+        if (state.materiaOptions.isNotEmpty()) {
+            Text(
+                stringResource(R.string.search_materia),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            ChipRow(state.materiaOptions, state.materiaFilter, onMateria) { stringResource(it.labelRes()) }
+        }
+        if (state.hasClosed) {
+            FilterChip(
+                selected = state.showClosed,
+                onClick = { onShowClosed(!state.showClosed) },
+                label = { Text(stringResource(R.string.search_show_closed)) },
+            )
+        }
+    }
+}
+
+/** Single-choice chips: tapping the selected one clears the filter. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun <T> ChipRow(options: List<T>, selected: T?, onSelect: (T?) -> Unit, label: @Composable (T) -> String) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { option ->
+            val isSelected = option == selected
+            FilterChip(
+                selected = isSelected,
+                onClick = { onSelect(if (isSelected) null else option) },
+                label = { Text(label(option)) },
+            )
         }
     }
 }
@@ -299,6 +354,44 @@ private fun OrganoKind.labelRes(): Int = when (this) {
     OrganoKind.OTROS -> R.string.kind_otros
 }
 
+private fun OrganoClase.pluralRes(): Int = when (this) {
+    OrganoClase.JUZGADO_DISTRITO -> R.string.clase_juzgado_distrito_plural
+    OrganoClase.COLEGIADO_CIRCUITO -> R.string.clase_colegiado_circuito_plural
+    OrganoClase.COLEGIADO_APELACION -> R.string.clase_colegiado_apelacion_plural
+    OrganoClase.TRIBUNAL_LABORAL -> R.string.clase_tribunal_laboral_plural
+    OrganoClase.PLENO_REGIONAL -> R.string.clase_pleno_regional_plural
+    OrganoClase.CONFLICTOS_LABORALES -> R.string.clase_conflictos_laborales_plural
+    OrganoClase.OTRO -> R.string.clase_otro_plural
+}
+
+private fun OrganoClase.labelRes(): Int = when (this) {
+    OrganoClase.JUZGADO_DISTRITO -> R.string.clase_juzgado_distrito
+    OrganoClase.COLEGIADO_CIRCUITO -> R.string.clase_colegiado_circuito
+    OrganoClase.COLEGIADO_APELACION -> R.string.clase_colegiado_apelacion
+    OrganoClase.TRIBUNAL_LABORAL -> R.string.clase_tribunal_laboral
+    OrganoClase.PLENO_REGIONAL -> R.string.clase_pleno_regional
+    OrganoClase.CONFLICTOS_LABORALES -> R.string.clase_conflictos_laborales
+    OrganoClase.OTRO -> R.string.clase_otro
+}
+
+private fun Materia.labelRes(): Int = when (this) {
+    Materia.PENAL -> R.string.materia_penal
+    Materia.CIVIL -> R.string.materia_civil
+    Materia.ADMINISTRATIVA -> R.string.materia_administrativa
+    Materia.TRABAJO -> R.string.materia_trabajo
+    Materia.MERCANTIL -> R.string.materia_mercantil
+    Materia.MIXTA -> R.string.materia_mixta
+}
+
+/** "Tribunal Colegiado de Circuito · Penal": what the chosen órgano is. */
+@Composable
+private fun KnownOrgano.description(): String {
+    val clase = stringResource(clase.labelRes())
+    if (materias.isEmpty()) return clase
+    val materia = materias.sortedBy { it.ordinal }.map { stringResource(it.labelRes()) }.joinToString(", ")
+    return stringResource(R.string.search_organo_description, clase, materia)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OrganoField(
@@ -306,6 +399,7 @@ private fun OrganoField(
     organo: KnownOrgano?,
     organos: Loadable<List<KnownOrgano>>,
     suggestions: List<KnownOrgano>,
+    filtering: Boolean,
     onOpen: () -> Unit,
     onTextChange: (String) -> Unit,
     onSelect: (KnownOrgano) -> Unit,
@@ -331,9 +425,11 @@ private fun OrganoField(
                 Text(
                     when {
                         organo != null && organo.name.isEmpty() -> stringResource(R.string.search_organo_number, organo.id)
+                        organo != null -> organo.description()
                         organos == Loadable.Loading -> stringResource(R.string.search_organos_loading)
                         organos is Loadable.Failed -> stringResource(organos.error.messageRes()) + " " +
                             stringResource(R.string.search_organos_failed)
+                        filtering -> pluralStringResource(R.plurals.search_organos_count, suggestions.size, suggestions.size)
                         else -> stringResource(R.string.search_organo_help)
                     },
                 )
@@ -356,11 +452,10 @@ private fun OrganoField(
             suggestions.forEach { suggestion ->
                 DropdownMenuItem(
                     text = { Text(suggestion.name.ifEmpty { suggestion.id }) },
-                    trailingIcon = {
-                        Column(horizontalAlignment = Alignment.End) {
-                            if (suggestion.isClosed()) ClosedChip()
-                            Text(suggestion.id, style = MaterialTheme.typography.labelSmall)
-                        }
+                    trailingIcon = if (suggestion.isClosed()) {
+                        { ClosedChip() }
+                    } else {
+                        null
                     },
                     onClick = {
                         onSelect(suggestion)

@@ -7,6 +7,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.core.Circuitos
+import mx.sisetracker.core.Materia
+import mx.sisetracker.core.OrganoClase
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.FormOption
 import mx.sisetracker.data.catalog.CatalogRepository
@@ -129,6 +131,10 @@ class SearchViewModelTest {
         viewModel.onCircuitoSelected(primerCircuito)
         advanceUntilIdle()
         assertTrue(viewModel.state.value.showsKindFilter)
+        // The 4 closed juzgados stay hidden until asked for.
+        assertTrue(viewModel.state.value.hasClosed)
+        assertEquals(180, viewModel.state.value.organoSuggestions.size)
+        viewModel.onShowClosedChange(true)
         assertEquals(184, viewModel.state.value.organoSuggestions.size)
 
         viewModel.onKindFilterChange(OrganoKind.TRIBUNALES)
@@ -143,6 +149,41 @@ class SearchViewModelTest {
         viewModel.onKindFilterChange(OrganoKind.OTROS)
         viewModel.onOrganoTextChange("comision de disciplina")
         assertEquals(listOf("6207", "6316"), viewModel.state.value.organoSuggestions.map { it.id }.sorted())
+    }
+
+    @Test
+    fun `class and materia chips narrow the list to what's relevant`() = runTest(main.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onCircuitoSelected(primerCircuito)
+        advanceUntilIdle()
+        // No class row until a kind is chosen; juzgados have one class only.
+        assertEquals(emptyList<OrganoClase>(), viewModel.state.value.claseOptions)
+        viewModel.onKindFilterChange(OrganoKind.JUZGADOS)
+        assertEquals(emptyList<OrganoClase>(), viewModel.state.value.claseOptions)
+        assertEquals(Materia.entries, viewModel.state.value.materiaOptions)
+
+        viewModel.onMateriaFilterChange(Materia.PENAL)
+        // 26 penal juzgados, minus the 4 closed ones.
+        assertEquals(22, viewModel.state.value.organoSuggestions.size)
+
+        viewModel.onKindFilterChange(OrganoKind.TRIBUNALES)
+        assertEquals(
+            listOf(OrganoClase.COLEGIADO_CIRCUITO, OrganoClase.COLEGIADO_APELACION, OrganoClase.TRIBUNAL_LABORAL),
+            viewModel.state.value.claseOptions,
+        )
+        // Penal still applies to tribunales: 10 colegiados de circuito and 2 de apelación.
+        assertEquals(Materia.PENAL, viewModel.state.value.materiaFilter)
+        assertEquals(12, viewModel.state.value.organoSuggestions.size)
+
+        viewModel.onClaseFilterChange(OrganoClase.COLEGIADO_CIRCUITO)
+        assertEquals(10, viewModel.state.value.organoSuggestions.size)
+        assertTrue(viewModel.state.value.organoSuggestions.all { "Tribunal Colegiado en Materia Penal" in it.name })
+
+        // No laboral tribunal is penal: the materia filter is dropped.
+        viewModel.onClaseFilterChange(OrganoClase.TRIBUNAL_LABORAL)
+        assertEquals(null, viewModel.state.value.materiaFilter)
+        assertEquals(18, viewModel.state.value.organoSuggestions.size)
+        assertEquals(emptyList<Materia>(), viewModel.state.value.materiaOptions)
     }
 
     @Test
@@ -184,8 +225,8 @@ class SearchViewModelTest {
         assertEquals("1", state.circuito)
         assertEquals(juzgado, state.organoText)
         val tipos = (state.tiposAsunto as Loadable.Loaded).value
-        assertEquals(44, tipos.size)
-        // A juzgado: the tipos seen at juzgados come first.
+        // A juzgado de distrito: only the juzgados' tipos, in the portal's order.
+        assertEquals(10, tipos.size)
         assertEquals("1" to "Amparo Indirecto", tipos.first().value to tipos.first().label)
         assertFalse(state.tiposFromPortal)
         assertTrue(state.canLoadOrganoTipos)
@@ -223,6 +264,8 @@ class SearchViewModelTest {
         viewModel.onOrganoSelected(viewModel.state.value.knownOrganos.single())
         advanceUntilIdle()
         val tipos = (viewModel.state.value.tiposAsunto as Loadable.Loaded).value
+        // A colegiado de circuito: only its 14 tipos.
+        assertEquals(14, tipos.size)
 
         viewModel.onTipoAsuntoSelected(tipos.single { it.label == "Amparo Directo" })
         viewModel.onExpedienteChange("293/2026")
@@ -250,7 +293,7 @@ class SearchViewModelTest {
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
         assertTrue(client.requests.isEmpty())
-        assertEquals(44, (viewModel.state.value.tiposAsunto as Loadable.Loaded).value.size)
+        assertEquals(10, (viewModel.state.value.tiposAsunto as Loadable.Loaded).value.size)
 
         viewModel.onLoadOrganoTipos()
         advanceUntilIdle()

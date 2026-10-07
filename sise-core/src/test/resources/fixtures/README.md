@@ -190,7 +190,7 @@ Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=
 ## Bundled lists checked against these fixtures
 
 - `circuitos.tsv` (32 circuits) against `oaj_circuitos_excerpt.html`.
-- `tipos_asunto.tsv` (44 tipos de asunto, with the kinds of órgano they were seen at) against every `expedienteytipo_form_*.html` and `expedienteytipo_result_1183-2025.html`. When a new form fixture adds tipos, add them there too.
+- `tipos_asunto.tsv` (44 tipos de asunto, grouped by the class of órgano they were seen at, `J` juzgado de distrito, `C` colegiado de circuito, `A` colegiado de apelación, `L` tribunal laboral, `P` pleno regional, `K` Comisión de Conflictos Laborales, each in the portal's order) against every `expedienteytipo_form_*.html` and `expedienteytipo_result_1183-2025.html`. When a new form fixture adds tipos, add them there too.
 
 ## Empty grids (no fixture file)
 

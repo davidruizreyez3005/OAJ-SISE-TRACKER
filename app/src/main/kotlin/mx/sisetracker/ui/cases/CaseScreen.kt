@@ -66,6 +66,7 @@ import mx.sisetracker.data.db.ResolucionEntity
 import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.NewBadge
 import mx.sisetracker.ui.components.SiseTopAppBar
+import mx.sisetracker.ui.theme.LocalBrandColors
 import mx.sisetracker.ui.components.messageRes
 import mx.sisetracker.ui.components.openInBrowser
 
@@ -81,7 +82,7 @@ fun CaseScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    val toolbarColor = MaterialTheme.colorScheme.primary.toArgb()
+    val toolbarColor = LocalBrandColors.current.topBar.toArgb()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }

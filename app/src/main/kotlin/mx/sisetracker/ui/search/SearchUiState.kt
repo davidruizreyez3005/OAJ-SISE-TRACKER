@@ -7,6 +7,8 @@ import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.ExpedienteFormat
 import mx.sisetracker.core.FormOption
 import java.time.LocalDate
+import mx.sisetracker.core.Materia
+import mx.sisetracker.core.OrganoClase
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.OrganoPeriod
 import mx.sisetracker.core.SearchText
@@ -22,10 +24,17 @@ data class KnownOrgano(
     val name: String,
     val circuito: String? = null,
 ) {
-    val kind: OrganoKind get() = OrganoKind.fromName(name)
+    val kind: OrganoKind get() = clase.kind
+
+    // Derived from the name; lazy because the filters read them on every keystroke.
+    val clase: OrganoClase by lazy(LazyThreadSafetyMode.NONE) { OrganoClase.fromName(name) }
+
+    val materias: Set<Materia> by lazy(LazyThreadSafetyMode.NONE) { Materia.fromName(name) }
+
+    private val closedOn: LocalDate? by lazy(LazyThreadSafetyMode.NONE) { OrganoPeriod.endOf(name) }
 
     /** A closed órgano (its name ends with a past active period): still searchable, marked "Cerrado". */
-    fun isClosed(today: LocalDate = LocalDate.now()): Boolean = OrganoPeriod.endOf(name)?.let { it < today } == true
+    fun isClosed(today: LocalDate = LocalDate.now()): Boolean = closedOn?.let { it < today } == true
 }
 
 sealed interface Loadable<out T> {
@@ -55,7 +64,13 @@ data class SearchUiState(
     val circuito: String = "",
     /** The chosen circuit's órgano list (step B). */
     val organos: Loadable<List<KnownOrgano>> = Loadable.Idle,
+    /** "Tipo de órgano": Juzgados, Tribunales or Otros. */
     val kindFilter: OrganoKind? = null,
+    /** Within Tribunales or Otros: e.g. only the Colegiados de Circuito. */
+    val claseFilter: OrganoClase? = null,
+    val materiaFilter: Materia? = null,
+    /** Closed órganos are hidden from the list unless the user asks for them. */
+    val showClosed: Boolean = false,
     val organoText: String = "",
     val organo: KnownOrgano? = null,
     val knownOrganos: List<KnownOrgano> = emptyList(),
@@ -85,12 +100,45 @@ data class SearchUiState(
     /** Whether the "Tipo de órgano" chips have anything to filter. */
     val showsKindFilter: Boolean get() = organoSource.isNotEmpty()
 
-    /** Órganos matching the "Tipo de órgano" chip and what's typed, for the type-ahead. */
+    /** The kinds the list has, for the "Tipo de órgano" chips. */
+    val kindOptions: List<OrganoKind>
+        get() = OrganoKind.entries.filter { kind -> kind == kindFilter || organoSource.any { it.kind == kind } }
+
+    private val ofKind: List<KnownOrgano>
+        get() = organoSource.filter { kindFilter == null || it.kind == kindFilter }
+
+    /** The classes within the chosen kind, when there's more than one to choose from. */
+    val claseOptions: List<OrganoClase>
+        get() {
+            if (kindFilter == null) return emptyList()
+            val present = ofKind.map { it.clase }.toSet()
+            // A chosen class stays visible (to unselect) even if this list lacks it.
+            return OrganoClase.entries.filter { it in present || it == claseFilter }
+                .takeIf { it.size > 1 || claseFilter != null }.orEmpty()
+        }
+
+    /** The órganos the kind and class filters leave. */
+    internal val ofClase: List<KnownOrgano>
+        get() = ofKind.filter { claseFilter == null || it.clase == claseFilter }
+
+    /** The materias the órganos left by the other filters hear, when there's more than one. */
+    val materiaOptions: List<Materia>
+        get() {
+            val present = ofClase.flatMap { it.materias }.toSet()
+            return Materia.entries.filter { it in present || it == materiaFilter }
+                .takeIf { it.size > 1 || materiaFilter != null }.orEmpty()
+        }
+
+    /** Whether the list has closed órganos to show or hide. */
+    val hasClosed: Boolean get() = organoSource.any { it.isClosed() }
+
+    /** Órganos matching the filters and what's typed, for the type-ahead. */
     val organoSuggestions: List<KnownOrgano>
         get() {
             val query = organoText.takeUnless { organo != null && it == organo.name }.orEmpty()
-            return organoSource
-                .filter { kindFilter == null || it.kind == kindFilter }
+            return ofClase
+                .filter { materiaFilter == null || materiaFilter in it.materias }
+                .filter { showClosed || !it.isClosed() }
                 .filter { SearchText.matches("${it.name} ${it.id}", query) }
                 .take(MAX_SUGGESTIONS)
         }

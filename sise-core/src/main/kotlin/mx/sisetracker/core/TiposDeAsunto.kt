@@ -8,14 +8,15 @@ package mx.sisetracker.core
 data class KnownTipoAsunto(
     val id: String,
     val label: String,
-    /** The kinds of órgano whose search forms list it. */
-    val kinds: Set<OrganoKind>,
+    /** The class of órgano whose search form lists it (each tipo seen at one class only). */
+    val clase: OrganoClase,
 )
 
 /**
  * Every tipo de asunto seen in the search form fixtures, bundled as
- * `tipos_asunto.tsv` (id, label, kinds as J/T/O). A test checks it against
- * the fixtures; add new tipos there when new forms are captured.
+ * `tipos_asunto.tsv` (id, label, class code), grouped by class in the
+ * portal's own order. A test checks it against the fixtures; add new tipos
+ * there when new forms are captured.
  */
 object TiposDeAsunto {
     val all: List<KnownTipoAsunto> by lazy {
@@ -24,8 +25,10 @@ object TiposDeAsunto {
         stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
             lines.filter { it.isNotBlank() }
                 .map { line ->
-                    val (id, label, kinds) = line.split('\t', limit = 3)
-                    KnownTipoAsunto(id, label, kinds.mapNotNull(::kindOf).toSet())
+                    val (id, label, code) = line.split('\t', limit = 3)
+                    val clase = code.trim().singleOrNull()?.let(OrganoClase::ofCode)
+                        ?: error("Unknown órgano class '$code' for tipo $id")
+                    KnownTipoAsunto(id, label, clase)
                 }
                 .toList()
         }
@@ -34,18 +37,13 @@ object TiposDeAsunto {
     fun byId(id: String): KnownTipoAsunto? = all.firstOrNull { it.id == id.trim() }
 
     /**
-     * The whole list, those seen at órganos of [kind] first (each part in
-     * label order). With no kind, the whole list in label order.
+     * Only the tipos the portal lists for órganos of [clase], in the portal's
+     * order. With no class, or one whose list isn't known (administrative
+     * bodies, a bare organismo number), every known tipo, grouped by class.
      */
-    fun forKind(kind: OrganoKind?): List<FormOption> {
-        val ordered = if (kind == null) all else all.filter { kind in it.kinds } + all.filterNot { kind in it.kinds }
-        return ordered.mapIndexed { position, tipo -> FormOption(tipo.id, tipo.label, position, selected = false) }
-    }
-
-    private fun kindOf(code: Char): OrganoKind? = when (code) {
-        'J' -> OrganoKind.JUZGADOS
-        'T' -> OrganoKind.TRIBUNALES
-        'O' -> OrganoKind.OTROS
-        else -> null
+    fun forClase(clase: OrganoClase?): List<FormOption> {
+        val own = all.filter { it.clase == clase }
+        return own.ifEmpty { all }
+            .mapIndexed { position, tipo -> FormOption(tipo.id, tipo.label, position, selected = false) }
     }
 }

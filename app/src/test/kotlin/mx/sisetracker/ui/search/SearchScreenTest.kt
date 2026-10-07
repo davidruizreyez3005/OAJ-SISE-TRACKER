@@ -115,9 +115,14 @@ class SearchScreenTest {
         setContent()
 
         compose.onNodeWithText("Circuito").performClick()
-        compose.onNodeWithText("Primer Circuito Ciudad de México").performClick()
+        // The menu shows each circuit's ordinal and state on two lines.
+        compose.onNodeWithText("Ciudad de México").assertExists()
+        compose.onNodeWithText("Primer Circuito").performClick()
         compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Tribunales")).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Tribunales").performClick()
+        compose.onNodeWithText("Colegiados de Circuito").performClick()
+        compose.onNodeWithText("Penal").performClick()
+        compose.onNodeWithText("10 órganos coinciden", substring = true).assertExists()
         compose.onNode(hasSetTextAction() and hasText("Órgano")).performTextInput("segundo colegiado penal")
 
         compose.onNodeWithText("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito").assertExists()

@@ -6,6 +6,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 
 internal val LightColors: ColorScheme = lightColorScheme(
     primary = PrimaryLight,
@@ -109,18 +113,29 @@ internal val DarkColors: ColorScheme = darkColorScheme(
     onTertiaryFixedVariant = OnTertiaryFixedVariant,
 )
 
+/** Brand chrome outside Material's scheme: the top app bar and its gold rule. */
+@Immutable
+data class BrandColors(val topBar: Color, val onTopBar: Color, val goldRule: Color)
+
+internal val LightBrand = BrandColors(topBar = TopBarLight, onTopBar = OnTopBar, goldRule = GoldRuleLight)
+internal val DarkBrand = BrandColors(topBar = TopBarDark, onTopBar = OnTopBar, goldRule = GoldRuleDark)
+
+val LocalBrandColors = staticCompositionLocalOf { LightBrand }
+
 /**
  * App theme. Dynamic color (Material You) is deliberately off, so the
- * wallpaper never replaces the brand blues.
+ * wallpaper never replaces the brand guinda and gold.
  */
 @Composable
 fun SiseTrackerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = SiseTypography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalBrandColors provides if (darkTheme) DarkBrand else LightBrand) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColors else LightColors,
+            typography = SiseTypography,
+            content = content,
+        )
+    }
 }

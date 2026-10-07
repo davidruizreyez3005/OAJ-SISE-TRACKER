@@ -14,6 +14,10 @@ data class Organo(
 ) {
     val kind: OrganoKind get() = OrganoKind.fromName(name)
 
+    val clase: OrganoClase get() = OrganoClase.fromName(name)
+
+    val materias: Set<Materia> get() = Materia.fromName(name)
+
     /** For a closed órgano, the end of the active period its name carries; else null. */
     val closedOn: LocalDate? get() = OrganoPeriod.endOf(name)
 

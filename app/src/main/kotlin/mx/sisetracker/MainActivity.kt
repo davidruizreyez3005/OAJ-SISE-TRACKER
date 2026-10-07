@@ -1,7 +1,6 @@
 package mx.sisetracker
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -79,15 +78,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // The top app bar is `primary`: dark blue in the light theme (needs light
-    // status bar icons) and light blue in the dark theme (needs dark icons).
+    // The top app bar is deep guinda in both themes, so the status bar
+    // always needs light icons.
     private fun enableSiseEdgeToEdge() {
-        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val statusBarStyle = if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
-            SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
-        } else {
-            SystemBarStyle.dark(Color.TRANSPARENT)
-        }
-        enableEdgeToEdge(statusBarStyle = statusBarStyle)
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
     }
 }

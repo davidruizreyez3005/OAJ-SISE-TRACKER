@@ -77,39 +77,40 @@ sanctioned no-captcha route for anything beyond a small team.
 
 ## Visual design
 
-Institutional blues, as the user asked, combined with the OAJ's real
-neutrals.
-- The OAJ's "Consulta de Datos de Expedientes" stylesheet doesn't use blue.
-  Its palette is charcoal `#161A1D` (primary buttons, active tabs), slate
-  `#575F71` (hover), text `#333333`, white backgrounds and red `#B31217` for
-  alerts.
-- The blues (primary, tertiary) are therefore our own approximation.
-  Secondary, error and text colors come from the OAJ stylesheet.
-- Keep every color in `ui/theme/Color.kt` so values can be swapped in later.
+Mexican institutional guinda (burgundy) and dorado (gold), as the user asked,
+on warm ivory neutrals: the look of the federal government's and judiciary's
+own documents. Error keeps the OAJ stylesheet's red `#B31217`.
 
+- Keep every color in `ui/theme/Color.kt` so values can be swapped in later.
 - Material 3 with `dynamicColor = false`, so Material You never replaces the
-  brand blues.
-- Light and dark schemes, both checked for WCAG AA (4.5:1 for body text).
-- Top app bar in `primary` with white text, edge-to-edge.
-- "Nuevo" badges on unseen acuerdos use `tertiary`.
+  brand colors.
+- Light and dark schemes, both checked for WCAG AA (4.5:1 for body text) by
+  `ThemeContrastTest`.
+- Top app bar in deep guinda (`#691C32` light, `#4A1424` dark) with white
+  content and a 3 dp gold rule under it (`LocalBrandColors`), edge-to-edge
+  with light status bar icons in both themes.
+- Display, headline and `titleLarge` text use the system serif; body and
+  labels stay sans-serif.
+- "Nuevo" badges on unseen acuerdos use `tertiary` (gold, dark text).
+- The launcher icon is a gold document on guinda.
 
 | Token | Light | Dark |
 |---|---|---|
-| primary | `#0B3B6E` | `#A8C7F0` |
-| onPrimary | `#FFFFFF` | `#00315F` |
-| primaryContainer | `#D3E3F8` | `#0F4A85` |
-| onPrimaryContainer | `#001D3D` | `#D3E3F8` |
-| secondary (OAJ slate) | `#575F71` | `#BEC5D4` |
-| onSecondary | `#FFFFFF` | `#262B36` |
-| secondaryContainer | `#E1E4EB` | `#3E4554` |
-| onSecondaryContainer | `#161A1D` | `#E1E4EB` |
-| tertiary | `#1A6FCC` | `#8CC2FF` |
-| onTertiary | `#FFFFFF` | `#002E5C` |
-| background / surface | `#F6F8FB` | `#0F151C` |
-| onBackground / onSurface (OAJ text) | `#333333` | `#E2E6EB` |
-| surfaceVariant | `#E2E8F0` | `#2A3440` |
-| onSurfaceVariant | `#44505F` | `#BFC8D3` |
-| outline | `#74808F` | `#8A95A3` |
+| primary (guinda) | `#691C32` | `#F0B5C3` |
+| onPrimary | `#FFFFFF` | `#561D2E` |
+| primaryContainer | `#F5DCE2` | `#7F2A42` |
+| onPrimaryContainer | `#3D0A1A` | `#FFD9E1` |
+| secondary (dark gold) | `#7A5C1E` | `#E3C487` |
+| onSecondary | `#FFFFFF` | `#3E2E00` |
+| secondaryContainer (selected chips) | `#F1E4C3` | `#5A4415` |
+| onSecondaryContainer | `#2A1E05` | `#F7E2B5` |
+| tertiary (gold) | `#BC955C` | `#D9B77E` |
+| onTertiary | `#2A1E05` | `#3A2A08` |
+| background / surface | `#FBF8F4` | `#1B1416` |
+| onBackground / onSurface | `#2B2626` | `#EDE0E2` |
+| surfaceVariant | `#EFE6E2` | `#3B2F32` |
+| onSurfaceVariant | `#534448` | `#D8C2C7` |
+| outline | `#85737A` | `#A08C91` |
 | error (OAJ red) | `#B31217` | `#F2B8B5` |
 
 ## Architecture
@@ -338,16 +339,31 @@ as windows-1252, because
 ### Search flow in the app
 
 1. **Native search screen**, in this order:
-   - Circuito dropdown (from A).
-   - Tipo de órgano filter chips.
-   - Órgano dropdown with type-ahead filtering (from B).
+   - Circuito dropdown (from A), each item as ordinal over state
+     ("Primer Circuito" / "Ciudad de México"); the field shows the label.
+   - Filter chips, each row offering only what the loaded list has:
+     Tipo de órgano (Juzgados / Tribunales / Otros), then the class within
+     it (`OrganoClase`: Colegiados de Circuito / de Apelación / Laborales,
+     Plenos Regionales…), then Materia (`Materia`: Penal, Civil,
+     Administrativa, Trabajo, Mercantil, Mixta for juzgados and tribunales
+     whose name states none). Class and materia come from the name, like the
+     kind (`Tribunal Unitario` counts as Apelación; "Extinción de Dominio" as
+     Civil; "Ejecución de Penas" as Penal). Closed órganos are hidden unless
+     "Incluir cerrados" is on.
+   - Órgano dropdown with type-ahead filtering (from B), names only (no
+     IDs), with a count of matches; once chosen, the field describes it
+     ("Tribunal Colegiado de Circuito · Penal").
    - Tipo de asunto dropdown. By default (the user's request: most lookups
      are amparos directos at tribunales colegiados, and every request
-     costs time) it shows the bundled list of every known tipo
-     (`tipos_asunto.tsv` in `:sise-core`, IDs are global), the órgano kind's
-     tipos first, with **no request**: Buscar is then a single GET of the
+     costs time) it shows only the bundled tipos of the órgano's class
+     (`tipos_asunto.tsv` in `:sise-core`, IDs are global; each class has its
+     own list on the portal and no tipo was seen at two classes), in the
+     portal's order, with **no request**. Órganos whose class has no known
+     list (administrative bodies, a bare organismo number) get every known
+     tipo: Buscar is then a single GET of the
      case page. The órgano's own list (step C) loads only from the cache or
-     when the user taps "Ver solo los tipos de este órgano". A tipo the
+     when the user taps "¿No aparece el tipo? Cargar la lista de este
+     órgano del portal". A tipo the
      órgano doesn't have just gives "No se encontró…".
    - Tipo de procedimiento dropdown, only when the portal would show it
      (from D).

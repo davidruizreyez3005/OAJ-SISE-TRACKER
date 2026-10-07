@@ -1,44 +1,44 @@
-128	Amp Ind, Proc Fed Penales en 2a Instancia y Proc Fed Adm y Civ en 2a Instancia.	T
-29	Amparo contra leyes	T
-10	Amparo Directo	T
-11	Amparo en revisión	T
 1	Amparo Indirecto	J
-124	Amparo indirecto.	T
 2	Causa Penal	J
-69	Comunicaciones Oficiales Recibidas de las Áreas Administrativas	T
 46	Concursos Mercantiles	J
-115	Conflictos Colectivos de Naturaleza Económica	T
-12	Conflictos Competenciales	T
-131	Conflictos Competenciales.	O
-17	Conflictos de Acumulación	T
-114	Conflictos Individuales de Seguridad Social	T
-129	Contradicción de Criterios	O
 71	Denuncia por Incumplimiento de la Declaratoria General de Inconstitucionalidad	J
-136	Designación Beneficiarios	O
 67	Ejecución de Penas	J
 58	Extinción de Dominio	J
-13	Impedimento	T
-23	Incidentes de Inejecución	T
-25	Inconformidades	T
 68	Juicio Oral Mercantil	J
 18	Medidas Precautorias	J
-117	Procedimiento de Ejecución	T
-116	Procedimiento de Huelga	T
-135	Procedimiento Especial	O
-113	Procedimiento especial colectivo	T
-112	Procedimiento especial individual	T
-111	Procedimiento ordinario	T
-134	Procedimiento Ordinario.	O
 19	Procedimientos de Extradición	J
-126	Procedimientos federales administrativos y civiles en segunda instancia.	T
-125	Procedimientos federales penales en segunda instancia.	T
-120	Procedimientos Paraprocesales o Voluntarios	T
 4	Procesos Civiles o Administrativos	J
-15	Queja	T
-20	Reclamaciones	T
-26	Reconocimiento de Inocencia	T
-127	Reconocimiento de Inocencia y Anulación de Sentencia.	T
-24	Repetición del Acto Reclamado	T
-14	Revisión Contenciosa Administrativa	T
-16	Revisión Fiscal	T
-130	Solicitud de Declaratoria General de Inconstitucionalidad	O
+29	Amparo contra leyes	C
+10	Amparo Directo	C
+11	Amparo en revisión	C
+12	Conflictos Competenciales	C
+17	Conflictos de Acumulación	C
+13	Impedimento	C
+23	Incidentes de Inejecución	C
+25	Inconformidades	C
+15	Queja	C
+20	Reclamaciones	C
+26	Reconocimiento de Inocencia	C
+24	Repetición del Acto Reclamado	C
+14	Revisión Contenciosa Administrativa	C
+16	Revisión Fiscal	C
+128	Amp Ind, Proc Fed Penales en 2a Instancia y Proc Fed Adm y Civ en 2a Instancia.	A
+124	Amparo indirecto.	A
+69	Comunicaciones Oficiales Recibidas de las Áreas Administrativas	A
+126	Procedimientos federales administrativos y civiles en segunda instancia.	A
+125	Procedimientos federales penales en segunda instancia.	A
+127	Reconocimiento de Inocencia y Anulación de Sentencia.	A
+115	Conflictos Colectivos de Naturaleza Económica	L
+114	Conflictos Individuales de Seguridad Social	L
+117	Procedimiento de Ejecución	L
+116	Procedimiento de Huelga	L
+113	Procedimiento especial colectivo	L
+112	Procedimiento especial individual	L
+111	Procedimiento ordinario	L
+120	Procedimientos Paraprocesales o Voluntarios	L
+131	Conflictos Competenciales.	P
+129	Contradicción de Criterios	P
+130	Solicitud de Declaratoria General de Inconstitucionalidad	P
+136	Designación Beneficiarios	K
+135	Procedimiento Especial	K
+134	Procedimiento Ordinario.	K

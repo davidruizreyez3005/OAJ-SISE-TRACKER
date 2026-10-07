@@ -65,4 +65,15 @@ class CircuitosTest {
         val form = SearchRequests.loadForm("16", "DÉCIMO SEXTO CIRCUITO", "313")
         assertEquals("45", form.fields.toMap()["Circuito"])
     }
+
+    @Test
+    fun `labels split into ordinal and region for display`() {
+        Circuitos.all.forEach {
+            assertEquals(it.label, "${it.ordinal} ${it.region}")
+        }
+        assertEquals("Primer Circuito", Circuitos.byNum("1")?.ordinal)
+        assertEquals("Ciudad de México", Circuitos.byNum("1")?.region)
+        assertEquals("Vigésimo Primer Circuito", Circuitos.byNum("21")?.ordinal)
+        assertEquals("Guerrero", Circuitos.byNum("21")?.region)
+    }
 }
