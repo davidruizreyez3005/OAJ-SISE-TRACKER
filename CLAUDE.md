@@ -240,14 +240,18 @@ Fixture: `circuitos_cir1.html`.
   labels end with a period (`…del Primer Circuito.`); keep labels exactly.
 - The page shows the circuit name as text ("Circuito: PRIMER CIRCUITO").
 - Its form POSTs `Organismo`, `Buscar=Buscar`, `Circuito` and `CircuitoName`
-  to step C. The hidden `Circuito`/`CircuitoName` inputs aren't in the
-  capture (Chrome's page save seems to drop hidden inputs). The app supplies
-  them from the circuit list.
+  to step C. Confirmed by device captures (`circuitos_cir1.html`,
+  `circuitos_cir21.html`): the hidden `Circuito` holds the portal number
+  (51 for OAJ circuit 21) and `CircuitoName` the same uppercase name the
+  page shows. The app supplies both from the circuit list and the parsed
+  name.
 - The list mixes jurisdictional and administrative bodies (Comisión de
   Disciplina, Secretaría General de Acuerdos…) and Plenos Regionales.
 - Closed órganos stay listed, with their active period in the name, e.g.
   `… Procesos Penales Federales en la Ciudad de México (13/12/2001 -
-  31/08/2024)` (4 in the Primer Circuito: 555, 25, 52, 60). Keep the label
+  31/08/2024)` (4 in the Primer Circuito: 555, 25, 52, 60). The spaces
+  around the dash are optional: closed plenos in the Vigésimo Primer
+  Circuito read `(16/01/2023-15/01/2024)`. Keep the label
   as-is. When the end date is in the past, also show a small "Cerrado" chip.
   Their cases stay searchable.
 - Tipo de órgano is derived from the name, because the page has no type
@@ -271,7 +275,8 @@ form is `name="Editar"`:
   - Tipo IDs are global: the same ID has the same label at every órgano seen
     (e.g. 11 = Amparo en revisión at every tribunal colegiado).
   - Lists differ by órgano type, and may differ between juzgados (not seen
-    yet in the fixtures: 4157 and 767 list the same 10). Always load the
+    yet in the fixtures: 4157 and 767 list the same 10, colegiados 4 and 500 of different
+    materias the same 14). Always load the
     list per órgano and cache it per órgano.
   - Some órganos offer **no tipos at all** (Secretaría General de Acuerdos,
     Comisión de Disciplina, Comisión de Investigación). Show "Este órgano no
@@ -290,9 +295,12 @@ form is `name="Editar"`:
 - `input[name=Expediente]`: maxlength 15. It has been `n/yyyy` so far, but
   don't reject other shapes; just warn.
 - Hidden fields: `Circuito`, `CircuitoName`, `Organismo`, `OrgName`,
-  `TipoOrganismo`, `Accion`. In the saved page `OrgName` is empty and the
-  "Órgano Jurisdiccional" cell is blank, so take the órgano's name from the
-  órgano list (B) or the case page header, not from this form.
+  `TipoOrganismo`, `Accion`. In the 1183/2025 result page `OrgName` and
+  `TipoOrganismo` are empty, but the form the app itself loads (device
+  capture `expedienteytipo_form_500.html`) has `OrgName` set to the órgano's
+  name and `TipoOrganismo` = `0`. Still take the órgano's name from the
+  órgano list (B) or the case page header; the hidden fields are echoed
+  back as received in step D.
 - `div#recaptchaArea`: reCAPTCHA v2 with explicit render.
 - The existing fixture `expedienteytipo_result_1183-2025.html` contains this
   same form, so the parser can be built now.

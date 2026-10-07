@@ -1,5 +1,8 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-    
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
     <title>Acuerdos por Expediente</title>
 </head>
 
@@ -9,9 +12,9 @@
         
     </h1>
     <hr>
-    <form name="Editar" action="https://www.dgej.cjf.gob.mx/internet/expedientes/ExpedienteyTipo.asp" method="POST">
+    <form name="Editar" action="ExpedienteyTipo.asp" method="POST">
         <table border="0" width="100%">
-            <tbody><tr>
+            <tr>
                 <th colspan="2" bgcolor="#24135f">
                     <font color="#FFFFFF">Indique los datos solicitados:</font>
                 </th>
@@ -408,7 +411,7 @@
                 <td>
                     <div style="border:solid 2px #F00;width:680px;font-family:calibri;">
                         Se hace del conocimiento de todos los usuarios, que en el Portal de Servicios en Línea del Poder Judicial de la
-                        Federación (<a href="http://www.serviciosenlinea.pjf.gob.mx/" target="_blank">www.serviciosenlinea.pjf.gob.mx</a>),
+                        Federación (<a href="http://www.serviciosenlinea.pjf.gob.mx" target="_blank">www.serviciosenlinea.pjf.gob.mx</a>),
                         en el módulo de "Juzgados de Distrito y Tribunales <br>de Circuito", podrán
                         consultar expedientes de los órganos jurisdiccionales del Poder Judicial de la Federación, sin necesidad de capturar
                         "captcha", para lo cual deberán ingresar con nombre de usuario y <br>contraseña, o firma electrónica, posteriormente dar
@@ -418,14 +421,14 @@
             <tr>
                 <th colspan="2">
                     <input type="submit" value="Buscar" name="Buscar" tabindex="3" size="20">
-                    <input type="button" value="Cancelar" name="Cancelar" tabindex="4">
-                    
-                    
+                    <input type="button" value="Cancelar" name="Cancelar" tabindex="4" onClick="javascript:window.close();">
+                    <input type="hidden" name="Circuito" value="1">
+                    <input type="hidden" name="CircuitoName" value="PRIMER CIRCUITO">
                 </th>
             </tr>
-        </tbody></table>
+        </table>
         
     </form>
+</body>
 
-
-</body></html>
+</html>

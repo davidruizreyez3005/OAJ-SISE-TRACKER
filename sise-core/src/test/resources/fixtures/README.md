@@ -23,10 +23,11 @@ anything that normalizes line endings).
 | `vercaptura_not-found_99999-2025.html` | Case page for an expediente that doesn't exist (organismo 767, tipo 1, 99999/2025). Chrome "Download page" capture, so it's the re-serialized DOM. |
 | `expedienteytipo_result_1183-2025.html` | Search form result page (`ExpedienteyTipo.asp`) containing the `iframe#ifr` with the case URL. Originally windows-1252. |
 | `oaj_circuitos_excerpt.html` | **Excerpt** of the OAJ's "Consulta de Datos de Expedientes" page: only the circuit selector (`form#form2`) is kept, unchanged; the full ~700 KB page is mostly a map SVG. Chrome "Download page" capture. |
-| `expedienteytipo_form_{organismo}.html` | Fresh search forms (step C, after choosing an órgano in the Primer Circuito), one per órgano type: 4157 juzgado, 4 tribunal colegiado, 4343 tribunal colegiado de apelación, 3986 tribunal laboral, 930 comisión de conflictos laborales, 4386 pleno regional, 6315 an órgano with no tipos. Chrome captures, so hidden inputs are missing. Originally windows-1252. |
+| `expedienteytipo_form_{organismo}.html` | Fresh search forms (step C, after choosing an órgano in the Primer Circuito), one per órgano type: 4157 juzgado, 4 tribunal colegiado, 4343 tribunal colegiado de apelación, 3986 tribunal laboral, 930 comisión de conflictos laborales, 4386 pleno regional, 6315 an órgano with no tipos. Chrome captures, so hidden inputs are missing. Originally windows-1252. `expedienteytipo_form_500.html` (Octavo Tribunal Colegiado en Materia Penal) is a device capture instead, with all hidden inputs, `OrgName` filled in. |
 | `expedienteytipo_accion2_4343_tipo125.html` | The same form after choosing tipo 125 at órgano 4343: the Accion=2 reload, with the "Tipo de procedimiento" row shown and its real options. Chrome capture, originally windows-1252. |
 | `oaj_datos_expedientes.json` | The OAJ map data behind that selector (`https://www.oaj.gob.mx/micrositios/dggj/data/mapa/datos_expedientes.json`, October 2026): for each OAJ circuit `value` 1–32, the `href` of its `circuitos.asp` page. Unchanged. |
-| `circuitos_cir1.html` | Órgano list for the Primer Circuito (`circuitos.asp?Cir=1&Exp=1`). Chrome "Download page" capture, so hidden inputs are missing. Originally windows-1252, converted to UTF-8. |
+| `circuitos_cir1.html` | Órgano list for the Primer Circuito (`circuitos.asp?Cir=1&Exp=1`). Captured on a device with the app's "Capturar páginas del catálogo" (SISE Tracker 0.1.0, October 2026): exactly what the app received, decoded from windows-1252 and saved as UTF-8, hidden inputs included. Replaces an earlier Chrome capture with the same 184 options. |
+| `circuitos_cir21.html` | Órgano list for the Vigésimo Primer Circuito, Guerrero (OAJ circuit 21, fetched as `circuitos.asp?Cir=51&Exp=1`; the app names captures by the OAJ number). Device capture like the one above. |
 | `delta_ver-acuerdo_1183-2025_orden38.txt` | MS AJAX delta response to the "Ver síntesis" postback, orden 38. Reference only. |
 | `delta_ver-acuerdo_293-2026_orden{1,2,3}.txt` | Same, for the tribunal colegiado case 293/2026. Reference only. |
 
@@ -186,6 +187,22 @@ Source URL: `https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=
 - Kinds derived from names (leading-noun rule in CLAUDE.md): 79 Juzgados, 92 Tribunales, 13 Otros. `6207` (Unidad de Instrucción de la Comisión de Conflictos Laborales del Tribunal de Disciplina Judicial) is Otros.
 - No duplicate values.
 - Page text includes `Circuito: PRIMER CIRCUITO`. The parsed CircuitoName (`td` after the `th` containing "Circuito:", trimmed, no `&nbsp;`) is exactly `PRIMER CIRCUITO`.
+
+- Hidden inputs: `Circuito` = `1`, `CircuitoName` = `PRIMER CIRCUITO`.
+
+## Expected values: `circuitos_cir21.html`
+
+- CircuitoName `VIGÉSIMO PRIMER CIRCUITO`; hidden inputs `Circuito` = `51` (the portal number) and `CircuitoName` = the same name.
+- 24 órganos: first `375` (Juzgado Primero de Distrito en el Estado de Guerrero), last `4392`.
+- Classes: 11 juzgados de distrito, 5 colegiados de circuito, 2 tribunales laborales, 1 colegiado de apelación (`4366`, "Tribunal Colegiado de Apelación del Vigésimo Primer Circuito…", no materia in the name, so Mixta), 5 plenos regionales.
+- Materias: 10 juzgados name none (Mixta); `3823` Mercantil; `749`/`750`/`1404` Civil y de Trabajo; `751`/`752` Penal y Administrativa.
+- 3 closed plenos (`4390`, `4391`, `4389`) whose period has **no spaces** around the dash: `(16/01/2023-15/01/2024)`.
+
+## Expected values: `expedienteytipo_form_500.html`
+
+- Órgano Jurisdiccional cell and `OrgName`: `Octavo Tribunal Colegiado en Materia Penal del Primer Circuito`.
+- Hidden fields in order: `Circuito` 1, `CircuitoName` PRIMER CIRCUITO, `Organismo` 500, `OrgName` (as above), `TipoOrganismo` 0, `Accion` 0.
+- The same 14 tipos, in the same order, as `expedienteytipo_form_4.html` (a colegiado of another materia).
 
 ## Bundled lists checked against these fixtures
 

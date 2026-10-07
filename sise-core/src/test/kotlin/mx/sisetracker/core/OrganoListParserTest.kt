@@ -79,4 +79,12 @@ class OrganoListParserTest {
     fun `a page without the Organismo select is an error`() {
         assertThrows<SiseParseException> { OrganoListParser.parse("<html><body>Error</body></html>") }
     }
+
+    @Test
+    fun `the device capture keeps the hidden Circuito and CircuitoName`() {
+        val hidden = org.jsoup.Jsoup.parse(Fixtures.load("circuitos_cir1.html"))
+            .select("input[type=hidden]").associate { it.attr("name") to it.attr("value") }
+        assertEquals(mapOf("Circuito" to "1", "CircuitoName" to "PRIMER CIRCUITO"), hidden)
+        assertEquals(hidden["CircuitoName"], list.circuitoName)
+    }
 }

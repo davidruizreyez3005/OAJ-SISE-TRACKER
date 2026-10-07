@@ -10,6 +10,7 @@ class TiposDeAsuntoTest {
         "expedienteytipo_form_4157.html" to OrganoClase.JUZGADO_DISTRITO,
         "expedienteytipo_result_1183-2025.html" to OrganoClase.JUZGADO_DISTRITO,
         "expedienteytipo_form_4.html" to OrganoClase.COLEGIADO_CIRCUITO,
+        "expedienteytipo_form_500.html" to OrganoClase.COLEGIADO_CIRCUITO,
         "expedienteytipo_form_4343.html" to OrganoClase.COLEGIADO_APELACION,
         "expedienteytipo_form_3986.html" to OrganoClase.TRIBUNAL_LABORAL,
         "expedienteytipo_form_930.html" to OrganoClase.CONFLICTOS_LABORALES,

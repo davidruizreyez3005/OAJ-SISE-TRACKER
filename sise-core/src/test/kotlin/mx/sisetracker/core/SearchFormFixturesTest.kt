@@ -25,7 +25,7 @@ class SearchFormFixturesTest {
     )
 
     @ParameterizedTest
-    @ValueSource(strings = ["4157", "4", "4343", "3986", "930", "4386", "6315"])
+    @ValueSource(strings = ["4157", "4", "500", "4343", "3986", "930", "4386", "6315"])
     fun `every fresh form`(organismo: String) {
         val html = Fixtures.load("expedienteytipo_form_$organismo.html")
         val form = SearchFormParser.parse(html)
@@ -128,5 +128,29 @@ class SearchFormFixturesTest {
         assertEquals("", form.expediente)
         assertEquals(15, form.expedienteMaxLength)
         assertNull(CaseUrl.fromSearchResult(html))
+    }
+
+    @Test
+    fun `a form the app loaded keeps its hidden fields, OrgName included`() {
+        val form = form("500")
+        val name = "Octavo Tribunal Colegiado en Materia Penal del Primer Circuito"
+
+        assertEquals(name, form.organoName)
+        assertEquals(
+            listOf(
+                "Circuito" to "1",
+                "CircuitoName" to "PRIMER CIRCUITO",
+                "Organismo" to "500",
+                "OrgName" to name,
+                "TipoOrganismo" to "0",
+                "Accion" to "0",
+            ),
+            form.hiddenFields.toList(),
+        )
+        // Another colegiado de circuito, another materia: the same 14 tipos as órgano 4.
+        assertEquals(
+            form("4").tipoAsuntoOptions.map { it.value to it.label },
+            form.tipoAsuntoOptions.map { it.value to it.label },
+        )
     }
 }
