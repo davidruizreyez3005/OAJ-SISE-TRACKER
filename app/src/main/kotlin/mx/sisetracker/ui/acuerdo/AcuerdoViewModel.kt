@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.sisetracker.container
+import mx.sisetracker.core.ParseLocation
 import mx.sisetracker.core.Resumen
 import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.db.AcuerdoEntity
@@ -30,6 +31,7 @@ data class AcuerdoUiState(
     val organoName: String = "",
     val loadingSintesis: Boolean = false,
     val sintesisError: PortalError? = null,
+    val sintesisErrorLocation: ParseLocation? = null,
 ) {
     /** Whether [text] is the whole síntesis rather than the grid's truncated résumé. */
     val isComplete: Boolean
@@ -38,7 +40,11 @@ data class AcuerdoUiState(
     val text: String get() = acuerdo?.let { it.sintesis ?: it.resumen }.orEmpty()
 }
 
-private data class FetchState(val loading: Boolean = false, val error: PortalError? = null)
+private data class FetchState(
+    val loading: Boolean = false,
+    val error: PortalError? = null,
+    val location: ParseLocation? = null,
+)
 
 /**
  * One acuerdo's síntesis. A truncated résumé is replaced by the full síntesis,
@@ -60,6 +66,7 @@ class AcuerdoViewModel(
                 organoName = case?.organoName.orEmpty(),
                 loadingSintesis = fetch.loading,
                 sintesisError = fetch.error,
+                sintesisErrorLocation = fetch.location,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AcuerdoUiState())
 
@@ -74,7 +81,8 @@ class AcuerdoViewModel(
             if (acuerdo.sintesis != null || !Resumen.isTruncated(acuerdo.resumen)) return@launch
             fetch.value = FetchState(loading = true)
             val result = portalCall { cases.sintesis(neun, orden) }
-            fetch.update { FetchState(error = (result as? PortalResult.Failed)?.error) }
+            val failed = result as? PortalResult.Failed
+            fetch.update { FetchState(error = failed?.error, location = failed?.location) }
         }
     }
 

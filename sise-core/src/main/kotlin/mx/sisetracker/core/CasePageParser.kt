@@ -22,7 +22,7 @@ object CasePageParser {
     fun parse(html: String): CaseLookup {
         val document = Jsoup.parse(html, SiseUrls.CASE_PAGE)
         if (document.getElementById("lblNEUN") == null) {
-            throw SiseParseException("Not a case page: no #lblNEUN")
+            throw parseFailure("Not a case page: no #lblNEUN", PageSection.CASE_PAGE, field = PageField.STRUCTURE)
         }
         val neun = document.textById("lblNEUN")
         if (neun.isEmpty()) return CaseLookup.NotFound
@@ -39,46 +39,54 @@ object CasePageParser {
             noControlOcc = document.textById("lblNoControlOCC"),
             resolucionesCount = resolucionesCount.find(document.textById("lblNumResultado"))
                 ?.groupValues?.get(1)?.toIntOrNull(),
-            acuerdos = parseAcuerdos(document),
-            resoluciones = parseResoluciones(document, neun),
-            asuntosRelacionados = parseAsuntosRelacionados(document),
+            acuerdos = parsingAt(PageSection.ACUERDOS) { parseAcuerdos(document) },
+            resoluciones = parsingAt(PageSection.RESOLUCIONES) { parseResoluciones(document, neun) },
+            asuntosRelacionados = parsingAt(PageSection.ASUNTOS_RELACIONADOS) { parseAsuntosRelacionados(document) },
             captura = parseCaptura(document),
         )
 
     private fun parseAcuerdos(document: Document): List<Acuerdo> {
         val table = document.getElementById("grvAcuerdos") ?: return emptyList()
-        return table.tableRows().mapNotNull { row ->
+        // Header and "no rows" rows aside; rows are numbered as the user sees them.
+        val rows = table.tableRows().filter { it.cells().isNotEmpty() && !it.isEmptyDataRow() }
+        return rows.mapIndexed { index, row ->
+            val n = index + 1
             val cells = row.cells()
-            if (cells.isEmpty() || row.isEmptyDataRow()) return@mapNotNull null // header or "no rows" row
-            if (cells.size < 6) throw SiseParseException("Acuerdos row has ${cells.size} cells, expected 6")
+            if (cells.size < 6) {
+                throw parseFailure("Acuerdos row has ${cells.size} cells, expected 6", PageSection.ACUERDOS, n, PageField.CELL_COUNT)
+            }
             // Only the link carries the arguments: the page also contains the
             // DoVerAcuerdo function definition, which must not be parsed.
             val href = cells[5].selectFirst("a[href^=\"javascript:DoVerAcuerdo\"]")?.attr("href")
-                ?: throw SiseParseException("Acuerdos row without a DoVerAcuerdo link")
+                ?: throw parseFailure("Acuerdos row without a DoVerAcuerdo link", PageSection.ACUERDOS, n, PageField.SINTESIS_LINK)
             Acuerdo(
                 numero = SiseText.normalizeSpace(
                     (cells[0].selectFirst("span[id$=_lblContenido]") ?: cells[0]).text(),
                 ),
-                fechaAuto = SiseDates.parseGrid(cells[1].text()),
+                fechaAuto = parsingAt(PageSection.ACUERDOS, n, PageField.FECHA_AUTO) { SiseDates.parseGrid(cells[1].text()) },
                 tipoCuaderno = SiseText.normalizeSpace(cells[2].text()),
-                fechaPublicacion = SiseDates.parseGridOrNull(cells[3].text()),
+                fechaPublicacion = parsingAt(PageSection.ACUERDOS, n, PageField.FECHA_PUBLICACION) {
+                    SiseDates.parseGridOrNull(cells[3].text())
+                },
                 resumen = cells[4].multilineText(),
-                link = DoVerAcuerdo.parse(href),
+                link = parsingAt(PageSection.ACUERDOS, n, PageField.SINTESIS_LINK) { DoVerAcuerdo.parse(href) },
             )
         }
     }
 
     private fun parseResoluciones(document: Document, caseNeun: String): List<Resolucion> {
         val table = document.getElementById("grvReporteSentencias") ?: return emptyList()
-        return table.tableRows().filter { it.cells().isNotEmpty() && !it.isEmptyDataRow() }.map { row ->
+        val rows = table.tableRows().filter { it.cells().isNotEmpty() && !it.isEmptyDataRow() }
+        return rows.mapIndexed { index, row ->
+            val n = index + 1
             val fecha = row.selectFirst("[id$=_lblFechaIngreso]")
-                ?: throw SiseParseException("Resoluciones row without a fecha de ingreso")
+                ?: throw parseFailure("Resoluciones row without a fecha de ingreso", PageSection.RESOLUCIONES, n, PageField.FECHA_INGRESO)
             Resolucion(
                 neun = row.selectFirst("[id$=_cmdAsuntoNeunid]")
                     ?.let { SiseText.normalizeSpace(it.text()) }
                     ?.takeIf { it.isNotEmpty() }
                     ?: caseNeun,
-                fechaIngreso = SiseDates.parseSpan(fecha.text()),
+                fechaIngreso = parsingAt(PageSection.RESOLUCIONES, n, PageField.FECHA_INGRESO) { SiseDates.parseSpan(fecha.text()) },
                 tema = row.selectFirst("[id$=_lblTema]")?.multilineText().orEmpty(),
                 archivoUrl = row.selectFirst("a[id$=_SentenciasLinkButton]")
                     ?.attr("onclick")
@@ -100,9 +108,9 @@ object CasePageParser {
 
     private fun parseAsuntosRelacionados(document: Document): List<AsuntoRelacionado> {
         val table = document.getElementById("grvAsuntosRelacionados") ?: return emptyList()
-        return table.tableRows().mapNotNull { row ->
+        val rows = table.tableRows().filter { it.cells().isNotEmpty() && !it.isEmptyDataRow() }
+        return rows.withIndex().mapNotNull { (index, row) ->
             val cells = row.cells()
-            if (cells.isEmpty() || row.isEmptyDataRow()) return@mapNotNull null // header or "no rows" row
             // Spans by ID suffix (one of them has a non-ASCII "ú"), falling back
             // to the column.
             fun field(idSuffix: String, column: Int): String {
@@ -117,7 +125,9 @@ object CasePageParser {
                 neun = neun,
                 expediente = field("_lblNúmeroExpediente", 1),
                 organo = field("_lblOrgano", 2),
-                fechaRelacion = SiseDates.parseSpan(field("_lblFechaPresentacion", 3)),
+                fechaRelacion = parsingAt(PageSection.ASUNTOS_RELACIONADOS, index + 1, PageField.FECHA_RELACION) {
+                    SiseDates.parseSpan(field("_lblFechaPresentacion", 3))
+                },
             )
         }
     }

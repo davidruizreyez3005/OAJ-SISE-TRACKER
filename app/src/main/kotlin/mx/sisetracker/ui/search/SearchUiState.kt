@@ -11,6 +11,7 @@ import mx.sisetracker.core.Materia
 import mx.sisetracker.core.OrganoClase
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.OrganoPeriod
+import mx.sisetracker.core.ParseLocation
 import mx.sisetracker.core.SearchText
 import mx.sisetracker.core.TipoProcedimientoRule
 import mx.sisetracker.data.net.PortalError
@@ -56,7 +57,7 @@ sealed interface LookupState {
 
     data object NotFound : LookupState
 
-    data class Failed(val error: PortalError) : LookupState
+    data class Failed(val error: PortalError, val location: ParseLocation? = null) : LookupState
 }
 
 data class SearchUiState(

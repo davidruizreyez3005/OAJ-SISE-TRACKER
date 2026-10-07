@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.sisetracker.container
 import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.ParseLocation
 import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.cases.SaveResult
 import mx.sisetracker.data.net.PortalError
@@ -23,6 +24,7 @@ data class CaptureUiState(
     val saving: Boolean = false,
     val notFound: Boolean = false,
     val error: PortalError? = null,
+    val errorLocation: ParseLocation? = null,
 )
 
 /** Activity-wide state: the save sheet, and the case to open after saving. */
@@ -48,7 +50,7 @@ class AppViewModel(private val cases: CaseRepository) : ViewModel() {
     fun onSaveCaptured() {
         val current = _capture.value ?: return
         if (current.saving) return
-        _capture.value = current.copy(saving = true, notFound = false, error = null)
+        _capture.value = current.copy(saving = true, notFound = false, error = null, errorLocation = null)
         viewModelScope.launch {
             when (val result = portalCall { cases.saveFromUrl(current.url) }) {
                 is PortalResult.Ok -> when (val saved = result.value) {
@@ -58,7 +60,7 @@ class AppViewModel(private val cases: CaseRepository) : ViewModel() {
                     }
                     SaveResult.NotFound -> _capture.update { it?.copy(saving = false, notFound = true) }
                 }
-                is PortalResult.Failed -> _capture.update { it?.copy(saving = false, error = result.error) }
+                is PortalResult.Failed -> _capture.update { it?.copy(saving = false, error = result.error, errorLocation = result.location) }
             }
         }
     }

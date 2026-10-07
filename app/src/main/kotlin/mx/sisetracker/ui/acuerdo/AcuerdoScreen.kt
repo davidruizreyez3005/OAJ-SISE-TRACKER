@@ -35,7 +35,7 @@ import mx.sisetracker.core.SiseDates
 import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.MessageCard
 import mx.sisetracker.ui.components.SiseTopAppBar
-import mx.sisetracker.ui.components.messageRes
+import mx.sisetracker.ui.components.portalErrorText
 
 @Composable
 fun AcuerdoScreen(
@@ -98,7 +98,9 @@ fun AcuerdoScreen(
                 Text(stringResource(R.string.acuerdo_loading), style = MaterialTheme.typography.bodySmall)
             }
             state.sintesisError?.let { error ->
-                MessageCard(text = stringResource(error.messageRes()) + " " + stringResource(R.string.acuerdo_resumen_only)) {
+                MessageCard(
+                    text = portalErrorText(error, state.sintesisErrorLocation) + "\n" + stringResource(R.string.acuerdo_resumen_only),
+                ) {
                     TextButton(onClick = viewModel::loadSintesis) { Text(stringResource(R.string.action_retry)) }
                 }
             }

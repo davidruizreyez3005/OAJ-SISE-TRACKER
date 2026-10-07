@@ -3,6 +3,7 @@ package mx.sisetracker.data.net
 import java.io.IOException
 import javax.net.ssl.SSLException
 import kotlin.coroutines.cancellation.CancellationException
+import mx.sisetracker.core.ParseLocation
 import mx.sisetracker.core.SiseParseException
 
 /** Why a portal request failed, as far as the user needs to know. */
@@ -23,7 +24,8 @@ enum class PortalError {
 sealed interface PortalResult<out T> {
     data class Ok<T>(val value: T) : PortalResult<T>
 
-    data class Failed(val error: PortalError) : PortalResult<Nothing>
+    /** [location] is set for [PortalError.UNEXPECTED_PAGE]: where the page broke, free of case text. */
+    data class Failed(val error: PortalError, val location: ParseLocation? = null) : PortalResult<Nothing>
 }
 
 /** Runs a portal call, mapping its expected failures to [PortalError]. */
@@ -39,5 +41,5 @@ suspend fun <T> portalCall(block: suspend () -> T): PortalResult<T> =
     } catch (e: IOException) {
         PortalResult.Failed(PortalError.NETWORK)
     } catch (e: SiseParseException) {
-        PortalResult.Failed(PortalError.UNEXPECTED_PAGE)
+        PortalResult.Failed(PortalError.UNEXPECTED_PAGE, e.location)
     }

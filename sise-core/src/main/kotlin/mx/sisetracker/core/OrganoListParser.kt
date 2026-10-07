@@ -59,7 +59,7 @@ object OrganoListParser {
     fun parse(html: String): OrganoList {
         val document = Jsoup.parse(html, SiseUrls.circuitos("1"))
         val select = document.selectFirst("select[name=Organismo]")
-            ?: throw SiseParseException("Órgano list has no Organismo select")
+            ?: throw parseFailure("Órgano list has no Organismo select", PageSection.ORGANO_LIST, field = PageField.STRUCTURE)
         val organos = select.dropdownOptions().map { Organo(it.value, it.label, it.position) }
         return OrganoList(document.rowValue("Circuito:"), organos)
     }

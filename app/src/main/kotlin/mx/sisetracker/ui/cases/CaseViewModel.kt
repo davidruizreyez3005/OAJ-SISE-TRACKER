@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.sisetracker.container
+import mx.sisetracker.core.ParseLocation
 import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.cases.RefreshResult
 import mx.sisetracker.data.db.AcuerdoEntity
@@ -31,7 +32,7 @@ sealed interface CaseMessage {
 
     data object NotFoundOnPortal : CaseMessage
 
-    data class Failed(val error: PortalError) : CaseMessage
+    data class Failed(val error: PortalError, val location: ParseLocation? = null) : CaseMessage
 }
 
 data class CaseUiState(
@@ -105,7 +106,7 @@ class CaseViewModel(private val neun: String, private val cases: CaseRepository)
         visit.update { it.copy(refreshing = true) }
         viewModelScope.launch {
             val message = when (val result = portalCall { cases.refresh(neun) }) {
-                is PortalResult.Failed -> CaseMessage.Failed(result.error)
+                is PortalResult.Failed -> CaseMessage.Failed(result.error, result.location)
                 is PortalResult.Ok -> when (val refreshed = result.value) {
                     is RefreshResult.Updated -> {
                         val ordenes = refreshed.newAcuerdos.map { it.orden }

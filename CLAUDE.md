@@ -211,6 +211,15 @@ As built (`data/db` and `data/catalog` in `:app`):
   Indefinido" circuit) is kept and skipped. Estimated at ~1,500 pages:
   about an hour at 2 s, ~30 MB.
 
+- Parse failures say where they broke: `SiseParseException.location`
+  (`ParseLocation`: page section, 1-based data row, field), built from
+  constants and the row number only, never page text. The lookup, refresh,
+  "¿Guardar este expediente?" and síntesis errors append it to "formato
+  inesperado" ("Dónde: Acuerdos, fila 16, fecha de publicación"), so a
+  screenshot from normal use says what to fix. Prefer this over bulk
+  "verification" lookups, which hard rule 3 forbids. New parser checks
+  should throw with a location (`parseFailure`, `parsingAt`).
+
 ## SISE protocol reference
 
 ### TLS

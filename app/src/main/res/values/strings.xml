@@ -140,6 +140,26 @@
     <string name="error_secure_connection">No se pudo verificar la conexión segura con el portal (certificado). Actualiza la app o usa «Abrir en el portal».</string>
     <string name="error_server">El portal no respondió correctamente. Inténtalo más tarde o usa «Abrir en el portal».</string>
     <string name="error_unexpected_page">El portal respondió con un formato inesperado; puede que haya cambiado. Usa «Abrir en el portal».</string>
+    <string name="error_location">Dónde: %1$s</string>
+    <string name="error_location_row">fila %1$d</string>
+    <string name="error_section_case_page">Página del expediente</string>
+    <string name="error_section_acuerdos">Acuerdos</string>
+    <string name="error_section_resoluciones">Resoluciones</string>
+    <string name="error_section_relacionados">Asuntos relacionados</string>
+    <string name="error_section_sintesis">Síntesis</string>
+    <string name="error_section_search_form">Formulario de búsqueda</string>
+    <string name="error_section_organo_list">Lista de órganos</string>
+    <string name="error_field_structure">estructura de la página</string>
+    <string name="error_field_neun">NEUN distinto del guardado</string>
+    <string name="error_field_expediente">expediente distinto del guardado</string>
+    <string name="error_field_cell_count">número de columnas</string>
+    <string name="error_field_fecha_auto">fecha del auto</string>
+    <string name="error_field_fecha_publicacion">fecha de publicación</string>
+    <string name="error_field_sintesis_link">enlace «Ver síntesis completa»</string>
+    <string name="error_field_sintesis_text">texto de la síntesis</string>
+    <string name="error_field_fecha_ingreso">fecha de ingreso</string>
+    <string name="error_field_fecha_relacion">fecha de relación</string>
+    <string name="error_field_tipo_asunto">tipo de asunto</string>
 
     <string name="portal_title">Portal del SISE</string>
     <string name="portal_reload">Recargar</string>

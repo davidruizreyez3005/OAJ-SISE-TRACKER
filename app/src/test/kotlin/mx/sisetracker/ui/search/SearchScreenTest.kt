@@ -86,8 +86,8 @@ class SearchScreenTest {
         compose.onNode(expediente).assertTextContains("1183/2025")
     }
 
-    @Test
-    fun `a lookup shows the case preview`() {
+    /** Picks the recent órgano 767, Amparo Indirecto and 1183/2025, then taps Buscar. */
+    private fun searchFor1183() {
         runBlocking {
             settings.addRecentOrgano(RecentOrgano("767", "Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México", "1"))
         }
@@ -101,6 +101,11 @@ class SearchScreenTest {
         compose.onNodeWithText("Amparo Indirecto").performClick()
         compose.onNode(hasSetTextAction() and hasText("Número de expediente")).performTextInput("1183/2025")
         compose.onNodeWithText("Buscar").performScrollTo().performClick()
+    }
+
+    @Test
+    fun `a lookup shows the case preview`() {
+        searchFor1183()
         compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("28 acuerdos")).fetchSemanticsNodes().isNotEmpty() }
 
         compose.onNodeWithText("Último acuerdo publicado: 01/09/2026").performScrollTo().assertExists()
@@ -108,6 +113,27 @@ class SearchScreenTest {
         assertEquals(1, client.requests.size)
         assertTrue("vercaptura.aspx" in client.requests.single())
         compose.onRoot().saveScreenshot("search_found_light")
+    }
+
+    @Test
+    fun `a page that doesn't parse says where it broke`() {
+        client.onGet = { url ->
+            val html = Fixtures.load(if ("circuitos.asp" in url) Fixtures.ORGANOS_CIR1 else Fixtures.CASE_1183)
+            if ("circuitos.asp" in url) {
+                html
+            } else {
+                // The first acuerdo's fecha del auto in a format the parser doesn't know.
+                val grid = html.indexOf("id=\"grvAcuerdos\"")
+                val date = checkNotNull(Regex(">(\\d{2})-(\\d{2})-(\\d{4})<").find(html, grid))
+                html.replaceRange(date.range, ">${date.groupValues[3]}.${date.groupValues[2]}.${date.groupValues[1]}<")
+            }
+        }
+        searchFor1183()
+        val where = "Dónde: Acuerdos, fila 1, fecha del auto"
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText(where, substring = true)).fetchSemanticsNodes().isNotEmpty() }
+
+        compose.onNodeWithText("formato inesperado", substring = true).performScrollTo().assertExists()
+        compose.onRoot().saveScreenshot("search_unexpected_page_light")
     }
 
     @Test

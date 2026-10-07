@@ -12,6 +12,9 @@ import mx.sisetracker.core.CaseLookup
 import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.core.FtsQuery
+import mx.sisetracker.core.PageField
+import mx.sisetracker.core.PageSection
+import mx.sisetracker.core.ParseLocation
 import mx.sisetracker.core.Resumen
 import mx.sisetracker.core.SintesisPageParser
 import mx.sisetracker.core.SiseParseException
@@ -125,7 +128,10 @@ class CaseRepository(
         return when (val result = lookup.lookup(url)) {
             is CaseLookup.Found -> {
                 if (result.page.neun != neun) {
-                    throw SiseParseException("The case page returned NEUN ${result.page.neun}, expected $neun")
+                    throw SiseParseException(
+                        "The case page returned NEUN ${result.page.neun}, expected $neun",
+                        location = ParseLocation(PageSection.CASE_PAGE, field = PageField.NEUN),
+                    )
                 }
                 RefreshResult.Updated(db.withTransaction { merge(case, url, result.page) })
             }
@@ -152,7 +158,10 @@ class CaseRepository(
         val sintesis = withContext(parsing) { SintesisPageParser.parse(html) }
         val expediente = dao.getCase(neun)?.expediente
         if (sintesis.expediente.isNotEmpty() && expediente != null && sintesis.expediente != expediente) {
-            throw SiseParseException("Síntesis page is for ${sintesis.expediente}, expected $expediente")
+            throw SiseParseException(
+                "Síntesis page is for ${sintesis.expediente}, expected $expediente",
+                location = ParseLocation(PageSection.SINTESIS, field = PageField.EXPEDIENTE),
+            )
         }
         if (sintesis.text.isEmpty()) return acuerdo.resumen
         dao.setSintesis(neun, orden, sintesis.text)

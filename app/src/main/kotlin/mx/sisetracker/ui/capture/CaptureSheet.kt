@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import mx.sisetracker.R
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.ui.CaptureUiState
-import mx.sisetracker.ui.components.messageRes
+import mx.sisetracker.ui.components.portalErrorText
 
 /**
  * "¿Guardar este expediente?": offered for a case seen in the portal WebView,
@@ -67,7 +67,7 @@ fun CaptureSheet(
             }
             state.error?.let { error ->
                 Text(
-                    stringResource(error.messageRes()),
+                    portalErrorText(error, state.errorLocation),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                 )

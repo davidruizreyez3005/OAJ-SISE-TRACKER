@@ -202,7 +202,7 @@ class SearchViewModel(
             settings.setLastCircuito(state.circuito)
             val result = portalCall { lookupRepository.lookup(url) }
             val lookup = when (result) {
-                is PortalResult.Failed -> LookupState.Failed(result.error)
+                is PortalResult.Failed -> LookupState.Failed(result.error, result.location)
                 is PortalResult.Ok -> when (val found = result.value) {
                     is CaseLookup.Found -> LookupState.Found(url, found.page, cases.isSaved(found.page.neun))
                     CaseLookup.NotFound -> LookupState.NotFound

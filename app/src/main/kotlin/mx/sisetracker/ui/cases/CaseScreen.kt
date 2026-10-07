@@ -67,7 +67,7 @@ import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.NewBadge
 import mx.sisetracker.ui.components.SiseTopAppBar
 import mx.sisetracker.ui.theme.LocalBrandColors
-import mx.sisetracker.ui.components.messageRes
+import mx.sisetracker.ui.components.portalErrorText
 import mx.sisetracker.ui.components.openInBrowser
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -213,7 +213,7 @@ private fun messageText(message: CaseMessage): String = when (message) {
         pluralStringResource(R.plurals.case_refreshed_new, message.newCount, message.newCount)
     }
     CaseMessage.NotFoundOnPortal -> stringResource(R.string.case_not_found_on_portal)
-    is CaseMessage.Failed -> stringResource(message.error.messageRes())
+    is CaseMessage.Failed -> portalErrorText(message.error, message.location)
 }
 
 private val checkedFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")

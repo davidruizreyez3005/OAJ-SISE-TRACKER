@@ -14,9 +14,9 @@ object SearchFormParser {
     fun parse(html: String): SearchForm {
         val document = Jsoup.parse(html, SiseUrls.SEARCH_FORM)
         val form = document.selectFirst("form[name=Editar]")
-            ?: throw SiseParseException("Search page has no Editar form")
+            ?: throw parseFailure("Search page has no Editar form", PageSection.SEARCH_FORM, field = PageField.STRUCTURE)
         val tipoAsunto = form.selectFirst("select[name=TipoAsunto]")
-            ?: throw SiseParseException("Search form has no TipoAsunto select")
+            ?: throw parseFailure("Search form has no TipoAsunto select", PageSection.SEARCH_FORM, field = PageField.TIPO_ASUNTO)
         val expediente = form.selectFirst("input[name=Expediente]")
         return SearchForm(
             circuitoName = form.rowValue("Circuito:"),

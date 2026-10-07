@@ -22,11 +22,15 @@ object SintesisPageParser {
     fun parse(html: String): Sintesis {
         val document = Jsoup.parse(html, SiseUrls.VER_ACUERDO)
         val text = document.getElementById("lblAcuerdo")
-            ?: throw SiseParseException("Síntesis page has no #lblAcuerdo")
+            ?: throw parseFailure("Síntesis page has no #lblAcuerdo", PageSection.SINTESIS, field = PageField.SINTESIS_TEXT)
         return Sintesis(
             expediente = document.textById("lblNoExp"),
-            fechaAuto = SiseDates.parseSpan(document.textById("lblFAuto")),
-            fechaPublicacion = SiseDates.parseSpan(document.textById("lblFPublica")),
+            fechaAuto = parsingAt(PageSection.SINTESIS, field = PageField.FECHA_AUTO) {
+                SiseDates.parseSpan(document.textById("lblFAuto"))
+            },
+            fechaPublicacion = parsingAt(PageSection.SINTESIS, field = PageField.FECHA_PUBLICACION) {
+                SiseDates.parseSpan(document.textById("lblFPublica"))
+            },
             text = text.multilineText(),
         )
     }

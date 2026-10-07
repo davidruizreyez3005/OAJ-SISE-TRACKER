@@ -71,6 +71,7 @@ import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.MessageCard
 import mx.sisetracker.ui.components.SiseTopAppBar
 import mx.sisetracker.ui.components.messageRes
+import mx.sisetracker.ui.components.portalErrorText
 
 @Composable
 fun SearchScreen(
@@ -638,7 +639,7 @@ private fun LookupResult(
         } else {
             MessageCard(text = stringResource(R.string.search_not_found))
         }
-        is LookupState.Failed -> MessageCard(text = stringResource(lookup.error.messageRes())) {
+        is LookupState.Failed -> MessageCard(text = portalErrorText(lookup.error, lookup.location)) {
             TextButton(onClick = onOpenPortal) { Text(stringResource(R.string.search_open_portal)) }
         }
     }
