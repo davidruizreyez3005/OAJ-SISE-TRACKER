@@ -176,11 +176,11 @@
     <string name="settings_capture_saved">Guardado en Descargas: %1$s</string>
     <string name="settings_capture_save_failed">No se pudo guardar el archivo.</string>
     <string name="settings_crawl">Recorrer todos los circuitos</string>
-    <string name="settings_crawl_help">Descarga los catálogos de los 32 circuitos (órganos, tipos de asunto y de procedimiento) y los guarda en las capturas. Nunca consulta expedientes. Va despacio: una página cada 10 segundos, solo con Wi-Fi, y continúa donde se quedó.</string>
+    <string name="settings_crawl_help">Descarga los catálogos de los 32 circuitos (órganos, tipos de asunto y de procedimiento) y los guarda en las capturas. Nunca consulta expedientes. Una página cada 2 segundos, con Wi-Fi o datos móviles, y continúa donde se quedó.</string>
     <string name="settings_crawl_confirm_title">¿Recorrer todos los circuitos?</string>
-    <string name="settings_crawl_confirm_text">Son alrededor de 1,500 páginas del portal, una cada 10 segundos: varias horas. Corre en segundo plano solo con Wi-Fi y batería suficiente, y puedes detenerlo cuando quieras. Al terminar, guarda o comparte las capturas.</string>
+    <string name="settings_crawl_confirm_text">Son alrededor de 1,500 páginas del portal, una cada 2 segundos: cerca de una hora, y unos 30 MB si usas datos móviles. Corre en segundo plano y puedes detenerlo cuando quieras. Al terminar, guarda o comparte las capturas.</string>
     <string name="settings_crawl_start">Iniciar</string>
-    <string name="crawl_status_queued">En espera de Wi-Fi y batería suficiente…</string>
+    <string name="crawl_status_queued">En espera de conexión…</string>
     <string name="crawl_status_running">Recorriendo: %1$s</string>
     <string name="crawl_status_retry">En pausa por un error; reintentará solo. %1$s</string>
     <string name="crawl_status_finished">Recorrido completo.</string>

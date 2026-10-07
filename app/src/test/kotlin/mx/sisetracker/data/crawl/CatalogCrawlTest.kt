@@ -66,7 +66,7 @@ class CatalogCrawlTest {
     )
 
     @Test
-    fun `walks every catalog page once, pausing 10 s after each request, and never a case page`() = runTest {
+    fun `walks every catalog page once, pausing 2 s after each request, and never a case page`() = runTest {
         settings.setCrawlEnabled(true)
 
         val outcome = crawl().run(budgetMillis = Long.MAX_VALUE / 2)
@@ -86,7 +86,7 @@ class CatalogCrawlTest {
     fun `a run that runs out of time resumes where it left off`() = runTest {
         settings.setCrawlEnabled(true)
 
-        assertEquals(CatalogCrawl.Outcome.OutOfTime, crawl().run(budgetMillis = 100_000))
+        assertEquals(CatalogCrawl.Outcome.OutOfTime, crawl().run(budgetMillis = 20_000))
         assertEquals(10, client.requests.size)
 
         assertEquals(CatalogCrawl.Outcome.Finished, crawl().run(budgetMillis = Long.MAX_VALUE / 2))

@@ -13,6 +13,7 @@ import mx.sisetracker.core.TipoProcedimientoRule
 import mx.sisetracker.data.capture.CaptureStore
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.net.PortalError
+import mx.sisetracker.data.net.PoliteRequestQueue
 import mx.sisetracker.data.net.PortalResult
 import mx.sisetracker.data.net.portalCall
 import mx.sisetracker.data.settings.CrawlStatus
@@ -25,8 +26,9 @@ import mx.sisetracker.data.settings.SettingsStore
  * (step D), saving each page to the [CaptureStore]. Catalog pages only:
  * never case pages or síntesis (hard rule 6).
  *
- * Slow on purpose: at least [INTERVAL_MILLIS] after each request, on top of
- * the shared request queue's 2 s. The saved pages are the progress: a page
+ * Paced like everything else in the app: [INTERVAL_MILLIS] (2 s) after each
+ * request ends, the shared request queue's minimum, and one request at a
+ * time with whatever the user is doing. The saved pages are the progress: a page
  * already saved is read from the store instead of requested, so a run can
  * stop at any point (time budget, the user turning it off, an error) and the
  * next one resumes where it left off, and nothing is ever fetched twice.
@@ -126,7 +128,7 @@ class CatalogCrawl(
     }
 
     companion object {
-        /** Pause after each request: five times the app's 2 s minimum. */
-        const val INTERVAL_MILLIS = 10_000L
+        /** Pause after each request: the app's 2 s minimum (the user chose it over 10 s, October 2026). */
+        const val INTERVAL_MILLIS = PoliteRequestQueue.MIN_INTERVAL_MILLIS
     }
 }

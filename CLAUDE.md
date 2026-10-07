@@ -52,9 +52,10 @@ milestone per PR.
      catalog crawl (Ajustes → "Recorrer todos los circuitos", asked for by
      the user in October 2026 because fields vary per órgano). It is
      user-started and stoppable, off by default, catalog pages only (steps
-     B–D, never case pages or síntesis), at least 10 s between requests,
-     Wi-Fi and battery-not-low only, and never fetches a page it already
-     saved (see `CatalogCrawl`). Don't speed it up or extend it to cases.
+     B–D, never case pages or síntesis), one request at a time at the
+     app's 2 s minimum (the user chose 2 s over 10 s, and any connection,
+     including mobile data), and never fetches a page it already saved
+     (see `CatalogCrawl`). Don't go below 2 s or extend it to cases.
    - The portal host has **no robots.txt** (`/robots.txt` is a 404, checked
      October 2026; an earlier version of this file wrongly said it
      disallowed crawling). The limits above are about server load and
@@ -197,12 +198,12 @@ As built (`data/db` and `data/catalog` in `:app`):
   progress: a page already saved is parsed from the store, not requested,
   so runs resume where they stopped and never fetch a page twice (deleting
   the captures starts it over). `CatalogCrawlWorker` runs it in 8-minute
-  chunks (WorkManager's 10-minute limit), each queueing the next, on Wi-Fi
-  with battery not low; a failed request ends the chunk and retries with
+  chunks (WorkManager's 10-minute limit), each queueing the next, with any
+  network connection and no battery requirement; a failed request ends the chunk and retries with
   exponential backoff, and after 6 failed runs in a row the crawl turns
   itself off and says why. A page that doesn't parse (e.g. a "Nombre
-  Indefinido" circuit) is kept and skipped. Estimated at ~1,500 pages,
-  several hours.
+  Indefinido" circuit) is kept and skipped. Estimated at ~1,500 pages:
+  about an hour at 2 s, ~30 MB.
 
 ## SISE protocol reference
 

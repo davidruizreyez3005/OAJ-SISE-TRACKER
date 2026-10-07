@@ -232,11 +232,11 @@ class CaseScreensTest {
         compose.onNodeWithText("Actualizar catálogos").performClick()
         waitForText("Catálogos borrados. Se cargarán de nuevo al usarlos.")
 
-        // The crawl starts only after confirming, and only queues work (Wi-Fi, battery).
+        // The crawl starts only after confirming, and only queues work (it waits for a connection).
         compose.onNodeWithText("Recorrer todos los circuitos").performScrollTo().performClick()
         waitForText("¿Recorrer todos los circuitos?")
         compose.onNodeWithText("Iniciar").performClick()
-        waitForText("En espera de Wi-Fi y batería suficiente…")
+        waitForText("En espera de conexión…")
         val work = androidx.work.WorkManager.getInstance(context)
             .getWorkInfosForUniqueWork(mx.sisetracker.data.crawl.CatalogCrawlScheduler.WORK_NAME).get()
         assertEquals(1, work.size)

@@ -16,9 +16,10 @@ import mx.sisetracker.data.settings.CrawlStatus
 
 /**
  * Runs the [CatalogCrawl] in chunks of [RUN_BUDGET_MILLIS] (WorkManager stops
- * a worker after 10 minutes), each one queueing the next. Wi-Fi only, and not
- * on low battery. Failed requests retry with exponential backoff; after
- * [MAX_ATTEMPTS] failed runs in a row the crawl stops and says why.
+ * a worker after 10 minutes), each one queueing the next, with any network
+ * connection (Wi-Fi or mobile data) and whatever the battery level. Failed
+ * requests retry with exponential backoff; after [MAX_ATTEMPTS] failed runs
+ * in a row the crawl stops and says why.
  */
 class CatalogCrawlWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
@@ -72,8 +73,7 @@ class CatalogCrawlScheduler(private val workManager: () -> WorkManager) {
         val request = OneTimeWorkRequestBuilder<CatalogCrawlWorker>()
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.UNMETERED)
-                    .setRequiresBatteryNotLow(true)
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build(),
             )
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.MINUTES)
