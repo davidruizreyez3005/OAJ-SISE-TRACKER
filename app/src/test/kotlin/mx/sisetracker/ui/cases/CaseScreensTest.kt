@@ -1,6 +1,8 @@
 package mx.sisetracker.ui.cases
 
+import android.content.ClipboardManager
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -40,6 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -119,6 +122,35 @@ class CaseScreensTest {
         compose.onNodeWithText("Acuerdos (28)").assertExists()
         compose.waitUntil(5_000) { runBlocking { repository.unseenOrdenes(neun).isEmpty() } }
         compose.onRoot().saveScreenshot("case_acuerdos_light")
+        assertEquals(0, client.requests.size)
+    }
+
+    @Test
+    fun `the case menu copies its direct portal link`() {
+        runBlocking { repository.save(url, page) }
+        val viewModel = CaseViewModel(neun, repository)
+        compose.setContent {
+            SiseTrackerTheme {
+                CaseScreen(onBack = {}, onOpenAcuerdo = {}, onSearchRelated = {}, onOpenCase = {}, viewModel = viewModel)
+            }
+        }
+        waitForText("No. 28")
+
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+        compose.onNodeWithText("Copiar enlace del portal").performClick()
+
+        val clipboard = RuntimeEnvironment.getApplication().getSystemService(ClipboardManager::class.java)
+        compose.waitUntil(5_000) { clipboard.primaryClip != null }
+        val copied = checkNotNull(clipboard.primaryClip).getItemAt(0).text.toString()
+        assertEquals(
+            "https://www.dgej.cjf.gob.mx/siseinternet/reportes/vercaptura.aspx" +
+                "?tipoasunto=1&organismo=767&expediente=1183/2025&tipoprocedimiento=0",
+            copied,
+        )
+        // It pastes back into the app as the same case.
+        assertEquals(url, CaseUrl.findIn(copied))
+        // Android 13+ confirms the copy itself: no second confirmation from the app.
+        compose.onNodeWithText("Enlace copiado").assertDoesNotExist()
         assertEquals(0, client.requests.size)
     }
 

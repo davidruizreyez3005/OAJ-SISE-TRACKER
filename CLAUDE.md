@@ -480,6 +480,16 @@ as windows-1252, because
   match the órgano name and the tipo de asunto (the part after the last
   `" - "`) exactly, it pre-fills those too, and the user only taps Buscar.
 
+**Ways out:**
+- "Copiar enlace del portal" (a saved case's menu, next to "Ver en el
+  portal") and "Copiar enlace" (the search result card, before saving)
+  copy the case's direct `vercaptura.aspx` URL: the stored `caseUrl`, or
+  the lookup's. Only the URL, never case text (hard rule 6). It opens the
+  case in any browser with no captcha (a public GET), and pasting or
+  sharing it back into the app finds the same case. Copying makes no
+  request. Android 13+ confirms every copy itself, so the app shows
+  "Enlace copiado" only on Android 12L and lower (`rememberCopyPortalLink`).
+
 ### Case page (ASP.NET WebForms, UTF-8): public GET, no cookies needed
 
 `GET https://www.dgej.cjf.gob.mx/siseinternet/reportes/vercaptura.aspx?tipoasunto={t}&organismo={o}&expediente={n/yyyy}&tipoprocedimiento={p}`

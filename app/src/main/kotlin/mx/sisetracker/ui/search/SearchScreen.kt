@@ -72,6 +72,7 @@ import mx.sisetracker.ui.components.MessageCard
 import mx.sisetracker.ui.components.SiseTopAppBar
 import mx.sisetracker.ui.components.messageRes
 import mx.sisetracker.ui.components.portalErrorText
+import mx.sisetracker.ui.components.rememberCopyPortalLink
 
 @Composable
 fun SearchScreen(
@@ -89,6 +90,7 @@ fun SearchScreen(
         }
     }
     val snackbarHostState = remember { SnackbarHostState() }
+    val copyPortalLink = rememberCopyPortalLink(snackbarHostState)
     val scope = rememberCoroutineScope()
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
@@ -227,6 +229,7 @@ fun SearchScreen(
                 onSave = viewModel::onSave,
                 onOpenSaved = viewModel::onOpenSaved,
                 onOpenPortal = openPortal,
+                onCopyLink = copyPortalLink,
                 offerPortalWhenNotFound = state.showsProcedimiento,
             )
         }
@@ -620,6 +623,7 @@ private fun LookupResult(
     onSave: () -> Unit,
     onOpenSaved: () -> Unit,
     onOpenPortal: () -> Unit,
+    onCopyLink: (url: String) -> Unit,
     offerPortalWhenNotFound: Boolean,
 ) {
     when (lookup) {
@@ -630,6 +634,7 @@ private fun LookupResult(
             saving = saving,
             onSave = onSave,
             onOpenSaved = onOpenSaved,
+            onCopyLink = { onCopyLink(lookup.url.toUrl()) },
         )
         // For procedimiento tipos the case URL's tipoprocedimiento is a guess: offer the portal too.
         LookupState.NotFound -> if (offerPortalWhenNotFound) {
@@ -645,6 +650,7 @@ private fun LookupResult(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CasePreview(
     page: CasePage,
@@ -652,6 +658,7 @@ private fun CasePreview(
     saving: Boolean,
     onSave: () -> Unit,
     onOpenSaved: () -> Unit,
+    onCopyLink: () -> Unit,
 ) {
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -687,11 +694,15 @@ private fun CasePreview(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp),
                 )
-                Button(onClick = onOpenSaved) { Text(stringResource(R.string.action_open)) }
-            } else {
-                Button(onClick = onSave, enabled = !saving, modifier = Modifier.padding(top = 8.dp)) {
-                    Text(stringResource(R.string.action_save))
+            }
+            // Wraps at large font sizes instead of squeezing the buttons.
+            FlowRow(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (alreadySaved) {
+                    Button(onClick = onOpenSaved) { Text(stringResource(R.string.action_open)) }
+                } else {
+                    Button(onClick = onSave, enabled = !saving) { Text(stringResource(R.string.action_save)) }
                 }
+                TextButton(onClick = onCopyLink) { Text(stringResource(R.string.preview_copy_link)) }
             }
         }
     }

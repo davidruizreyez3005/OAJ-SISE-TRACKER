@@ -1,5 +1,6 @@
 package mx.sisetracker.ui.search
 
+import android.content.ClipboardManager
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
@@ -11,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import kotlinx.coroutines.runBlocking
+import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.settings.RecentOrgano
@@ -28,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -113,6 +116,22 @@ class SearchScreenTest {
         assertEquals(1, client.requests.size)
         assertTrue("vercaptura.aspx" in client.requests.single())
         compose.onRoot().saveScreenshot("search_found_light")
+    }
+
+    @Test
+    fun `a found case's direct link can be copied without saving it`() {
+        searchFor1183()
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("28 acuerdos")).fetchSemanticsNodes().isNotEmpty() }
+
+        compose.onNodeWithText("Copiar enlace").performScrollTo().performClick()
+
+        val clipboard = RuntimeEnvironment.getApplication().getSystemService(ClipboardManager::class.java)
+        compose.waitUntil(TIMEOUT) { clipboard.primaryClip != null }
+        val copied = checkNotNull(clipboard.primaryClip).getItemAt(0).text.toString()
+        assertEquals(CaseUrl("1", "767", "1183/2025", "0"), CaseUrl.parse(copied))
+        // Copying is local: still just the one request, the case page.
+        assertEquals(1, client.requests.size)
+        compose.onRoot().saveScreenshot("search_found_copy_light")
     }
 
     @Test

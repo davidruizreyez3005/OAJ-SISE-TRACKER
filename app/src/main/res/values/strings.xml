@@ -93,10 +93,14 @@
     </plurals>
     <string name="preview_latest_acuerdo">Último acuerdo publicado: %1$s</string>
     <string name="preview_already_saved">Ya guardaste este expediente.</string>
+    <string name="preview_copy_link">Copiar enlace</string>
+    <string name="portal_link_clip_label">Enlace del expediente en el SISE</string>
+    <string name="portal_link_copied">Enlace copiado</string>
 
     <string name="case_refresh">Actualizar</string>
     <string name="case_more">Más opciones</string>
     <string name="case_open_portal">Ver en el portal</string>
+    <string name="case_copy_portal_link">Copiar enlace del portal</string>
     <string name="case_delete">Eliminar expediente</string>
     <string name="case_delete_title">¿Eliminar este expediente?</string>
     <string name="case_delete_body">Se borrarán de este dispositivo sus acuerdos y síntesis guardados.</string>

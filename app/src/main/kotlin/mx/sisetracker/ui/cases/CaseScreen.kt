@@ -66,9 +66,10 @@ import mx.sisetracker.data.db.ResolucionEntity
 import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.NewBadge
 import mx.sisetracker.ui.components.SiseTopAppBar
-import mx.sisetracker.ui.theme.LocalBrandColors
-import mx.sisetracker.ui.components.portalErrorText
 import mx.sisetracker.ui.components.openInBrowser
+import mx.sisetracker.ui.components.portalErrorText
+import mx.sisetracker.ui.components.rememberCopyPortalLink
+import mx.sisetracker.ui.theme.LocalBrandColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +82,7 @@ fun CaseScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val copyPortalLink = rememberCopyPortalLink(snackbarHostState)
     val context = LocalContext.current
     val toolbarColor = LocalBrandColors.current.topBar.toArgb()
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -117,6 +119,13 @@ fun CaseScreen(
                                 onClick = {
                                     menuOpen = false
                                     state.case?.let { context.openInBrowser(it.caseUrl, toolbarColor) }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.case_copy_portal_link)) },
+                                onClick = {
+                                    menuOpen = false
+                                    state.case?.let { copyPortalLink(it.caseUrl) }
                                 },
                             )
                             DropdownMenuItem(
