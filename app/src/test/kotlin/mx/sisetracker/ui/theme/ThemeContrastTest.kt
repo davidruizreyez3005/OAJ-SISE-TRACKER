@@ -15,6 +15,16 @@ class ThemeContrastTest {
     @Test
     fun `dark scheme meets WCAG AA for body text`() = assertAa(DarkColors)
 
+    @Test
+    fun `text on the guinda header bands meets WCAG AA`() {
+        val failures = listOf(LightBrand, DarkBrand).flatMap { brand ->
+            listOf(brand.topBar, brand.topBarDeep).flatMap { band ->
+                listOf(brand.onTopBar, brand.onTopBarVariant, brand.goldOnTopBar).map { text -> contrast(band, text) }
+            }
+        }.filter { it < 4.5 }
+        assertTrue("Below 4.5:1: $failures", failures.isEmpty())
+    }
+
     private fun assertAa(scheme: ColorScheme) {
         val pairs = with(scheme) {
             mapOf(

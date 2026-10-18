@@ -1,11 +1,16 @@
 package mx.sisetracker.ui.search
 
 import android.content.ClipboardManager
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -163,16 +168,73 @@ class SearchScreenTest {
         // The menu shows each circuit's ordinal and state on two lines.
         compose.onNodeWithText("Ciudad de México").assertExists()
         compose.onNodeWithText("Primer Circuito").performClick()
-        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Tribunales")).fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithText("Tribunales").performClick()
-        compose.onNodeWithText("Colegiados de Circuito").performClick()
-        compose.onNodeWithText("Penal").performClick()
-        compose.onNodeWithText("10 órganos coinciden", substring = true).assertExists()
-        compose.onNode(hasSetTextAction() and hasText("Órgano")).performTextInput("segundo colegiado penal")
+        // The circuit's bundled list is there at once.
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("184 órganos en este circuito")).fetchSemanticsNodes().isNotEmpty() }
 
-        compose.onNodeWithText("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito").assertExists()
+        compose.onNodeWithText("Órgano").performClick()
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Elige el órgano")).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Tribunales").performClick()
+        compose.onNodeWithText("Colegiados de Circuito").performScrollTo().performClick()
+        compose.onNodeWithText("Penal").performScrollTo().performClick()
+        compose.onNodeWithText("10 órganos coinciden").assertExists()
+        compose.onNode(hasSetTextAction() and hasText("Nombre o número de organismo")).performTextInput("segundo colegiado penal")
+        compose.onAllNodes(isRoot()).onLast().saveScreenshot("search_organos_light")
+
+        compose.onNodeWithText("Segundo Tribunal Colegiado en Materia Penal del Primer Circuito").performClick()
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Elige el órgano")).fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithText("Tribunal Colegiado de Circuito · Penal").assertExists()
+        // Only the circuit's background refresh: the lists themselves are bundled.
         assertEquals(1, client.requests.size)
-        compose.onRoot().saveScreenshot("search_organos_light")
+    }
+
+    @Test
+    fun `with no circuit the picker lists every circuit's organos, and picking one fills the circuit`() {
+        setContent()
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("949 órganos en todos los circuitos")).fetchSemanticsNodes().isNotEmpty() }
+
+        compose.onNodeWithText("Órgano").performClick()
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Elige el órgano")).fetchSemanticsNodes().isNotEmpty() }
+        // Grouped under each circuit's header.
+        compose.onNodeWithText("Primer Circuito · Ciudad de México").assertExists()
+        compose.onAllNodes(isRoot()).onLast().saveScreenshot("search_picker_all_light")
+        compose.onNode(hasSetTextAction() and hasText("Nombre o número de organismo")).performTextInput("767")
+        compose.onNodeWithText("Juzgado Sexto de Distrito en Materia Penal en la Ciudad de México").performClick()
+
+        compose.waitUntil(TIMEOUT) { compose.onAllNodes(hasText("Primer Circuito Ciudad de México")).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Juzgado de Distrito · Penal").assertExists()
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `the picker lists a circuit's organos by kind, with the filters`() {
+        val organos = checkNotNull(BundledOrganos.byCircuit["1"])
+        val state = SearchUiState(
+            circuito = "1",
+            organos = Loadable.Loaded(organos),
+            organo = organos.single { it.id == "18" },
+            kindFilter = mx.sisetracker.core.OrganoKind.TRIBUNALES,
+        )
+        compose.setContent {
+            SiseTrackerTheme {
+                Surface {
+                    OrganoPicker(
+                        state = state,
+                        onQueryChange = {},
+                        onKind = {},
+                        onClase = {},
+                        onMateria = {},
+                        onShowClosed = {},
+                        onSelect = {},
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
+
+        compose.onNodeWithText("Elige el órgano").assertExists()
+        compose.onNodeWithText("Primer Circuito · Ciudad de México").assertExists()
+        compose.onNodeWithText("92 órganos coinciden").assertExists()
+        compose.onRoot().saveScreenshot("search_picker_circuit_light")
     }
 
     @Test

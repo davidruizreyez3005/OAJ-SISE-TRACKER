@@ -1,38 +1,58 @@
 package mx.sisetracker.ui.search
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,11 +61,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -57,22 +78,27 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.launch
 import mx.sisetracker.R
 import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.core.Circuito
 import mx.sisetracker.core.FormOption
-import mx.sisetracker.core.Materia
-import mx.sisetracker.core.OrganoClase
-import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SiseDates
 import mx.sisetracker.ui.components.BackButton
+import mx.sisetracker.ui.components.InfoChip
 import mx.sisetracker.ui.components.MessageCard
+import mx.sisetracker.ui.components.MessageTone
+import mx.sisetracker.ui.components.SectionCard
+import mx.sisetracker.ui.components.SiseMotion
 import mx.sisetracker.ui.components.SiseTopAppBar
+import mx.sisetracker.ui.components.icon
 import mx.sisetracker.ui.components.messageRes
 import mx.sisetracker.ui.components.portalErrorText
 import mx.sisetracker.ui.components.rememberCopyPortalLink
+import mx.sisetracker.ui.components.rememberPasteCaseLink
+import mx.sisetracker.ui.components.siseCardBorder
+import mx.sisetracker.ui.components.siseCardColors
+import mx.sisetracker.ui.theme.LocalBrandColors
 
 @Composable
 fun SearchScreen(
@@ -91,20 +117,9 @@ fun SearchScreen(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val copyPortalLink = rememberCopyPortalLink(snackbarHostState)
-    val scope = rememberCoroutineScope()
-    val clipboard = LocalClipboard.current
-    val context = LocalContext.current
-    val noLinkMessage = stringResource(R.string.search_paste_no_link)
-
-    val pasteLink: () -> Unit = {
-        scope.launch {
-            val clip = clipboard.getClipEntry()?.clipData
-            val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
-            val url = text?.let(CaseUrl::findIn)
-            if (url != null) onCaseLinkFound(url) else snackbarHostState.showSnackbar(noLinkMessage)
-        }
-    }
+    val pasteLink = rememberPasteCaseLink(snackbarHostState, onCaseLinkFound)
     val openPortal: () -> Unit = { viewModel.onOpenPortal()?.let(onOpenPortal) }
+    var pickingOrgano by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -131,126 +146,173 @@ fun SearchScreen(
                 .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            CircuitoField(
-                circuitos = state.circuitos,
-                selectedLabel = state.circuitoLabel,
-                onSelect = viewModel::onCircuitoSelected,
-            )
-
-            if (state.showsKindFilter) {
-                OrganoFilters(
+            SectionCard(
+                title = stringResource(R.string.search_section_organo),
+                icon = painterResource(R.drawable.ic_account_balance),
+                step = stringResource(R.string.search_step, 1),
+            ) {
+                CircuitoField(
+                    circuitos = state.circuitos,
+                    selected = state.circuito,
+                    selectedLabel = state.circuitoLabel,
+                    onSelect = viewModel::onCircuitoSelected,
+                    onSelectAll = viewModel::onCircuitoCleared,
+                )
+                OrganoField(
                     state = state,
-                    onKind = viewModel::onKindFilterChange,
-                    onClase = viewModel::onClaseFilterChange,
-                    onMateria = viewModel::onMateriaFilterChange,
-                    onShowClosed = viewModel::onShowClosedChange,
+                    onClick = {
+                        viewModel.onOrganosRequested()
+                        pickingOrgano = true
+                    },
                 )
-            }
-
-            OrganoField(
-                text = state.organoText,
-                organo = state.organo,
-                organos = state.organos,
-                suggestions = state.organoSuggestions,
-                filtering = state.showsKindFilter,
-                onOpen = viewModel::onOrganosRequested,
-                onTextChange = viewModel::onOrganoTextChange,
-                onSelect = viewModel::onOrganoSelected,
-            )
-
-            if (state.organo?.isClosed() == true) ClosedChip()
-
-            if (state.knownOrganos.isNotEmpty()) {
-                RecentOrganos(organos = state.knownOrganos, onSelect = viewModel::onOrganoSelected)
-            }
-
-            OptionField(
-                label = stringResource(R.string.search_tipo_asunto),
-                options = state.tiposAsunto,
-                selected = state.tipoAsunto,
-                enabled = state.canLoadTipos,
-                disabledHelp = stringResource(R.string.search_tipo_asunto_disabled),
-                emptyHelp = stringResource(R.string.search_tipo_asunto_empty),
-                busyHelp = if (state.checkingOrganoTipos) stringResource(R.string.search_tipos_checking) else null,
-                onOpen = viewModel::onTiposAsuntoRequested,
-                onSelect = viewModel::onTipoAsuntoSelected,
-            )
-            if (state.canLoadOrganoTipos) {
-                TextButton(onClick = viewModel::onLoadOrganoTipos) {
-                    Text(stringResource(R.string.search_tipos_del_organo))
+                if (state.knownOrganos.isNotEmpty()) {
+                    RecentOrganos(organos = state.knownOrganos, onSelect = viewModel::onOrganoSelected)
                 }
             }
 
-            if (state.showsProcedimiento) {
+            SectionCard(
+                title = stringResource(R.string.search_section_asunto),
+                icon = painterResource(R.drawable.ic_folder),
+                step = stringResource(R.string.search_step, 2),
+            ) {
                 OptionField(
-                    label = stringResource(R.string.search_tipo_procedimiento),
-                    options = state.tiposProcedimiento,
-                    selected = state.tipoProcedimiento,
-                    enabled = true,
-                    disabledHelp = "",
-                    emptyHelp = stringResource(R.string.search_tipo_procedimiento_empty),
-                    onOpen = viewModel::onTiposProcedimientoRequested,
-                    onSelect = viewModel::onTipoProcedimientoSelected,
+                    label = stringResource(R.string.search_tipo_asunto),
+                    icon = painterResource(R.drawable.ic_folder),
+                    options = state.tiposAsunto,
+                    selected = state.tipoAsunto,
+                    enabled = state.canLoadTipos,
+                    disabledHelp = stringResource(R.string.search_tipo_asunto_disabled),
+                    emptyHelp = stringResource(R.string.search_tipo_asunto_empty),
+                    busyHelp = if (state.checkingOrganoTipos) stringResource(R.string.search_tipos_checking) else null,
+                    onOpen = viewModel::onTiposAsuntoRequested,
+                    onSelect = viewModel::onTipoAsuntoSelected,
                 )
-            }
-
-            ExpedienteField(
-                value = state.expediente,
-                warning = state.expedienteWarning,
-                onValueChange = viewModel::onExpedienteChange,
-                onSearch = viewModel::onSearch,
-            )
-
-            Button(
-                onClick = viewModel::onSearch,
-                enabled = state.canSearch,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (state.lookup == LookupState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                } else {
-                    Text(stringResource(R.string.search_button))
+                if (state.canLoadOrganoTipos) {
+                    TextButton(onClick = viewModel::onLoadOrganoTipos) {
+                        Text(stringResource(R.string.search_tipos_del_organo))
+                    }
+                }
+                AnimatedVisibility(
+                    visible = state.showsProcedimiento,
+                    enter = fadeIn(SiseMotion.spec()) + expandVertically(SiseMotion.spec()),
+                    exit = fadeOut(SiseMotion.spec()) + shrinkVertically(SiseMotion.spec()),
+                ) {
+                    OptionField(
+                        label = stringResource(R.string.search_tipo_procedimiento),
+                        icon = painterResource(R.drawable.ic_description),
+                        options = state.tiposProcedimiento,
+                        selected = state.tipoProcedimiento,
+                        enabled = true,
+                        disabledHelp = "",
+                        emptyHelp = stringResource(R.string.search_tipo_procedimiento_empty),
+                        onOpen = viewModel::onTiposProcedimientoRequested,
+                        onSelect = viewModel::onTipoProcedimientoSelected,
+                    )
                 }
             }
 
-            OutlinedButton(
-                onClick = openPortal,
-                enabled = state.canOpenPortal,
-                modifier = Modifier.fillMaxWidth(),
+            SectionCard(
+                title = stringResource(R.string.search_section_expediente),
+                icon = painterResource(R.drawable.ic_tag),
+                step = stringResource(R.string.search_step, 3),
             ) {
-                Text(stringResource(R.string.search_open_portal))
+                ExpedienteField(
+                    value = state.expediente,
+                    warning = state.expedienteWarning,
+                    onValueChange = viewModel::onExpedienteChange,
+                    onSearch = viewModel::onSearch,
+                )
+                Button(
+                    onClick = viewModel::onSearch,
+                    enabled = state.canSearch,
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                ) {
+                    if (state.lookup == LookupState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    } else {
+                        Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Text(stringResource(R.string.search_button), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                TextButton(
+                    onClick = openPortal,
+                    enabled = state.canOpenPortal,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                ) {
+                    Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.search_open_portal), modifier = Modifier.padding(start = 8.dp))
+                }
             }
 
-            LookupResult(
-                lookup = state.lookup,
-                saving = state.saving,
-                onSave = viewModel::onSave,
-                onOpenSaved = viewModel::onOpenSaved,
-                onOpenPortal = openPortal,
-                onCopyLink = copyPortalLink,
-                offerPortalWhenNotFound = state.showsProcedimiento,
-            )
+            AnimatedContent(
+                targetState = state.lookup,
+                contentKey = { it::class },
+                transitionSpec = {
+                    (fadeIn(SiseMotion.spec()) + slideInVertically(SiseMotion.spec()) { it / 6 }) togetherWith
+                        fadeOut(SiseMotion.spec()) using SizeTransform(clip = false)
+                },
+                label = "lookup",
+            ) { lookup ->
+                LookupResult(
+                    lookup = lookup,
+                    saving = state.saving,
+                    onSave = viewModel::onSave,
+                    onOpenSaved = viewModel::onOpenSaved,
+                    onOpenPortal = openPortal,
+                    onCopyLink = copyPortalLink,
+                    offerPortalWhenNotFound = state.showsProcedimiento,
+                )
+            }
         }
+    }
+
+    if (pickingOrgano) {
+        OrganoPickerSheet(
+            state = state,
+            onQueryChange = viewModel::onOrganoQueryChange,
+            onKind = viewModel::onKindFilterChange,
+            onClase = viewModel::onClaseFilterChange,
+            onMateria = viewModel::onMateriaFilterChange,
+            onShowClosed = viewModel::onShowClosedChange,
+            onSelect = { organo ->
+                viewModel.onOrganoSelected(organo)
+                pickingOrgano = false
+            },
+            onDismiss = { pickingOrgano = false },
+        )
     }
 }
 
-/** The OAJ's circuit list, bundled with the app: choosing one makes no request until its órganos are needed. */
+/**
+ * The OAJ's circuit list, bundled with the app, after "Todos los circuitos"
+ * (no circuit: the órgano picker lists every circuit's órganos).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CircuitoField(
     circuitos: List<Circuito>,
+    selected: String,
     selectedLabel: String,
     onSelect: (Circuito) -> Unit,
+    onSelectAll: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            value = selectedLabel,
+            value = selectedLabel.ifEmpty { stringResource(R.string.search_all_circuitos) },
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.search_circuito)) },
+            leadingIcon = { Icon(Icons.Filled.Place, contentDescription = null) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             singleLine = true,
             modifier = Modifier
@@ -258,6 +320,20 @@ private fun CircuitoField(
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.search_all_circuitos), style = MaterialTheme.typography.bodyLarge) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_public), contentDescription = null) },
+                trailingIcon = if (selected.isEmpty()) {
+                    { Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                } else {
+                    null
+                },
+                onClick = {
+                    onSelectAll()
+                    expanded = false
+                },
+                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+            )
             circuitos.forEach { circuito ->
                 DropdownMenuItem(
                     text = {
@@ -272,6 +348,11 @@ private fun CircuitoField(
                             }
                         }
                     },
+                    trailingIcon = if (circuito.num == selected) {
+                        { Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                    } else {
+                        null
+                    },
                     onClick = {
                         onSelect(circuito)
                         expanded = false
@@ -283,224 +364,104 @@ private fun CircuitoField(
     }
 }
 
-/** "Cerrado": the órgano's name carries an active period that has ended. */
+/**
+ * The chosen órgano, or "Órgano" with how many there are to choose from.
+ * Tapping it opens the picker. Styled like the outlined fields around it, but
+ * the name wraps instead of being cut.
+ */
 @Composable
-private fun ClosedChip() {
+private fun OrganoField(state: SearchUiState, onClick: () -> Unit) {
+    val organo = state.organo
+    val colors = MaterialTheme.colorScheme
     Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        onClick = onClick,
+        shape = MaterialTheme.shapes.extraSmall,
+        color = colors.surfaceContainerLowest,
+        border = BorderStroke(1.dp, colors.outline),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                organo?.kind?.icon() ?: painterResource(R.drawable.ic_gavel),
+                contentDescription = null,
+                tint = colors.onSurfaceVariant,
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                if (organo == null) {
+                    Text(stringResource(R.string.search_organo), style = MaterialTheme.typography.bodyLarge, color = colors.onSurfaceVariant)
+                } else {
+                    Text(stringResource(R.string.search_organo), style = MaterialTheme.typography.labelMedium, color = colors.primary)
+                    Text(organo.displayName(), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = colors.onSurfaceVariant)
+        }
+    }
+    Row(
+        modifier = Modifier.padding(start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            stringResource(R.string.organo_closed),
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            when {
+                organo != null -> organo.description()
+                state.organos == Loadable.Loading -> stringResource(R.string.search_organos_loading)
+                state.organos is Loadable.Failed -> stringResource(state.organos.error.messageRes()) + " " +
+                    stringResource(R.string.search_organos_failed)
+                state.listsAllCircuits -> pluralStringResource(R.plurals.search_organos_all, state.organoCount, state.organoCount)
+                else -> pluralStringResource(R.plurals.search_organos_circuit, state.organoCount, state.organoCount)
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = if (state.organos is Loadable.Failed && organo == null) colors.error else colors.onSurfaceVariant,
+            modifier = Modifier.weight(1f, fill = false),
         )
+        if (organo?.isClosed() == true) ClosedChip()
     }
 }
 
-/**
- * Narrows the órgano list step by step: tipo de órgano, then (for Tribunales
- * and Otros) the class, then the materia. Each row only offers what the
- * current list has, and closed órganos stay hidden unless asked for.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun OrganoFilters(
-    state: SearchUiState,
-    onKind: (OrganoKind?) -> Unit,
-    onClase: (OrganoClase?) -> Unit,
-    onMateria: (Materia?) -> Unit,
-    onShowClosed: (Boolean) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(stringResource(R.string.search_kind), style = MaterialTheme.typography.labelLarge)
-        ChipRow(state.kindOptions, state.kindFilter, onKind) { stringResource(it.labelRes()) }
-        if (state.claseOptions.isNotEmpty()) {
-            ChipRow(state.claseOptions, state.claseFilter, onClase) { stringResource(it.pluralRes()) }
-        }
-        if (state.materiaOptions.isNotEmpty()) {
-            Text(
-                stringResource(R.string.search_materia),
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            ChipRow(state.materiaOptions, state.materiaFilter, onMateria) { stringResource(it.labelRes()) }
-        }
-        if (state.hasClosed) {
-            FilterChip(
-                selected = state.showClosed,
-                onClick = { onShowClosed(!state.showClosed) },
-                label = { Text(stringResource(R.string.search_show_closed)) },
-            )
-        }
-    }
-}
-
-/** Single-choice chips: tapping the selected one clears the filter. */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun <T> ChipRow(options: List<T>, selected: T?, onSelect: (T?) -> Unit, label: @Composable (T) -> String) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        options.forEach { option ->
-            val isSelected = option == selected
-            FilterChip(
-                selected = isSelected,
-                onClick = { onSelect(if (isSelected) null else option) },
-                label = { Text(label(option)) },
-            )
-        }
-    }
-}
-
-private fun OrganoKind.labelRes(): Int = when (this) {
-    OrganoKind.JUZGADOS -> R.string.kind_juzgados
-    OrganoKind.TRIBUNALES -> R.string.kind_tribunales
-    OrganoKind.OTROS -> R.string.kind_otros
-}
-
-private fun OrganoClase.pluralRes(): Int = when (this) {
-    OrganoClase.JUZGADO_DISTRITO -> R.string.clase_juzgado_distrito_plural
-    OrganoClase.COLEGIADO_CIRCUITO -> R.string.clase_colegiado_circuito_plural
-    OrganoClase.COLEGIADO_APELACION -> R.string.clase_colegiado_apelacion_plural
-    OrganoClase.TRIBUNAL_LABORAL -> R.string.clase_tribunal_laboral_plural
-    OrganoClase.PLENO_REGIONAL -> R.string.clase_pleno_regional_plural
-    OrganoClase.CONFLICTOS_LABORALES -> R.string.clase_conflictos_laborales_plural
-    OrganoClase.OTRO -> R.string.clase_otro_plural
-}
-
-private fun OrganoClase.labelRes(): Int = when (this) {
-    OrganoClase.JUZGADO_DISTRITO -> R.string.clase_juzgado_distrito
-    OrganoClase.COLEGIADO_CIRCUITO -> R.string.clase_colegiado_circuito
-    OrganoClase.COLEGIADO_APELACION -> R.string.clase_colegiado_apelacion
-    OrganoClase.TRIBUNAL_LABORAL -> R.string.clase_tribunal_laboral
-    OrganoClase.PLENO_REGIONAL -> R.string.clase_pleno_regional
-    OrganoClase.CONFLICTOS_LABORALES -> R.string.clase_conflictos_laborales
-    OrganoClase.OTRO -> R.string.clase_otro
-}
-
-private fun Materia.labelRes(): Int = when (this) {
-    Materia.PENAL -> R.string.materia_penal
-    Materia.CIVIL -> R.string.materia_civil
-    Materia.ADMINISTRATIVA -> R.string.materia_administrativa
-    Materia.TRABAJO -> R.string.materia_trabajo
-    Materia.MERCANTIL -> R.string.materia_mercantil
-    Materia.MIXTA -> R.string.materia_mixta
-}
-
-/** "Tribunal Colegiado de Circuito · Penal": what the chosen órgano is. */
-@Composable
-private fun KnownOrgano.description(): String {
-    val clase = stringResource(clase.labelRes())
-    if (materias.isEmpty()) return clase
-    val materia = materias.sortedBy { it.ordinal }.map { stringResource(it.labelRes()) }.joinToString(", ")
-    return stringResource(R.string.search_organo_description, clase, materia)
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun OrganoField(
-    text: String,
-    organo: KnownOrgano?,
-    organos: Loadable<List<KnownOrgano>>,
-    suggestions: List<KnownOrgano>,
-    filtering: Boolean,
-    onOpen: () -> Unit,
-    onTextChange: (String) -> Unit,
-    onSelect: (KnownOrgano) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val showMenu = expanded && suggestions.isNotEmpty()
-    ExposedDropdownMenuBox(
-        expanded = showMenu,
-        onExpandedChange = { open ->
-            if (open) onOpen()
-            expanded = open
-        },
-    ) {
-        OutlinedTextField(
-            value = text,
-            onValueChange = {
-                if (!expanded) onOpen()
-                onTextChange(it)
-                expanded = true
-            },
-            label = { Text(stringResource(R.string.search_organo)) },
-            supportingText = {
-                Text(
-                    when {
-                        organo != null && organo.name.isEmpty() -> stringResource(R.string.search_organo_number, organo.id)
-                        organo != null -> organo.description()
-                        organos == Loadable.Loading -> stringResource(R.string.search_organos_loading)
-                        organos is Loadable.Failed -> stringResource(organos.error.messageRes()) + " " +
-                            stringResource(R.string.search_organos_failed)
-                        filtering -> pluralStringResource(R.plurals.search_organos_count, suggestions.size, suggestions.size)
-                        else -> stringResource(R.string.search_organo_help)
-                    },
-                )
-            },
-            isError = organos is Loadable.Failed,
-            singleLine = true,
-            trailingIcon = {
-                if (organos == Loadable.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                } else {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = showMenu)
-                }
-            },
-            keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Next),
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
-        )
-        ExposedDropdownMenu(expanded = showMenu, onDismissRequest = { expanded = false }) {
-            suggestions.forEach { suggestion ->
-                DropdownMenuItem(
-                    text = { Text(suggestion.name.ifEmpty { suggestion.id }) },
-                    trailingIcon = if (suggestion.isClosed()) {
-                        { ClosedChip() }
-                    } else {
-                        null
-                    },
-                    onClick = {
-                        onSelect(suggestion)
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RecentOrganos(organos: List<KnownOrgano>, onSelect: (KnownOrgano) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(stringResource(R.string.search_recent_organos), style = MaterialTheme.typography.labelLarge)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            organos.forEach { organo ->
-                SuggestionChip(
+        Text(
+            stringResource(R.string.search_recent_organos),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(organos, key = { it.id }) { organo ->
+                AssistChip(
                     onClick = { onSelect(organo) },
                     label = {
-                        Text(
-                            organo.name.ifEmpty { organo.id },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                        Text(organo.displayName(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painterResource(R.drawable.ic_history),
+                            contentDescription = null,
+                            modifier = Modifier.size(AssistChipDefaults.IconSize),
                         )
                     },
-                    modifier = Modifier.widthIn(max = 320.dp),
+                    modifier = Modifier.widthIn(max = 280.dp),
                 )
             }
         }
     }
 }
 
-/** A read-only dropdown whose options load when it's first opened. */
+/** A read-only dropdown, ready before it's opened (bundled or cached options). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionField(
     label: String,
+    icon: Painter,
     options: Loadable<List<FormOption>>,
     selected: FormOption?,
     enabled: Boolean,
@@ -527,6 +488,7 @@ private fun OptionField(
             readOnly = true,
             enabled = enabled,
             label = { Text(label) },
+            leadingIcon = { Icon(icon, contentDescription = null) },
             trailingIcon = {
                 if (options == Loadable.Loading || busyHelp != null) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -555,6 +517,11 @@ private fun OptionField(
             loaded.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option.label) },
+                    trailingIcon = if (option.value == selected?.value) {
+                        { Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                    } else {
+                        null
+                    },
                     onClick = {
                         onSelect(option)
                         expanded = false
@@ -588,6 +555,7 @@ private fun ExpedienteField(
             onValueChange(it.text)
         },
         label = { Text(stringResource(R.string.search_expediente)) },
+        leadingIcon = { Icon(painterResource(R.drawable.ic_tag), contentDescription = null) },
         supportingText = {
             Text(
                 stringResource(if (warning) R.string.search_expediente_warning else R.string.search_expediente_help),
@@ -644,12 +612,13 @@ private fun LookupResult(
         } else {
             MessageCard(text = stringResource(R.string.search_not_found))
         }
-        is LookupState.Failed -> MessageCard(text = portalErrorText(lookup.error, lookup.location)) {
+        is LookupState.Failed -> MessageCard(text = portalErrorText(lookup.error, lookup.location), tone = MessageTone.ERROR) {
             TextButton(onClick = onOpenPortal) { Text(stringResource(R.string.search_open_portal)) }
         }
     }
 }
 
+/** The case found: a guinda header like the case screen's, the counts, and what to do with it. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CasePreview(
@@ -660,49 +629,64 @@ private fun CasePreview(
     onOpenSaved: () -> Unit,
     onCopyLink: () -> Unit,
 ) {
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+    val brand = LocalBrandColors.current
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = siseCardColors(),
+        border = siseCardBorder(),
+    ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(brand.topBar, brand.topBarDeep)))
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(page.organoName, style = MaterialTheme.typography.titleMedium)
             Text(
                 page.tipoAsuntoName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelLarge,
+                color = brand.goldOnTopBar,
             )
             Text(
                 stringResource(R.string.preview_expediente, page.expediente),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.titleLarge,
+                color = brand.onTopBar,
             )
-            Text(
-                pluralStringResource(R.plurals.preview_acuerdos, page.acuerdos.size, page.acuerdos.size),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            val latest = page.acuerdos.mapNotNull { it.fechaPublicacion }.maxOrNull()
-            if (latest != null) {
-                Text(
-                    stringResource(R.string.preview_latest_acuerdo, SiseDates.formatSpan(latest)),
-                    style = MaterialTheme.typography.bodyMedium,
+            Text(page.organoName, style = MaterialTheme.typography.bodyMedium, color = brand.onTopBarVariant)
+        }
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                InfoChip(
+                    pluralStringResource(R.plurals.preview_acuerdos, page.acuerdos.size, page.acuerdos.size),
+                    icon = painterResource(R.drawable.ic_description),
                 )
+                val latest = page.acuerdos.mapNotNull { it.fechaPublicacion }.maxOrNull()
+                if (latest != null) {
+                    InfoChip(
+                        stringResource(R.string.preview_latest_acuerdo, SiseDates.formatSpan(latest)),
+                        icon = painterResource(R.drawable.ic_event),
+                    )
+                }
             }
             if (alreadySaved) {
                 Text(
                     stringResource(R.string.preview_already_saved),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
             // Wraps at large font sizes instead of squeezing the buttons.
-            FlowRow(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (alreadySaved) {
                     Button(onClick = onOpenSaved) { Text(stringResource(R.string.action_open)) }
                 } else {
                     Button(onClick = onSave, enabled = !saving) { Text(stringResource(R.string.action_save)) }
                 }
-                TextButton(onClick = onCopyLink) { Text(stringResource(R.string.preview_copy_link)) }
+                TextButton(onClick = onCopyLink) {
+                    Icon(painterResource(R.drawable.ic_content_copy), contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.preview_copy_link), modifier = Modifier.padding(start = 8.dp))
+                }
             }
         }
     }

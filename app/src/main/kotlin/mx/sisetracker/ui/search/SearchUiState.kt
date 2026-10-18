@@ -1,12 +1,13 @@
 package mx.sisetracker.ui.search
 
+import java.time.LocalDate
 import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
+import mx.sisetracker.core.Catalogo
 import mx.sisetracker.core.Circuito
 import mx.sisetracker.core.Circuitos
 import mx.sisetracker.core.ExpedienteFormat
 import mx.sisetracker.core.FormOption
-import java.time.LocalDate
 import mx.sisetracker.core.Materia
 import mx.sisetracker.core.OrganoClase
 import mx.sisetracker.core.OrganoKind
@@ -34,8 +35,39 @@ data class KnownOrgano(
 
     private val closedOn: LocalDate? by lazy(LazyThreadSafetyMode.NONE) { OrganoPeriod.endOf(name) }
 
+    /** Name and number folded for the picker's search (accents and case ignored). */
+    internal val searchKey: String by lazy(LazyThreadSafetyMode.NONE) { SearchText.fold("$name $id") }
+
     /** A closed órgano (its name ends with a past active period): still searchable, marked "Cerrado". */
     fun isClosed(today: LocalDate = LocalDate.now()): Boolean = closedOn?.let { it < today } == true
+
+    /** Works out everything derived from the name now, off the main thread, so filtering never has to. */
+    internal fun warmedUp(): KnownOrgano = apply {
+        clase
+        materias
+        closedOn
+        searchKey
+    }
+}
+
+/**
+ * The bundled catalog ([Catalogo]) as [KnownOrgano]s, built once per process
+ * with everything derived from the names worked out. The app warms it up on
+ * a background thread at start, so the órgano picker opens with every list
+ * ready, even before a circuit is chosen. Never makes a request.
+ */
+object BundledOrganos {
+    /** Each circuit's list, in the portal's order, by OAJ circuit number. */
+    val byCircuit: Map<String, List<KnownOrgano>> by lazy {
+        Catalogo.allEntries().groupBy({ it.circuito }, { KnownOrgano(it.organo.id, it.organo.name, it.circuito).warmedUp() })
+    }
+
+    /** Every órgano once, with the first circuit that lists it, in circuit order. */
+    val all: List<KnownOrgano> by lazy { byCircuit.values.flatten().distinctBy { it.id } }
+
+    fun warmUp() {
+        all
+    }
 }
 
 sealed interface Loadable<out T> {
@@ -61,10 +93,12 @@ sealed interface LookupState {
 }
 
 data class SearchUiState(
-    /** The chosen circuit's number (`Cir`), or "" before one is chosen. */
+    /** The chosen circuit's number (`Cir`), or "" before one is chosen ("Todos los circuitos"). */
     val circuito: String = "",
     /** The chosen circuit's órgano list (step B). */
     val organos: Loadable<List<KnownOrgano>> = Loadable.Idle,
+    /** Every bundled órgano, for the picker while no circuit is chosen ([BundledOrganos]). */
+    val allOrganos: List<KnownOrgano> = emptyList(),
     /** "Tipo de órgano": Juzgados, Tribunales or Otros. */
     val kindFilter: OrganoKind? = null,
     /** Within Tribunales or Otros: e.g. only the Colegiados de Circuito. */
@@ -72,7 +106,8 @@ data class SearchUiState(
     val materiaFilter: Materia? = null,
     /** Closed órganos are hidden from the list unless the user asks for them. */
     val showClosed: Boolean = false,
-    val organoText: String = "",
+    /** What's typed in the órgano picker's search field. */
+    val organoQuery: String = "",
     val organo: KnownOrgano? = null,
     val knownOrganos: List<KnownOrgano> = emptyList(),
     val tiposAsunto: Loadable<List<FormOption>> = Loadable.Idle,
@@ -96,9 +131,20 @@ data class SearchUiState(
 
     val circuitoLabel: String get() = Circuitos.byNum(circuito)?.label.orEmpty()
 
-    /** The circuit's órgano list once loaded, else the órganos of recent searches and saved cases. */
+    /**
+     * The chosen circuit's órgano list once loaded; with no circuit chosen,
+     * every bundled órgano; else the órganos of recent searches and saved cases.
+     */
     private val organoSource: List<KnownOrgano>
-        get() = (organos as? Loadable.Loaded)?.value?.takeIf { it.isNotEmpty() } ?: knownOrganos
+        get() = (organos as? Loadable.Loaded)?.value?.takeIf { it.isNotEmpty() }
+            ?: allOrganos.takeIf { circuito.isBlank() && it.isNotEmpty() }
+            ?: knownOrganos
+
+    /** Whether the picker lists the órganos of every circuit (none chosen yet). */
+    val listsAllCircuits: Boolean get() = circuito.isBlank() && allOrganos.isNotEmpty()
+
+    /** How many órganos the picker has before filtering. */
+    val organoCount: Int get() = organoSource.size
 
     /** Whether the "Tipo de órgano" chips have anything to filter. */
     val showsKindFilter: Boolean get() = organoSource.isNotEmpty()
@@ -135,15 +181,35 @@ data class SearchUiState(
     /** Whether the list has closed órganos to show or hide. */
     val hasClosed: Boolean get() = organoSource.any { it.isClosed() }
 
-    /** Órganos matching the filters and what's typed, for the type-ahead. */
+    /**
+     * Órganos matching the filters and what's typed, in list order, except
+     * that an exact organismo number comes first. The picker renders them
+     * lazily, so there's no cap.
+     */
     val organoSuggestions: List<KnownOrgano>
         get() {
-            val query = organoText.takeUnless { organo != null && it == organo.name }.orEmpty()
-            return ofClase
+            val words = SearchText.fold(organoQuery).split(' ').filter { it.isNotEmpty() }
+            val matching = ofClase
                 .filter { materiaFilter == null || materiaFilter in it.materias }
                 .filter { showClosed || !it.isClosed() }
-                .filter { SearchText.matches("${it.name} ${it.id}", query) }
-                .take(MAX_SUGGESTIONS)
+                .filter { organo -> words.all { it in organo.searchKey } }
+                // The picker keys rows by organismo: a live list that repeated one would break it.
+                .distinctBy { it.id }
+            val number = organoQuery.trim()
+            val exact = matching.indexOfFirst { it.id == number }
+            return if (exact <= 0) matching else listOf(matching[exact]) + matching.filterIndexed { i, _ -> i != exact }
+        }
+
+    /**
+     * A bare organismo number typed in the picker that no listed órgano has:
+     * offered as is ("Organismo 9999"), for órganos newer than the catalog.
+     */
+    val organoNumberOption: KnownOrgano?
+        get() {
+            val number = organoQuery.trim()
+            if (number.isEmpty() || number.length > MAX_ORGANISMO_DIGITS || !number.all(Char::isDigit)) return null
+            if (organoSource.any { it.id == number }) return null
+            return KnownOrgano(id = number, name = "", circuito = circuito.ifBlank { null })
         }
 
     /** Whether the portal would show the "Tipo de procedimiento" row. */
@@ -152,9 +218,12 @@ data class SearchUiState(
 
     val canLoadTipos: Boolean get() = organo != null
 
+    /** The chosen circuit, else the chosen órgano's: what step C and "Abrir en el portal" use. */
+    val effectiveCircuito: String get() = circuito.ifBlank { organo?.circuito.orEmpty() }
+
     /** "Ver solo los tipos de este órgano" needs the circuit for step C. */
     val canLoadOrganoTipos: Boolean
-        get() = organo != null && circuito.isNotBlank() && !tiposFromPortal && !checkingOrganoTipos &&
+        get() = organo != null && effectiveCircuito.isNotBlank() && !tiposFromPortal && !checkingOrganoTipos &&
             tiposAsunto is Loadable.Loaded
 
     val expedienteWarning: Boolean
@@ -167,11 +236,11 @@ data class SearchUiState(
             expediente.isNotBlank() &&
             lookup != LookupState.Loading
 
-    val canOpenPortal: Boolean get() = circuito.isNotBlank()
+    val canOpenPortal: Boolean get() = effectiveCircuito.isNotBlank()
 
     companion object {
-        /** Enough for a whole circuit's list (184 órganos in the Primer Circuito). */
-        const val MAX_SUGGESTIONS = 300
+        /** Organismo numbers seen so far have up to 4 digits; allow some growth. */
+        const val MAX_ORGANISMO_DIGITS = 6
 
         /** The portal's `maxlength` for Expediente. */
         const val MAX_EXPEDIENTE_LENGTH = 15

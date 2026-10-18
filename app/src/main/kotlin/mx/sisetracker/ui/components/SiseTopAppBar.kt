@@ -16,7 +16,8 @@ import mx.sisetracker.ui.theme.LocalBrandColors
 /**
  * Top app bar in deep guinda with white content, over a thin gold rule (see
  * [LocalBrandColors]). It draws behind the status bar, so the app stays
- * edge-to-edge.
+ * edge-to-edge. Screens that continue it with a [BrandHeader] hide the rule
+ * ([showRule]); the header draws it instead.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +26,7 @@ fun SiseTopAppBar(
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
+    showRule: Boolean = true,
 ) {
     val brand = LocalBrandColors.current
     Column(modifier) {
@@ -40,6 +42,6 @@ fun SiseTopAppBar(
                 actionIconContentColor = brand.onTopBar,
             ),
         )
-        HorizontalDivider(thickness = 3.dp, color = brand.goldRule)
+        if (showRule) HorizontalDivider(thickness = 3.dp, color = brand.goldRule)
     }
 }

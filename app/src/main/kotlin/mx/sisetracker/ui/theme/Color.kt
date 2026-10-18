@@ -101,9 +101,16 @@ val OnTertiaryFixed = Color(0xFF261A00)
 val OnTertiaryFixedVariant = Color(0xFF5B4518)
 
 // Brand chrome: the top app bar (deep guinda in both schemes, so the dark
-// theme doesn't get a pale pink bar) and the gold rule under it.
+// theme doesn't get a pale pink bar) and the gold rule under it. Header bands
+// below the bar (home, case, search result) run from the bar's guinda to a
+// deeper one, with white text, a softer white for secondary text and a light
+// gold for overlines. ThemeContrastTest checks those pairs too.
 val TopBarLight = Color(0xFF691C32)
 val TopBarDark = Color(0xFF4A1424)
+val TopBarDeepLight = Color(0xFF4E1426)
+val TopBarDeepDark = Color(0xFF33101B)
 val OnTopBar = Color(0xFFFFFFFF)
+val OnTopBarVariant = Color(0xFFF1DDE2)
+val GoldOnTopBar = Color(0xFFE3C487)
 val GoldRuleLight = Color(0xFFBC955C)
 val GoldRuleDark = Color(0xFFD9B77E)

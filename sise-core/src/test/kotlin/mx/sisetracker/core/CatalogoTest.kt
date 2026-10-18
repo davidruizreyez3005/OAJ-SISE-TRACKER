@@ -34,6 +34,11 @@ class CatalogoTest {
         // Plenos Regionales are listed in every circuit of their region.
         assertEquals(listOf("1", "21"), Catalogo.entries("4612").map { it.circuito }.filter { it == "1" || it == "21" })
         assertEquals(emptyList<Organo>(), Catalogo.organos("33"))
+        // All entries, in circuit order, for the órgano picker before a circuit is chosen.
+        val all = Catalogo.allEntries()
+        assertEquals(1083, all.size)
+        assertEquals((1..32).map(Int::toString), all.map { it.circuito }.distinct())
+        assertEquals(949, all.distinctBy { it.organo.id }.size)
     }
 
     @Test

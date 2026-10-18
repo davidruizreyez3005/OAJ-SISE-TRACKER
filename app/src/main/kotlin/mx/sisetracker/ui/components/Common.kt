@@ -3,17 +3,23 @@ package mx.sisetracker.ui.components
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import mx.sisetracker.R
@@ -29,20 +35,39 @@ fun BackButton(onBack: () -> Unit) {
     }
 }
 
-/** A short message in a card, with optional actions below it. */
+/** Whether a [MessageCard] informs or reports a failure. */
+enum class MessageTone { INFO, ERROR }
+
+/** A short message in a card, led by an icon, with optional actions below it. */
 @Composable
 fun MessageCard(
     text: String,
     modifier: Modifier = Modifier,
+    tone: MessageTone = MessageTone.INFO,
+    icon: Painter? = null,
     actions: @Composable () -> Unit = {},
 ) {
-    OutlinedCard(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(text, style = MaterialTheme.typography.bodyMedium)
-            actions()
+    val colors = MaterialTheme.colorScheme
+    val (container, content) = when (tone) {
+        MessageTone.INFO -> colors.surfaceContainerLow to colors.onSurface
+        MessageTone.ERROR -> colors.errorContainer to colors.onErrorContainer
+    }
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = container, contentColor = content),
+    ) {
+        Row(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                icon ?: rememberVectorPainter(if (tone == MessageTone.ERROR) Icons.Filled.Warning else Icons.Filled.Info),
+                contentDescription = null,
+                tint = if (tone == MessageTone.ERROR) colors.error else colors.primary,
+                modifier = Modifier.padding(end = 12.dp, top = 2.dp),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text, style = MaterialTheme.typography.bodyMedium)
+                actions()
+            }
         }
     }
 }

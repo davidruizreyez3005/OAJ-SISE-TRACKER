@@ -4,13 +4,17 @@ import android.content.ClipData
 import android.os.Build
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import mx.sisetracker.R
+import mx.sisetracker.core.CaseUrl
 
 /**
  * Copies a case's direct link on the portal (its `vercaptura.aspx` URL) to
@@ -30,6 +34,30 @@ fun rememberCopyPortalLink(snackbarHostState: SnackbarHostState): (url: String) 
             scope.launch {
                 clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(label, url)))
                 if (showsOwnCopyConfirmation()) snackbarHostState.showSnackbar(copied)
+            }
+        }
+    }
+}
+
+/**
+ * Reads a case link (`vercaptura.aspx`) from the clipboard: [onFound] gets
+ * it, else [snackbarHostState] says there's none. Shared by "Mis
+ * expedientes" and the search screen.
+ */
+@Composable
+fun rememberPasteCaseLink(snackbarHostState: SnackbarHostState, onFound: (CaseUrl) -> Unit): () -> Unit {
+    val clipboard = LocalClipboard.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val noLink = stringResource(R.string.search_paste_no_link)
+    val found by rememberUpdatedState(onFound)
+    return remember(clipboard, context, scope, noLink, snackbarHostState) {
+        {
+            scope.launch {
+                val clip = clipboard.getClipEntry()?.clipData
+                val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+                val url = text?.let(CaseUrl::findIn)
+                if (url != null) found(url) else snackbarHostState.showSnackbar(noLink)
             }
         }
     }

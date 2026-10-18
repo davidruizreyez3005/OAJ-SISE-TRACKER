@@ -113,12 +113,37 @@ internal val DarkColors: ColorScheme = darkColorScheme(
     onTertiaryFixedVariant = OnTertiaryFixedVariant,
 )
 
-/** Brand chrome outside Material's scheme: the top app bar and its gold rule. */
+/**
+ * Brand chrome outside Material's scheme: the top app bar, the header bands
+ * that continue it (from [topBar] to [topBarDeep]), the text on them and the
+ * gold rule.
+ */
 @Immutable
-data class BrandColors(val topBar: Color, val onTopBar: Color, val goldRule: Color)
+data class BrandColors(
+    val topBar: Color,
+    val topBarDeep: Color,
+    val onTopBar: Color,
+    val onTopBarVariant: Color,
+    val goldOnTopBar: Color,
+    val goldRule: Color,
+)
 
-internal val LightBrand = BrandColors(topBar = TopBarLight, onTopBar = OnTopBar, goldRule = GoldRuleLight)
-internal val DarkBrand = BrandColors(topBar = TopBarDark, onTopBar = OnTopBar, goldRule = GoldRuleDark)
+internal val LightBrand = BrandColors(
+    topBar = TopBarLight,
+    topBarDeep = TopBarDeepLight,
+    onTopBar = OnTopBar,
+    onTopBarVariant = OnTopBarVariant,
+    goldOnTopBar = GoldOnTopBar,
+    goldRule = GoldRuleLight,
+)
+internal val DarkBrand = BrandColors(
+    topBar = TopBarDark,
+    topBarDeep = TopBarDeepDark,
+    onTopBar = OnTopBar,
+    onTopBarVariant = OnTopBarVariant,
+    goldOnTopBar = GoldOnTopBar,
+    goldRule = GoldRuleDark,
+)
 
 val LocalBrandColors = staticCompositionLocalOf { LightBrand }
 
@@ -135,6 +160,7 @@ fun SiseTrackerTheme(
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColors else LightColors,
             typography = SiseTypography,
+            shapes = SiseShapes,
             content = content,
         )
     }

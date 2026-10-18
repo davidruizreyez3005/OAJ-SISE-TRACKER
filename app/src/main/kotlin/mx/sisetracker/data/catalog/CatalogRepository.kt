@@ -106,11 +106,7 @@ class CatalogRepository(
         /** Ignore the cache (for the opt-in catalog crawl). */
         reload: Boolean = false,
     ): List<FormOption> {
-        val cached = dao.tiposProcedimiento(organismo, tipoAsunto)
-        if (!reload && cached.isNotEmpty() && cached.all { isFresh(it.fetchedAt) }) {
-            return cached.map { FormOption(it.id, it.name, it.position, selected = false) }
-        }
-        if (!reload) Catalogo.tiposDeProcedimiento(tipoAsunto)?.let { return it }
+        if (!reload) knownTiposDeProcedimiento(organismo, tipoAsunto)?.let { return it }
         var fields = dao.formFields(organismo)
         if (fields.isEmpty()) {
             // The cache was cleared since the tipos were shown: reload the form first.
@@ -130,6 +126,19 @@ class CatalogRepository(
             options.map { TipoProcedimientoEntity(organismo, tipoAsunto, it.value, it.label, it.position, fetchedAt) },
         )
         return options
+    }
+
+    /**
+     * The procedimientos of one tipo de asunto without a request: from the
+     * cache, else the bundled snapshot. Null if neither has them (tipos 6
+     * and 9 so far).
+     */
+    suspend fun knownTiposDeProcedimiento(organismo: String, tipoAsunto: String): List<FormOption>? {
+        val cached = dao.tiposProcedimiento(organismo, tipoAsunto)
+        if (cached.isNotEmpty() && cached.all { isFresh(it.fetchedAt) }) {
+            return cached.map { FormOption(it.id, it.name, it.position, selected = false) }
+        }
+        return Catalogo.tiposDeProcedimiento(tipoAsunto)
     }
 
     /** The cached tipos de asunto of [organismo], if fresh; never makes a request. */

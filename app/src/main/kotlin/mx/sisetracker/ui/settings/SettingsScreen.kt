@@ -3,17 +3,35 @@ package mx.sisetracker.ui.settings
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -29,13 +47,18 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
-import androidx.core.content.FileProvider
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
@@ -46,9 +69,13 @@ import mx.sisetracker.data.net.PortalError
 import mx.sisetracker.data.settings.CrawlStatus
 import mx.sisetracker.data.settings.SettingsStore
 import mx.sisetracker.ui.components.BackButton
+import mx.sisetracker.ui.components.MessageCard
+import mx.sisetracker.ui.components.SiseMotion
 import mx.sisetracker.ui.components.SiseTopAppBar
 import mx.sisetracker.ui.components.messageRes
 import mx.sisetracker.ui.components.rememberNotificationPermission
+import mx.sisetracker.ui.components.siseCardBorder
+import mx.sisetracker.ui.components.siseCardColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -132,100 +159,146 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         if (!state.loaded) return@Scaffold
+        val transparent = ListItemDefaults.colors(containerColor = Color.Transparent)
         Column(
             Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.settings_daily_check)) },
-                supportingContent = { Text(stringResource(R.string.settings_daily_check_help)) },
-                trailingContent = { Switch(checked = state.dailyCheck, onCheckedChange = viewModel::onDailyCheckChange) },
-                modifier = Modifier.clickable { viewModel.onDailyCheckChange(!state.dailyCheck) },
-            )
-            if (state.dailyCheck) {
-                var days by remember(state.intervalDays) { mutableFloatStateOf(state.intervalDays.toFloat()) }
-                Column(Modifier.padding(horizontal = 16.dp)) {
-                    Text(
-                        pluralStringResource(R.plurals.settings_interval, days.roundToInt(), days.roundToInt()),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Slider(
-                        value = days,
-                        onValueChange = { days = it },
-                        onValueChangeFinished = { viewModel.onIntervalChange(days.roundToInt()) },
-                        valueRange = SettingsStore.MIN_INTERVAL_DAYS.toFloat()..SettingsStore.MAX_INTERVAL_DAYS.toFloat(),
-                        steps = SettingsStore.MAX_INTERVAL_DAYS - SettingsStore.MIN_INTERVAL_DAYS - 1,
-                    )
-                }
-                if (!permission.granted) {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.notifications_off)) },
-                        supportingContent = { Text(stringResource(R.string.notifications_off_help)) },
-                        trailingContent = {
-                            TextButton(onClick = permission.request) { Text(stringResource(R.string.notifications_allow)) }
-                        },
-                    )
-                }
-            }
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.settings_refresh_catalogs)) },
-                supportingContent = { Text(stringResource(R.string.settings_refresh_catalogs_help)) },
-                modifier = Modifier.clickable(onClick = viewModel::onRefreshCatalogs),
-            )
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.settings_capture)) },
-                supportingContent = { Text(stringResource(R.string.settings_capture_help)) },
-                trailingContent = { Switch(checked = state.captureEnabled, onCheckedChange = viewModel::onCaptureChange) },
-                modifier = Modifier.clickable { viewModel.onCaptureChange(!state.captureEnabled) },
-            )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.settings_crawl)) },
-                supportingContent = {
+            SettingsSection(stringResource(R.string.settings_section_avisos), rememberVectorPainter(Icons.Filled.Notifications)) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_daily_check)) },
+                    supportingContent = { Text(stringResource(R.string.settings_daily_check_help)) },
+                    trailingContent = { Switch(checked = state.dailyCheck, onCheckedChange = viewModel::onDailyCheckChange) },
+                    colors = transparent,
+                    modifier = Modifier.clickable { viewModel.onDailyCheckChange(!state.dailyCheck) },
+                )
+                AnimatedVisibility(
+                    visible = state.dailyCheck,
+                    enter = fadeIn(SiseMotion.spec()) + expandVertically(SiseMotion.spec()),
+                    exit = fadeOut(SiseMotion.spec()) + shrinkVertically(SiseMotion.spec()),
+                ) {
                     Column {
-                        Text(stringResource(R.string.settings_crawl_help))
-                        crawlStatusText(state.crawlStatus)?.let { status ->
+                        var days by remember(state.intervalDays) { mutableFloatStateOf(state.intervalDays.toFloat()) }
+                        Column(Modifier.padding(horizontal = 16.dp)) {
                             Text(
-                                status,
-                                color = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.padding(top = 4.dp),
+                                pluralStringResource(R.plurals.settings_interval, days.roundToInt(), days.roundToInt()),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Slider(
+                                value = days,
+                                onValueChange = { days = it },
+                                onValueChangeFinished = { viewModel.onIntervalChange(days.roundToInt()) },
+                                valueRange = SettingsStore.MIN_INTERVAL_DAYS.toFloat()..SettingsStore.MAX_INTERVAL_DAYS.toFloat(),
+                                steps = SettingsStore.MAX_INTERVAL_DAYS - SettingsStore.MIN_INTERVAL_DAYS - 1,
+                            )
+                        }
+                        if (!permission.granted) {
+                            ListItem(
+                                headlineContent = { Text(stringResource(R.string.notifications_off)) },
+                                supportingContent = { Text(stringResource(R.string.notifications_off_help)) },
+                                trailingContent = {
+                                    TextButton(onClick = permission.request) { Text(stringResource(R.string.notifications_allow)) }
+                                },
+                                colors = transparent,
                             )
                         }
                     }
-                },
-                trailingContent = { Switch(checked = state.crawlEnabled, onCheckedChange = onCrawlToggle) },
-                modifier = Modifier.clickable { onCrawlToggle(!state.crawlEnabled) },
-            )
-            if (state.captureCount > 0 || state.captureEnabled || state.crawlEnabled) {
+                }
+            }
+
+            SettingsSection(stringResource(R.string.settings_section_catalogos), painterResource(R.drawable.ic_account_balance)) {
                 ListItem(
-                    headlineContent = {
-                        Text(pluralStringResource(R.plurals.settings_capture_count, state.captureCount, state.captureCount))
-                    },
+                    headlineContent = { Text(stringResource(R.string.settings_refresh_catalogs)) },
+                    supportingContent = { Text(stringResource(R.string.settings_refresh_catalogs_help)) },
+                    leadingContent = { Icon(Icons.Filled.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    colors = transparent,
+                    modifier = Modifier.clickable(onClick = viewModel::onRefreshCatalogs),
+                )
+            }
+
+            SettingsSection(stringResource(R.string.settings_section_diagnostico), rememberVectorPainter(Icons.Filled.Build)) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_capture)) },
+                    supportingContent = { Text(stringResource(R.string.settings_capture_help)) },
+                    trailingContent = { Switch(checked = state.captureEnabled, onCheckedChange = viewModel::onCaptureChange) },
+                    colors = transparent,
+                    modifier = Modifier.clickable { viewModel.onCaptureChange(!state.captureEnabled) },
+                )
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_crawl)) },
                     supportingContent = {
-                        FlowRow {
-                            TextButton(onClick = viewModel::onSaveCaptures, enabled = state.captureCount > 0) {
-                                Text(stringResource(R.string.settings_capture_save))
-                            }
-                            TextButton(onClick = viewModel::onShareCaptures, enabled = state.captureCount > 0) {
-                                Text(stringResource(R.string.settings_capture_share))
-                            }
-                            TextButton(onClick = viewModel::onClearCaptures, enabled = state.captureCount > 0) {
-                                Text(stringResource(R.string.action_delete))
+                        Column {
+                            Text(stringResource(R.string.settings_crawl_help))
+                            crawlStatusText(state.crawlStatus)?.let { status ->
+                                Text(
+                                    status,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                )
                             }
                         }
                     },
+                    trailingContent = { Switch(checked = state.crawlEnabled, onCheckedChange = onCrawlToggle) },
+                    colors = transparent,
+                    modifier = Modifier.clickable { onCrawlToggle(!state.crawlEnabled) },
                 )
+                if (state.captureCount > 0 || state.captureEnabled || state.crawlEnabled) {
+                    HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                    ListItem(
+                        headlineContent = {
+                            Text(pluralStringResource(R.plurals.settings_capture_count, state.captureCount, state.captureCount))
+                        },
+                        supportingContent = {
+                            FlowRow {
+                                TextButton(onClick = viewModel::onSaveCaptures, enabled = state.captureCount > 0) {
+                                    Text(stringResource(R.string.settings_capture_save))
+                                }
+                                TextButton(onClick = viewModel::onShareCaptures, enabled = state.captureCount > 0) {
+                                    Text(stringResource(R.string.settings_capture_share))
+                                }
+                                TextButton(onClick = viewModel::onClearCaptures, enabled = state.captureCount > 0) {
+                                    Text(stringResource(R.string.action_delete))
+                                }
+                            }
+                        },
+                        colors = transparent,
+                    )
+                }
             }
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            Text(
-                stringResource(R.string.settings_privacy),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp),
+
+            MessageCard(
+                text = stringResource(R.string.settings_privacy),
+                icon = rememberVectorPainter(Icons.Filled.Lock),
             )
+        }
+    }
+}
+
+/** A titled group of settings: a gold title with its icon over a card. */
+@Composable
+private fun SettingsSection(title: String, icon: Painter, content: @Composable ColumnScope.() -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp)) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
+            Text(
+                title,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+        Card(
+            shape = MaterialTheme.shapes.large,
+            colors = siseCardColors(),
+            border = siseCardBorder(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(modifier = Modifier.padding(vertical = 4.dp), content = content)
         }
     }
 }

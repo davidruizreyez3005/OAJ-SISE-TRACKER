@@ -19,6 +19,25 @@
     <string name="home_filter_no_match">Ningún expediente guardado coincide con el filtro.</string>
     <string name="home_latest_acuerdo">Último acuerdo publicado: %1$s</string>
     <string name="home_no_acuerdos">Sin acuerdos publicados</string>
+    <string name="home_subtitle">Los acuerdos de tus expedientes del portal SISE, al día.</string>
+    <string name="home_search_pill">Buscar un expediente</string>
+    <string name="home_paste">Pegar enlace</string>
+    <plurals name="home_stat_cases">
+        <item quantity="one">%d expediente</item>
+        <item quantity="many">%d expedientes</item>
+        <item quantity="other">%d expedientes</item>
+    </plurals>
+    <plurals name="home_stat_new">
+        <item quantity="one">%d acuerdo nuevo</item>
+        <item quantity="many">%d acuerdos nuevos</item>
+        <item quantity="other">%d acuerdos nuevos</item>
+    </plurals>
+    <string name="home_stat_daily">Revisión diaria</string>
+    <string name="home_saved_section">Expedientes guardados</string>
+    <string name="home_how_title">Cómo funciona</string>
+    <string name="home_how_1">Elige el órgano y el tipo de asunto, como en el portal.</string>
+    <string name="home_how_2">Busca el número de expediente y guárdalo.</string>
+    <string name="home_how_3">Una vez al día, la app revisa tus expedientes y te avisa de acuerdos nuevos.</string>
     <string name="home_empty_title">Aún no guardas expedientes</string>
     <string name="home_empty_body">Busca un expediente con los mismos datos que en el portal y guárdalo para seguir sus acuerdos.</string>
     <plurals name="home_unseen">
@@ -33,7 +52,6 @@
     <string name="search_circuito">Circuito</string>
     <string name="search_organos_loading">Cargando los órganos del circuito…</string>
     <string name="search_organos_failed">Toca el campo para reintentar, o escribe el número del órgano.</string>
-    <string name="search_kind">Tipo de órgano</string>
     <string name="kind_juzgados">Juzgados</string>
     <string name="kind_tribunales">Tribunales</string>
     <string name="kind_otros">Otros</string>
@@ -51,7 +69,6 @@
     <string name="clase_pleno_regional">Pleno Regional</string>
     <string name="clase_conflictos_laborales">Comisión de Conflictos Laborales</string>
     <string name="clase_otro">Órgano administrativo</string>
-    <string name="search_materia">Materia</string>
     <string name="materia_penal">Penal</string>
     <string name="materia_civil">Civil</string>
     <string name="materia_administrativa">Administrativa</string>
@@ -61,12 +78,31 @@
     <string name="search_show_closed">Incluir cerrados</string>
     <string name="search_organo_description">%1$s · %2$s</string>
     <plurals name="search_organos_count">
-        <item quantity="one">%d órgano coincide. Escribe para filtrar, o el número de organismo.</item>
-        <item quantity="many">%d órganos coinciden. Escribe para filtrar, o el número de organismo.</item>
-        <item quantity="other">%d órganos coinciden. Escribe para filtrar, o el número de organismo.</item>
+        <item quantity="one">%d órgano coincide</item>
+        <item quantity="many">%d órganos coinciden</item>
+        <item quantity="other">%d órganos coinciden</item>
+    </plurals>
+    <plurals name="search_organos_all">
+        <item quantity="one">%d órgano en todos los circuitos</item>
+        <item quantity="many">%d órganos en todos los circuitos</item>
+        <item quantity="other">%d órganos en todos los circuitos</item>
+    </plurals>
+    <plurals name="search_organos_circuit">
+        <item quantity="one">%d órgano en este circuito</item>
+        <item quantity="many">%d órganos en este circuito</item>
+        <item quantity="other">%d órganos en este circuito</item>
     </plurals>
     <string name="search_organo">Órgano</string>
-    <string name="search_organo_help">Escribe para filtrar los órganos del circuito, o el número de organismo.</string>
+    <string name="search_step">Paso %1$d</string>
+    <string name="search_section_organo">Órgano jurisdiccional</string>
+    <string name="search_section_asunto">Asunto</string>
+    <string name="search_section_expediente">Expediente</string>
+    <string name="search_all_circuitos">Todos los circuitos</string>
+    <string name="organo_picker_title">Elige el órgano</string>
+    <string name="organo_picker_query">Nombre o número de organismo</string>
+    <string name="organo_picker_none">Ningún órgano coincide. Prueba con menos palabras o quita un filtro.</string>
+    <string name="organo_picker_number">Organismo %1$s</string>
+    <string name="organo_picker_number_help">No está en la lista; se busca con este número.</string>
     <string name="search_organo_number">Organismo %1$s</string>
     <string name="search_recent_organos">Órganos recientes</string>
     <string name="search_tipo_asunto">Tipo de asunto</string>
@@ -125,7 +161,9 @@
     <string name="case_no_captura">El portal no muestra captura de información para este expediente.</string>
     <string name="captura_parties">El portal repite estos datos para cada una de las %1$d partes.</string>
     <string name="acuerdo_numero">No. %1$s</string>
-    <string name="acuerdo_dates">Auto: %1$s · Publicado: %2$s</string>
+    <string name="acuerdo_chip_auto">Auto %1$s</string>
+    <string name="acuerdo_chip_publicado">Publicado %1$s</string>
+    <string name="acuerdo_chip_sin_publicar">Sin publicar</string>
     <string name="resolucion_fecha">Ingreso: %1$s</string>
     <string name="resolucion_open">Ver archivo</string>
     <string name="relacionado_fecha">Relacionado el %1$s</string>
@@ -138,6 +176,8 @@
     <string name="acuerdo_sintesis_pendiente">Este acuerdo aún no se publica. El portal muestra la síntesis completa hasta que se publica; aquí aparece el resumen. Actualiza el expediente más tarde.</string>
     <string name="acuerdo_cuaderno">Cuaderno: %1$s</string>
     <string name="acuerdo_loading">Cargando la síntesis completa…</string>
+    <string name="acuerdo_sintesis_heading">Síntesis completa</string>
+    <string name="acuerdo_resumen_heading">Resumen</string>
     <string name="acuerdo_resumen_only">Por ahora se muestra el resumen.</string>
 
     <string name="error_network">No se pudo conectar con el portal. Revisa tu conexión e inténtalo de nuevo.</string>
@@ -179,6 +219,9 @@
     <string name="acuerdo_search_open_case">Ver expediente</string>
 
     <string name="settings_title">Ajustes</string>
+    <string name="settings_section_avisos">Avisos</string>
+    <string name="settings_section_catalogos">Catálogos</string>
+    <string name="settings_section_diagnostico">Diagnóstico</string>
     <string name="settings_daily_check">Revisión diaria</string>
     <string name="settings_daily_check_help">Una vez al día, con conexión, revisa si tus expedientes guardados tienen acuerdos nuevos y te avisa.</string>
     <plurals name="settings_interval">

@@ -57,12 +57,21 @@ class SearchViewModelTest {
             savedCases,
             settings,
             prefill,
+            background = main.dispatcher,
         )
         advanceUntilIdle()
         return viewModel
     }
 
     private fun tipo(value: String) = FormOption(value, "Tipo $value", position = 0, selected = false)
+
+    /** Types [id] in the órgano picker and picks the matching órgano, or the bare number if none lists it. */
+    private fun TestScope.chooseOrgano(viewModel: SearchViewModel, id: String) {
+        viewModel.onOrganoQueryChange(id)
+        val state = viewModel.state.value
+        viewModel.onOrganoSelected(state.organoSuggestions.firstOrNull { it.id == id } ?: checkNotNull(state.organoNumberOption))
+        advanceUntilIdle()
+    }
 
     @Test
     fun `starts with the last circuit used, without a request`() = runTest(main.dispatcher) {
@@ -153,14 +162,14 @@ class SearchViewModelTest {
         viewModel.onKindFilterChange(OrganoKind.TRIBUNALES)
         assertEquals(92, viewModel.state.value.organoSuggestions.size)
 
-        viewModel.onOrganoTextChange("segundo penal")
+        viewModel.onOrganoQueryChange("segundo penal")
         assertEquals(
             listOf("18"),
             viewModel.state.value.organoSuggestions.filter { "Colegiado en Materia Penal" in it.name }.map { it.id },
         )
 
         viewModel.onKindFilterChange(OrganoKind.OTROS)
-        viewModel.onOrganoTextChange("comision de disciplina")
+        viewModel.onOrganoQueryChange("comision de disciplina")
         assertEquals(listOf("6207", "6316"), viewModel.state.value.organoSuggestions.map { it.id }.sorted())
     }
 
@@ -200,14 +209,90 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `a typed organismo number takes its name from the circuit's list`() = runTest(main.dispatcher) {
+    fun `a typed organismo number finds the listed organo first, or is offered as is`() = runTest(main.dispatcher) {
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
         advanceUntilIdle()
 
-        viewModel.onOrganoTextChange("767")
+        viewModel.onOrganoQueryChange("767")
+        assertEquals(KnownOrgano("767", juzgado, "1"), viewModel.state.value.organoSuggestions.first())
+        assertEquals(null, viewModel.state.value.organoNumberOption)
 
-        assertEquals(KnownOrgano("767", juzgado, "1"), viewModel.state.value.organo)
+        // A number no list has: an órgano newer than the catalog.
+        viewModel.onOrganoQueryChange("99999")
+        assertEquals(emptyList<KnownOrgano>(), viewModel.state.value.organoSuggestions)
+        assertEquals(KnownOrgano("99999", "", "1"), viewModel.state.value.organoNumberOption)
+        viewModel.onOrganoSelected(checkNotNull(viewModel.state.value.organoNumberOption))
+        advanceUntilIdle()
+        assertEquals("99999", viewModel.state.value.organo?.id)
+        assertEquals("", viewModel.state.value.organoQuery)
+    }
+
+    @Test
+    fun `with no circuit chosen the picker lists every bundled organo, with no request`() = runTest(main.dispatcher) {
+        val viewModel = viewModel()
+
+        val state = viewModel.state.value
+        assertEquals("", state.circuito)
+        assertTrue(state.listsAllCircuits)
+        assertEquals(949, state.organoCount)
+        assertTrue(state.showsKindFilter)
+        // In circuit order, each with the first circuit that lists it.
+        assertEquals("1", state.organoSuggestions.first().circuito)
+        assertEquals("32", state.organoSuggestions.last().circuito)
+
+        // Words match anywhere, accents and case aside ("primer circuito" is also in "Décimo Primer Circuito").
+        viewModel.onOrganoQueryChange("segundo colegiado penal primer circuito")
+        val matches = viewModel.state.value.organoSuggestions
+        assertTrue(matches.size in 2..5)
+        val segundo = matches.single { it.name == "Segundo Tribunal Colegiado en Materia Penal del Primer Circuito" }
+        assertEquals("18", segundo.id)
+
+        // Picking it chooses its circuit too, with that circuit's bundled list.
+        viewModel.onOrganoSelected(segundo)
+        advanceUntilIdle()
+        assertEquals("1", viewModel.state.value.circuito)
+        assertEquals(184, (viewModel.state.value.organos as Loadable.Loaded).value.size)
+        assertEquals(14, (viewModel.state.value.tiposAsunto as Loadable.Loaded).value.size)
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `todos los circuitos lists every organo again and keeps the chosen one`() = runTest(main.dispatcher) {
+        settings.setLastCircuito("1")
+        val viewModel = viewModel()
+        chooseOrgano(viewModel, "18")
+
+        viewModel.onCircuitoCleared()
+        advanceUntilIdle()
+
+        val state = viewModel.state.value
+        assertEquals("", state.circuito)
+        assertTrue(state.listsAllCircuits)
+        assertEquals("18", state.organo?.id)
+        // The órgano's own circuit still opens the portal and loads its tipos.
+        assertEquals("1", state.effectiveCircuito)
+        assertTrue(state.canOpenPortal)
+        assertEquals("", settings.lastCircuito.first())
+        assertTrue(client.requests.isEmpty())
+    }
+
+    @Test
+    fun `bundled procedimientos show at once, with no request and no loading`() = runTest(main.dispatcher) {
+        val viewModel = viewModel()
+        // A Tribunal Colegiado de Apelación (tipos 125 and 126 show the procedimiento row).
+        chooseOrgano(viewModel, "4343")
+        val tipos = (viewModel.state.value.tiposAsunto as Loadable.Loaded).value
+        val requests = client.requests.toList()
+
+        viewModel.onTipoAsuntoSelected(tipos.single { it.value == "125" })
+        assertTrue(viewModel.state.value.tiposProcedimiento != Loadable.Loading)
+        advanceUntilIdle()
+
+        val procedimientos = (viewModel.state.value.tiposProcedimiento as Loadable.Loaded).value
+        assertEquals(11, procedimientos.size)
+        assertEquals("22800", procedimientos.first().value)
+        assertEquals(requests, client.requests)
     }
 
     @Test
@@ -236,7 +321,7 @@ class SearchViewModelTest {
 
         val state = viewModel.state.value
         assertEquals("1", state.circuito)
-        assertEquals(juzgado, state.organoText)
+        assertEquals(juzgado, state.organo?.name)
         val tipos = (state.tiposAsunto as Loadable.Loaded).value
         assertEquals(10, tipos.size)
         assertEquals("1" to "Amparo Indirecto", tipos.first().value to tipos.first().label)
@@ -317,8 +402,7 @@ class SearchViewModelTest {
 
         advanceUntilIdle()
         client.requests.clear()
-        viewModel.onOrganoTextChange("767")
-        advanceUntilIdle()
+        chooseOrgano(viewModel, "767")
         assertTrue(client.requests.isEmpty())
         assertEquals("767", viewModel.state.value.organo?.id)
 
@@ -334,7 +418,7 @@ class SearchViewModelTest {
     fun `buscar fetches the case once and shows the preview`() = runTest(main.dispatcher) {
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
-        viewModel.onOrganoTextChange("767")
+        chooseOrgano(viewModel, "767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
         viewModel.onTipoAsuntoSelected(tipo("1"))
@@ -352,8 +436,8 @@ class SearchViewModelTest {
         assertEquals("40612904", found.page.neun)
         assertEquals(caseUrl1183, client.requests.last())
         assertEquals(1, client.requests.count { "vercaptura.aspx" in it })
-        // The bare number now shows the órgano's name, which is remembered.
-        assertEquals(juzgado, state.organoText)
+        // The órgano's name is remembered with the search.
+        assertEquals(juzgado, state.organo?.name)
         assertEquals(RecentOrgano("767", juzgado, "1"), settings.recentOrganos.first().first())
         assertEquals("1", settings.lastCircuito.first())
     }
@@ -363,7 +447,7 @@ class SearchViewModelTest {
         client.onGet = { Fixtures.load(Fixtures.CASE_NOT_FOUND) }
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
-        viewModel.onOrganoTextChange("767")
+        chooseOrgano(viewModel, "767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
         viewModel.onTipoAsuntoSelected(tipo("1"))
@@ -380,7 +464,7 @@ class SearchViewModelTest {
     fun `a tipo with procedimientos loads them and needs one`() = runTest(main.dispatcher) {
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
-        viewModel.onOrganoTextChange("767")
+        chooseOrgano(viewModel, "767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
         viewModel.onExpedienteChange("12/2026")
@@ -406,7 +490,8 @@ class SearchViewModelTest {
         client.onPost = { throw IOException("offline") }
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
-        viewModel.onOrganoTextChange("767")
+        // Not in the catalog: its own list is requested, and fails.
+        chooseOrgano(viewModel, "99999")
 
         viewModel.onLoadOrganoTipos()
         advanceUntilIdle()
@@ -429,7 +514,7 @@ class SearchViewModelTest {
     private fun TestScope.foundViewModel(): SearchViewModel {
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
-        viewModel.onOrganoTextChange("767")
+        chooseOrgano(viewModel, "767")
         viewModel.onTiposAsuntoRequested()
         advanceUntilIdle()
         viewModel.onTipoAsuntoSelected(tipo("1"))
@@ -515,7 +600,8 @@ class SearchViewModelTest {
         }
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
-        viewModel.onOrganoTextChange("767")
+        // Not in the catalog: its own list (one tipo) loads from the portal.
+        chooseOrgano(viewModel, "99999")
         viewModel.onLoadOrganoTipos()
         advanceUntilIdle()
 
@@ -530,7 +616,8 @@ class SearchViewModelTest {
         client.onPost = { Fixtures.load(Fixtures.FORM_NO_TIPOS_6315) }
         val viewModel = viewModel()
         viewModel.onCircuitoSelected(primerCircuito)
-        viewModel.onOrganoTextChange("6315")
+        // The catalog knows it offers none: no request needed.
+        chooseOrgano(viewModel, "6315")
         viewModel.onLoadOrganoTipos()
         advanceUntilIdle()
         viewModel.onExpedienteChange("1/2026")

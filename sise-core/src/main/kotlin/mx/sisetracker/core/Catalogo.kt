@@ -46,6 +46,15 @@ object Catalogo {
             }
     }
 
+    /** Every circuit's list, one entry per circuit that lists an órgano, in circuit order (1 to 32). */
+    fun allEntries(): List<CatalogoOrgano> = organos
+
+    /** Parses the bundled lists now (e.g. on a background thread at app start), so the first lookup is instant. */
+    fun warmUp() {
+        organos
+        procedimientos
+    }
+
     /** The circuit's órgano list as of the crawl; empty for an unknown circuit. */
     fun organos(circuito: String): List<Organo> = organos.filter { it.circuito == circuito.trim() }.map { it.organo }
 

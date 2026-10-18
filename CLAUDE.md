@@ -106,6 +106,24 @@ own documents. Error keeps the OAJ stylesheet's red `#B31217`.
   labels stay sans-serif.
 - "Nuevo" badges on unseen acuerdos use `tertiary` (gold, dark text).
 - The launcher icon is a gold document on guinda.
+- Header bands (`BrandHeader`) continue the bar on "Mis expedientes", the
+  case screen and the search result: a gradient from the bar's guinda to a
+  deeper one (`#4E1426` light, `#33101B` dark), then the gold rule (the bar
+  hides its own). Text on them is white, a soft white `#F1DDE2` for
+  secondary text, or the light gold `#E3C487` for overlines;
+  `ThemeContrastTest` checks those pairs too.
+- Cards (`SiseCard`) are the brightest surface with a hairline
+  `outlineVariant` border, 16 dp corners; form steps and settings groups
+  use `SectionCard`-style cards at 24 dp with an icon badge and a gold
+  "Paso n" or section title. Shapes are `SiseShapes`.
+- Icons are Material icons copied as vector drawables into `res/drawable`
+  (gavel for juzgados, court building for tribunales…), not the
+  `material-icons-extended` library, which adds megabytes while R8 is off.
+- Motion is quick and eased (`SiseMotion`, 300 ms): screens slide in with
+  a fade, list items animate in place, the case tabs swipe
+  (`HorizontalPager`), sections expand and the search result fades in.
+- The empty "Mis expedientes" draws its illustration in Compose
+  (`CasesIllustration`) with theme colors, so it follows the dark theme.
 
 | Token | Light | Dark |
 |---|---|---|
@@ -180,11 +198,13 @@ As built (`data/db` and `data/catalog` in `:app`):
   (kind stored, derived from the name), tipos de asunto/procedimiento per
   órgano, and each órgano's search form hidden fields (echoed back in step D).
   The circuit list itself is bundled in `:sise-core` (`circuitos.tsv`).
-- The search screen loads a circuit's órganos when the user picks the
-  circuit or opens the Órgano field; the remembered last circuit shows only
-  what's cached until then. Step C needs the CircuitoName, so loading an
-  órgano's tipos first loads its circuit's órgano list if it isn't cached
-  (e.g. when the órgano came from "Órganos recientes").
+- Every dropdown on the search screen is ready before it's opened: the
+  bundled catalog is read on a background thread at app start
+  (`SiseApp`, `Catalogo.warmUp`, `BundledOrganos`), the remembered
+  circuit's list shows at once, and with no circuit chosen the órgano
+  picker lists every bundled órgano. Step C needs the CircuitoName, which
+  comes bundled (`circuitos.tsv`); an órgano not in the snapshot uses its
+  circuit's cached or bundled name.
 - Diagnostics, Ajustes → "Capturar páginas del catálogo" (off by default):
   while on, each catalog page the user's own actions load (órgano lists,
   step C forms, Accion=2 reloads) is saved under its fixture name
@@ -401,6 +421,10 @@ as windows-1252, because
 1. **Native search screen**, in this order:
    - Circuito dropdown (from A), each item as ordinal over state
      ("Primer Circuito" / "Ciudad de México"); the field shows the label.
+     It starts with "Todos los circuitos" (no circuit): the órgano picker
+     then lists every circuit's órganos, and picking one chooses its
+     circuit (with no request: its bundled or cached list shows). A
+     remembered circuit is the default.
    - **Bundled snapshot** (`Catalogo` in `:sise-core`, from the October
      2026 crawl): every circuit's órgano list (`organos.tsv`), each
      órgano's tipo list class (or none), the procedimientos of tipos 125
@@ -412,18 +436,24 @@ as windows-1252, because
      first. Refresh the snapshot by rerunning the crawl and regenerating
      the TSVs from its pages (`CatalogoTest` checks them against the
      committed circuit pages and forms).
-   - Filter chips, each row offering only what the loaded list has:
-     Tipo de órgano (Juzgados / Tribunales / Otros), then the class within
-     it (`OrganoClase`: Colegiados de Circuito / de Apelación / Laborales,
-     Plenos Regionales…), then Materia (`Materia`: Penal, Civil,
+   - Órgano picker (from B): the field opens a full-height sheet
+     (`OrganoPicker`) with a search field (words of the name, or the
+     organismo number), filter chips and the matching órganos in a lazy
+     list, so even all 949 scroll smoothly; with every circuit listed,
+     they're grouped under a sticky header per circuit. An exact organismo
+     number comes first; a number no list has is offered as is
+     ("Organismo 9999", for órganos newer than the snapshot). Once chosen,
+     the field shows the full name and describes it ("Tribunal Colegiado
+     de Circuito · Penal").
+   - Filter chips in the picker, each row offering only what the list
+     has: Tipo de órgano (Juzgados / Tribunales / Otros) and the class
+     within it (`OrganoClase`: Colegiados de Circuito / de Apelación /
+     Laborales, Plenos Regionales…), then Materia (`Materia`: Penal, Civil,
      Administrativa, Trabajo, Mercantil, Mixta for juzgados and tribunales
-     whose name states none). Class and materia come from the name, like the
-     kind (`Tribunal Unitario` counts as Apelación; "Extinción de Dominio" as
-     Civil; "Ejecución de Penas" as Penal). Closed órganos are hidden unless
-     "Incluir cerrados" is on.
-   - Órgano dropdown with type-ahead filtering (from B), names only (no
-     IDs), with a count of matches; once chosen, the field describes it
-     ("Tribunal Colegiado de Circuito · Penal").
+     whose name states none). Class and materia come from the name, like
+     the kind (`Tribunal Unitario` counts as Apelación; "Extinción de
+     Dominio" as Civil; "Ejecución de Penas" as Penal). Closed órganos are
+     hidden unless "Incluir cerrados" is on.
    - Tipo de asunto dropdown, shown **at once**, with no request for any
      órgano in the snapshot (most lookups are amparos directos at
      tribunales colegiados, so Buscar is a single GET of the case page):
@@ -437,8 +467,8 @@ as windows-1252, because
        it doesn't offer. If that fails the guess stays, and "¿No aparece
        el tipo? Cargar la lista de este órgano del portal" retries.
    - Tipo de procedimiento dropdown, only when the portal would show it
-     (from D): cached, else bundled for tipos 125 and 126, else the
-     Accion=2 reload.
+     (from D): cached, else bundled for tipos 125 and 126 (shown at once,
+     with no "Cargando…"), else the Accion=2 reload.
    - Número de expediente field, with a numeric keyboard that allows `/`.
    - "Órganos recientes" chips for quick re-selection.
    - Remember the last circuit used.

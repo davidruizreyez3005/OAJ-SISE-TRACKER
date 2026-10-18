@@ -1,5 +1,8 @@
 package mx.sisetracker.ui
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,6 +17,7 @@ import mx.sisetracker.core.OrganoTitle
 import mx.sisetracker.ui.acuerdo.AcuerdoScreen
 import mx.sisetracker.ui.capture.CaptureSheet
 import mx.sisetracker.ui.cases.CaseScreen
+import mx.sisetracker.ui.components.SiseMotion
 import mx.sisetracker.ui.home.HomeScreen
 import mx.sisetracker.ui.portal.PortalScreen
 import mx.sisetracker.ui.search.SearchScreen
@@ -59,13 +63,34 @@ fun SiseNavHost(
         }
     }
 
-    NavHost(navController = navController, startDestination = HomeRoute) {
+    // Forward screens slide in from the side over a fade; back reverses it.
+    NavHost(
+        navController = navController,
+        startDestination = HomeRoute,
+        enterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, SiseMotion.spec()) +
+                fadeIn(SiseMotion.spec())
+        },
+        exitTransition = {
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, SiseMotion.spec()) { it / 4 } +
+                fadeOut(SiseMotion.spec())
+        },
+        popEnterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, SiseMotion.spec()) { it / 4 } +
+                fadeIn(SiseMotion.spec())
+        },
+        popExitTransition = {
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, SiseMotion.spec()) +
+                fadeOut(SiseMotion.spec())
+        },
+    ) {
         composable<HomeRoute> {
             HomeScreen(
                 onSearchClick = { navController.navigate(SearchRoute()) },
                 onOpenCase = { neun -> navController.navigate(CaseRoute(neun)) },
                 onSearchAcuerdos = { navController.navigate(AcuerdoSearchRoute) },
                 onSettings = { navController.navigate(SettingsRoute) },
+                onCaseLinkFound = appViewModel::onCaseCaptured,
             )
         }
         composable<AcuerdoSearchRoute> {

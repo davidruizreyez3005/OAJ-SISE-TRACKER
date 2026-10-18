@@ -22,6 +22,9 @@ data class HomeUiState(
     /** Saved cases matching [filter]. */
     val cases: List<CaseSummary> = emptyList(),
     val savedCount: Int = 0,
+    /** Unseen acuerdos across every saved case. */
+    val unseenTotal: Int = 0,
+    val dailyCheck: Boolean = false,
     /** Ask for notifications: there are saved cases, the daily check is on and the prompt wasn't dismissed. */
     val suggestNotifications: Boolean = false,
 )
@@ -42,6 +45,8 @@ class HomeViewModel(cases: CaseRepository, private val settings: SettingsStore) 
                 filter = query,
                 cases = summaries.filter { matches(it, query) },
                 savedCount = summaries.size,
+                unseenTotal = summaries.sumOf { it.unseenCount },
+                dailyCheck = dailyCheck,
                 suggestNotifications = summaries.isNotEmpty() && dailyCheck && !dismissed,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
