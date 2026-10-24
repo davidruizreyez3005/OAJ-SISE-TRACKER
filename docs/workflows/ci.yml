@@ -22,7 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # Full history: the versionCode is the commit count (app/build.gradle.kts).
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-java@v5
         with:
@@ -32,8 +35,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       # Tests only read saved fixtures; nothing here touches the live portal.
+      # assembleRelease (unsigned, not uploaded) runs R8, which fails on
+      # missing classes the debug build never notices.
       - name: Test and build
-        run: ./gradlew :sise-core:test testDebugUnitTest assembleDebug
+        run: ./gradlew :sise-core:test testDebugUnitTest assembleDebug assembleRelease
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v5

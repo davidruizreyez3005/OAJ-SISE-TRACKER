@@ -10,6 +10,15 @@ plugins {
 // them from repository secrets); otherwise assembleRelease leaves the APK unsigned.
 val releaseKeystore = providers.environmentVariable("SISE_KEYSTORE_PATH").orNull
 
+// The versionCode is the number of commits up to the build, so a newer APK,
+// from CI or a local build, always installs as an update of an older one.
+// Needs the full history (CI checks out with fetch-depth 0). SISE_VERSION_CODE
+// overrides it.
+val commitCount: Int = runCatching {
+    providers.exec { commandLine("git", "rev-list", "--count", "HEAD") }
+        .standardOutput.asText.get().trim().toInt()
+}.getOrDefault(1)
+
 android {
     namespace = "mx.sisetracker"
     compileSdk = 37
@@ -18,9 +27,10 @@ android {
         applicationId = "mx.sisetracker"
         minSdk = 26
         targetSdk = 37
-        // CI passes the tag and run number, so each released APK installs over the last.
-        versionCode = providers.environmentVariable("SISE_VERSION_CODE").map { it.toInt() }.getOrElse(1)
-        versionName = providers.environmentVariable("SISE_VERSION_NAME").getOrElse("0.1.0")
+        versionCode = providers.environmentVariable("SISE_VERSION_CODE").map { it.toInt() }.getOrElse(commitCount)
+        // The release workflow passes the tag's version.
+        versionName = providers.environmentVariable("SISE_VERSION_NAME").getOrElse("0.2.0")
+        manifestPlaceholders["appLabel"] = "@string/app_name"
     }
 
     signingConfigs {
@@ -35,10 +45,20 @@ android {
     }
 
     buildTypes {
+        // A separate app next to the team's release build, with its own id,
+        // name and data: a debug APK is signed with whatever machine built it,
+        // so it must never have to replace the real app.
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            manifestPlaceholders["appLabel"] = "@string/app_name_debug"
+        }
         release {
             signingConfig = signingConfigs.findByName("release")
-            // R8 stays off until a minified build has been checked on a device.
-            isMinifyEnabled = false
+            // R8: about a sixth of the debug APK's size, and smoother Compose.
+            // Names are kept (see proguard-rules.pro).
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

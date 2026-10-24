@@ -1,5 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="es">
     <string name="app_name" translatable="false">SISE Tracker</string>
+    <!-- The debug build's launcher name: it installs next to the release app (applicationIdSuffix). -->
+    <string name="app_name_debug" translatable="false">SISE Tracker (prueba)</string>
 
     <string name="action_back">Atrás</string>
     <string name="action_save">Guardar</string>

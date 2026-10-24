@@ -31,15 +31,9 @@ data class Circuito(val num: String, val label: String, val portalCir: String, v
  */
 object Circuitos {
     val all: List<Circuito> by lazy {
-        val stream = Circuitos::class.java.getResourceAsStream("circuitos.tsv")
-            ?: error("circuitos.tsv is missing from the classpath")
-        stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
-            lines.filter { it.isNotBlank() }
-                .map { line ->
-                    val (num, label, portalCir, portalName) = line.split('\t', limit = 4)
-                    Circuito(num, label, portalCir, portalName)
-                }
-                .toList()
+        BundledFiles.lines("circuitos.tsv").map { line ->
+            val (num, label, portalCir, portalName) = line.split('\t', limit = 4)
+            Circuito(num, label, portalCir, portalName)
         }
     }
 

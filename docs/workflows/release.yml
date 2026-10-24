@@ -5,8 +5,16 @@
 name: Release
 
 on:
+  # A pushed tag (git push origin v0.3.0)...
   push:
     tags: ['v*']
+  # ...or, from the browser: Actions → Release → Run workflow, with the
+  # version. The job then creates the tag on the chosen branch's commit.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión, sin la v (p. ej. 0.3.0)'
+        required: true
 
 permissions:
   contents: write
@@ -15,8 +23,14 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      TAG: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
     steps:
+      # Full history: the versionCode is the commit count (app/build.gradle.kts),
+      # so each release installs over the previous one.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-java@v5
         with:
@@ -38,19 +52,19 @@ jobs:
           SISE_KEYSTORE_PASSWORD: ${{ secrets.SISE_KEYSTORE_PASSWORD }}
           SISE_KEY_ALIAS: ${{ secrets.SISE_KEY_ALIAS }}
           SISE_KEY_PASSWORD: ${{ secrets.SISE_KEY_PASSWORD }}
-          SISE_VERSION_NAME: ${{ github.ref_name }}
-          SISE_VERSION_CODE: ${{ github.run_number }}
         run: |
-          export SISE_VERSION_NAME="${SISE_VERSION_NAME#v}"
+          [[ "$TAG" =~ ^v[0-9]+(\.[0-9]+)*$ ]] || { echo "Not a version tag: $TAG"; exit 1; }
+          export SISE_VERSION_NAME="${TAG#v}"
           ./gradlew :sise-core:test testDebugUnitTest assembleRelease
-          cp app/build/outputs/apk/release/app-release.apk "sise-tracker-${GITHUB_REF_NAME}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "sise-tracker-${TAG}.apk"
 
+      # Creates the tag too when the run was started from the browser.
       - name: Attach the APK to a GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" "sise-tracker-${GITHUB_REF_NAME}.apk" \
-            --title "$GITHUB_REF_NAME" --generate-notes
+          gh release create "$TAG" "sise-tracker-${TAG}.apk" \
+            --target "$GITHUB_SHA" --title "$TAG" --generate-notes
 
       - name: Remove the keystore
         if: always()

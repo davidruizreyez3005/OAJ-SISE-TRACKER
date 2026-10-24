@@ -20,17 +20,11 @@ data class KnownTipoAsunto(
  */
 object TiposDeAsunto {
     val all: List<KnownTipoAsunto> by lazy {
-        val stream = TiposDeAsunto::class.java.getResourceAsStream("tipos_asunto.tsv")
-            ?: error("tipos_asunto.tsv is missing from the classpath")
-        stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
-            lines.filter { it.isNotBlank() }
-                .map { line ->
-                    val (id, label, code) = line.split('\t', limit = 3)
-                    val clase = code.trim().singleOrNull()?.let(OrganoClase::ofCode)
-                        ?: error("Unknown órgano class '$code' for tipo $id")
-                    KnownTipoAsunto(id, label, clase)
-                }
-                .toList()
+        BundledFiles.lines("tipos_asunto.tsv").map { line ->
+            val (id, label, code) = line.split('\t', limit = 3)
+            val clase = code.trim().singleOrNull()?.let(OrganoClase::ofCode)
+                ?: error("Unknown órgano class '$code' for tipo $id")
+            KnownTipoAsunto(id, label, clase)
         }
     }
 

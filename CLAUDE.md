@@ -88,6 +88,23 @@ official Portal de Servicios en Línea (www.serviciosenlinea.pjf.gob.mx,
 "Consulta de Expediente", with a login or firma electrónica). That's the
 sanctioned no-captcha route for anything beyond a small team.
 
+Builds (README "Releases"):
+- The release build (`mx.sisetracker`, R8, signed with the team key) is the
+  only one the team installs. Never hand out a debug APK as an update: it's
+  signed with whatever machine built it, so Android won't install it over
+  the real app, and uninstalling deletes the saved cases (backup is off,
+  hard rule 6). Debug builds install beside it as "SISE Tracker (prueba)"
+  (`mx.sisetracker.debug`).
+- The versionCode is the commit count, so never rewrite the released
+  branch's history. CI checks out the full history for it.
+- R8 keeps names (`-dontobfuscate`: no crash reporting, so traces must read
+  as they are), but it still moves methods between classes: read bundled
+  files by absolute path (`BundledFiles`), never relative to a class. A
+  relative `getResourceAsStream` resolved against `kotlin/text/` in the
+  first minified build.
+- The first copies were debug builds from a cloud machine; 0.2.0 rotated
+  them to the team key (v3 signature lineage), see README.
+
 ## Visual design
 
 Mexican institutional guinda (burgundy) and dorado (gold), as the user asked,
@@ -687,7 +704,8 @@ expected values to assert, and what's still missing.
 ## Commands
 
 - `./gradlew :sise-core:test`: fast parser tests.
-- `./gradlew testDebugUnitTest assembleDebug`: what CI runs.
+- `./gradlew testDebugUnitTest assembleDebug assembleRelease`: what CI runs
+  (the release build is unsigned without the `SISE_*` variables, but R8 runs).
 - `SISE_SCREENSHOTS_DIR=/some/dir ./gradlew testDebugUnitTest`: the
   Robolectric UI tests also save PNGs of the screens there.
 - Robolectric is pinned to SDK 34 (`app/src/test/resources/robolectric.properties`):

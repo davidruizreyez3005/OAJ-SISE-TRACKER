@@ -28,7 +28,7 @@ data class CatalogoOrgano(
 object Catalogo {
     private val organos: List<CatalogoOrgano> by lazy {
         val positions = mutableMapOf<String, Int>()
-        lines("organos.tsv").map { line ->
+        BundledFiles.lines("organos.tsv").map { line ->
             val (circuito, id, code, name) = line.split('\t', limit = 4)
             val position = positions.merge(circuito, 1, Int::plus)?.minus(1) ?: 0
             val tipos = if (code == "-") null else code.singleOrNull()?.let(OrganoClase::ofCode)
@@ -38,7 +38,7 @@ object Catalogo {
     }
 
     private val procedimientos: Map<String, List<FormOption>> by lazy {
-        lines("tipos_procedimiento.tsv")
+        BundledFiles.lines("tipos_procedimiento.tsv")
             .map { it.split('\t', limit = 3) }
             .groupBy({ it[0] }, { it[1] to it[2] })
             .mapValues { (_, options) ->
@@ -76,10 +76,4 @@ object Catalogo {
 
     /** The procedimientos of [tipoAsunto] (the same at every órgano seen), or null if not in the snapshot. */
     fun tiposDeProcedimiento(tipoAsunto: String): List<FormOption>? = procedimientos[tipoAsunto.trim()]
-
-    private fun lines(resource: String): List<String> {
-        val stream = Catalogo::class.java.getResourceAsStream(resource)
-            ?: error("$resource is missing from the classpath")
-        return stream.bufferedReader(Charsets.UTF_8).useLines { lines -> lines.filter { it.isNotBlank() }.toList() }
-    }
 }
