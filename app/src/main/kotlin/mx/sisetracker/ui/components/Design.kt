@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -37,6 +38,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -189,7 +191,11 @@ fun SectionCard(
     }
 }
 
-/** A small pill with an optional icon: dates, cuaderno, ids. */
+/**
+ * A small pill with an optional icon: dates, cuaderno, ids. With large text
+ * it wraps instead of cutting what it says; its corners keep it a pill on
+ * one line and a rounded box on more.
+ */
 @Composable
 fun InfoChip(
     text: String,
@@ -198,17 +204,21 @@ fun InfoChip(
     container: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     content: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
-    Surface(shape = CircleShape, color = container, contentColor = content, modifier = modifier) {
+    Surface(shape = RoundedCornerShape(12.dp), color = container, contentColor = content, modifier = modifier) {
         Row(
             modifier = Modifier.padding(start = if (icon != null) 8.dp else 10.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             if (icon != null) Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))
-            Text(text, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(text, style = MaterialTheme.typography.labelMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
         }
     }
 }
+
+/** Lines for a name a card shortens: more when the user has enlarged the text. */
+@Composable
+fun cardNameLines(): Int = if (LocalDensity.current.fontScale > 1.3f) 4 else 2
 
 /** An [InfoChip] for a guinda header band. */
 @Composable

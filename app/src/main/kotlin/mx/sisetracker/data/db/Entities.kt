@@ -112,12 +112,58 @@ data class CapturaEntryEntity(
     val value: String,
 )
 
+/**
+ * The user's own label and note for a saved case (database version 3). Kept
+ * on the device like everything else here, and never exported.
+ */
+@Entity(
+    tableName = "case_notes",
+    foreignKeys = [ForeignKey(CaseEntity::class, ["neun"], ["neun"], onDelete = ForeignKey.CASCADE)],
+)
+data class CaseNoteEntity(
+    @PrimaryKey val neun: String,
+    /** A short tag for the case's card, e.g. the client or an internal file number. Empty for none. */
+    val label: String,
+    val note: String,
+    val updatedAt: Long,
+)
+
+/**
+ * An imported link whose case hasn't loaded yet (database version 3). It
+ * shows in "Mis expedientes" at once, from the link's own values and the
+ * bundled catalog, and loads when opened or, one by one, in the next daily
+ * check (hard rule 3).
+ */
+@Entity(tableName = "pending_cases")
+data class PendingCaseEntity(
+    /** The case page URL, as `CaseUrl.toUrl()` builds it. */
+    @PrimaryKey val caseUrl: String,
+    val organismoId: String,
+    val tipoAsuntoId: String,
+    val expediente: String,
+    val addedAt: Long,
+    /** The portal answered "not found": kept, not loaded again, until the user removes it. */
+    val notFound: Boolean,
+)
+
 /** A row of "Mis expedientes". */
 data class CaseSummary(
     @Embedded val case: CaseEntity,
     val acuerdoCount: Int,
     val unseenCount: Int,
     val latestPublicacion: LocalDate?,
+    /** The user's label and note (`case_notes`), null when there are none. */
+    val label: String? = null,
+    val note: String? = null,
+)
+
+/** A "Captura de Información" entry about hearings, for the next-hearing dates. */
+data class HearingEntry(
+    val neun: String,
+    val section: String,
+    @ColumnInfo(name = "group_index") val group: Int,
+    val label: String,
+    val value: String,
 )
 
 /** One hit of the full-text search over saved acuerdos. */

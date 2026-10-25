@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.toRoute
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +16,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.sisetracker.container
+import mx.sisetracker.core.Audiencia
+import mx.sisetracker.core.Audiencias
+import mx.sisetracker.core.CapturaEntry
 import mx.sisetracker.core.ParseLocation
 import mx.sisetracker.data.cases.CaseRepository
 import mx.sisetracker.data.cases.RefreshResult
@@ -21,6 +26,7 @@ import mx.sisetracker.data.db.AcuerdoEntity
 import mx.sisetracker.data.db.AsuntoRelacionadoEntity
 import mx.sisetracker.data.db.CapturaEntryEntity
 import mx.sisetracker.data.db.CaseEntity
+import mx.sisetracker.data.db.CaseNoteEntity
 import mx.sisetracker.data.db.ResolucionEntity
 import mx.sisetracker.data.net.PortalError
 import mx.sisetracker.data.net.PortalResult
@@ -45,6 +51,11 @@ data class CaseUiState(
     val resoluciones: List<ResolucionEntity> = emptyList(),
     val relacionados: List<AsuntoRelacionadoEntity> = emptyList(),
     val captura: List<CapturaEntryEntity> = emptyList(),
+    /** The soonest hearing from [today] on, from [captura]. */
+    val nextHearing: Audiencia? = null,
+    val today: LocalDate = LocalDate.now(),
+    /** The user's label and note. */
+    val note: CaseNoteEntity? = null,
     val savedNeuns: Set<String> = emptySet(),
     val refreshing: Boolean = false,
     val message: CaseMessage? = null,
@@ -62,7 +73,11 @@ private data class VisitState(
  * One saved case. Opening it marks its new acuerdos as seen (they keep their
  * "Nuevo" badge for this visit). Pull to refresh is one request.
  */
-class CaseViewModel(private val neun: String, private val cases: CaseRepository) : ViewModel() {
+class CaseViewModel(
+    private val neun: String,
+    private val cases: CaseRepository,
+    private val today: () -> LocalDate = { LocalDate.now(ZoneId.systemDefault()) },
+) : ViewModel() {
     private val visit = MutableStateFlow(VisitState())
 
     private val stored = combine(
@@ -72,6 +87,7 @@ class CaseViewModel(private val neun: String, private val cases: CaseRepository)
         cases.observeRelacionados(neun),
         cases.observeCaptura(neun),
     ) { case, acuerdos, resoluciones, relacionados, captura ->
+        val today = today()
         CaseUiState(
             loaded = true,
             case = case,
@@ -79,12 +95,15 @@ class CaseViewModel(private val neun: String, private val cases: CaseRepository)
             resoluciones = resoluciones,
             relacionados = relacionados,
             captura = captura,
+            nextHearing = Audiencias.next(captura.map { CapturaEntry(it.section, it.group, it.label, it.value) }, today),
+            today = today,
         )
     }
 
     val state: StateFlow<CaseUiState> =
-        combine(stored, cases.observeSavedNeuns(), visit) { stored, saved, visit ->
+        combine(stored, cases.observeNote(neun), cases.observeSavedNeuns(), visit) { stored, note, saved, visit ->
             stored.copy(
+                note = note,
                 savedNeuns = saved,
                 newOrdenes = visit.newOrdenes,
                 refreshing = visit.refreshing,
@@ -124,6 +143,11 @@ class CaseViewModel(private val neun: String, private val cases: CaseRepository)
 
     fun onMessageShown() {
         visit.update { it.copy(message = null) }
+    }
+
+    /** Both blank removes the label and note. */
+    fun saveNote(label: String, note: String) {
+        viewModelScope.launch { cases.setNote(neun, label, note) }
     }
 
     fun delete() {

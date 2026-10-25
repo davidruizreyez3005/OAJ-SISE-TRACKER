@@ -96,8 +96,8 @@ Signature Scheme v3 key rotation from that key to the team key
 keeps every saved case, and from then on the copy only accepts the team key.
 Later releases need nothing special. Android 8 can't rotate keys: 0.2.0
 still installs over the old copy, but the next release won't, so there first
-export the list (Ajustes → Mis expedientes → Exportar), uninstall, install
-the new release and import it.
+export the list (Ajustes → Mis expedientes → Exportar la lista), uninstall,
+install the new release and import it (Ajustes → Importar una lista).
 
 ### Signing locally
 

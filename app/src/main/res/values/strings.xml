@@ -17,7 +17,7 @@
 
     <string name="home_title">Mis expedientes</string>
     <string name="home_search_button">Buscar expediente</string>
-    <string name="home_filter">Filtrar por expediente u órgano</string>
+    <string name="home_filter">Filtrar mis expedientes</string>
     <string name="home_filter_no_match">Ningún expediente guardado coincide con el filtro.</string>
     <string name="home_latest_acuerdo">Último acuerdo publicado: %1$s</string>
     <string name="home_no_acuerdos">Sin acuerdos publicados</string>
@@ -257,7 +257,7 @@
     <string name="crawl_status_finished">Recorrido completo.</string>
     <string name="crawl_status_stopped">Detenido. Al reanudarlo, continúa donde se quedó.</string>
     <string name="crawl_status_stopped_error">Detenido tras varios errores. %1$s</string>
-    <string name="settings_privacy">Los expedientes guardados y sus síntesis solo están en este teléfono: no se respaldan en la nube ni se transfieren a otro dispositivo.</string>
+    <string name="settings_privacy">Los expedientes guardados, sus síntesis y tus notas solo están en este teléfono: no se respaldan en la nube ni se transfieren a otro dispositivo. La lista exportada solo lleva los enlaces del portal.</string>
 
     <string name="notifications_prompt">Activa las notificaciones para saber cuándo tus expedientes tienen acuerdos nuevos.</string>
     <string name="notifications_allow">Permitir</string>
@@ -273,4 +273,123 @@
 
     <string name="error_no_browser">No hay un navegador para abrir el enlace.</string>
     <string name="share_no_case_link">El texto compartido no contiene un enlace de expediente del SISE.</string>
+
+    <!-- Export and import of the saved list (links only). -->
+    <string name="settings_section_expedientes">Mis expedientes</string>
+    <string name="settings_export">Exportar la lista</string>
+    <string name="settings_export_help">Un archivo de texto con el enlace del portal de cada expediente: sin acuerdos, síntesis ni tus notas. Sirve para pasarlos a otro teléfono o a un compañero.</string>
+    <string name="settings_export_empty">Aún no hay expedientes guardados.</string>
+    <string name="settings_import">Importar una lista</string>
+    <string name="settings_import_help">Desde un archivo exportado. También puedes compartir enlaces del portal con SISE Tracker.</string>
+    <plurals name="export_file_header">
+        <item quantity="one">SISE Tracker: %1$d expediente guardado, %2$s</item>
+        <item quantity="many">SISE Tracker: %1$d expedientes guardados, %2$s</item>
+        <item quantity="other">SISE Tracker: %1$d expedientes guardados, %2$s</item>
+    </plurals>
+    <string name="export_file_help">Enlaces directos al portal del SISE, uno por línea. Para importarlos: SISE Tracker → Ajustes → Importar una lista.</string>
+    <string name="import_title">Importar expedientes</string>
+    <plurals name="import_new">
+        <item quantity="one">%d expediente nuevo</item>
+        <item quantity="many">%d expedientes nuevos</item>
+        <item quantity="other">%d expedientes nuevos</item>
+    </plurals>
+    <plurals name="import_already">
+        <item quantity="one">%d ya estaba guardado</item>
+        <item quantity="many">%d ya estaban guardados</item>
+        <item quantity="other">%d ya estaban guardados</item>
+    </plurals>
+    <string name="import_body">Aparecerán en Mis expedientes de inmediato. Cada uno se carga del portal al abrirlo o, uno por uno, en la próxima revisión diaria.</string>
+    <string name="import_nothing_new">Todos ya están en Mis expedientes.</string>
+    <string name="action_import">Importar</string>
+    <string name="action_ok">Aceptar</string>
+    <plurals name="import_done">
+        <item quantity="one">Se importó %d expediente.</item>
+        <item quantity="many">Se importaron %d expedientes.</item>
+        <item quantity="other">Se importaron %d expedientes.</item>
+    </plurals>
+    <string name="import_no_links">No se encontraron enlaces de expedientes del portal.</string>
+    <plurals name="home_pending_section">
+        <item quantity="one">Por cargar (%d)</item>
+        <item quantity="many">Por cargar (%d)</item>
+        <item quantity="other">Por cargar (%d)</item>
+    </plurals>
+    <string name="home_pending_help">Importados. Cada uno se carga del portal al abrirlo o en la próxima revisión diaria.</string>
+    <string name="home_pending_chip">Sin cargar</string>
+    <string name="home_pending_loading">Cargando…</string>
+    <string name="home_pending_not_found">No se encontró en el portal</string>
+    <string name="home_pending_remove">Quitar</string>
+    <string name="home_pending_not_found_message">El portal no encontró este expediente. Revisa el enlace o quítalo de la lista.</string>
+
+    <!-- Hearings from "Captura de Información". -->
+    <string name="audiencia_constitucional">Audiencia constitucional</string>
+    <string name="audiencia_incidental">Audiencia incidental</string>
+    <string name="audiencia_otra">Audiencia</string>
+    <string name="audiencia_today">hoy</string>
+    <string name="audiencia_tomorrow">mañana</string>
+    <string name="audiencia_line">%1$s: %2$s</string>
+    <string name="audiencia_at">%1$s a las %2$s</string>
+    <string name="audiencia_reminder_title">%1$s %2$s</string>
+    <string name="audiencia_reminder_text">%1$s · %2$s</string>
+    <string name="hearing_channel">Audiencias</string>
+    <string name="hearing_channel_description">Un aviso el día anterior a cada audiencia de tus expedientes guardados. Solo muestra el tipo de audiencia, el día, la hora, el expediente y el órgano.</string>
+    <string name="settings_hearing_reminders">Recordar audiencias</string>
+    <string name="settings_hearing_reminders_help">Un aviso el día anterior, a las 9:00, de las audiencias que indica la Captura de Información. Usa los datos ya guardados: no consulta el portal.</string>
+
+    <!-- Labels, notes and sorting. -->
+    <string name="case_note_menu">Etiqueta y nota</string>
+    <string name="case_note_title">Etiqueta y nota</string>
+    <string name="case_note_label">Etiqueta</string>
+    <string name="case_note_label_help">Corta, para la tarjeta: el cliente, tu número de archivo…</string>
+    <string name="case_note_text">Nota</string>
+    <string name="case_note_private">Solo se guardan en este teléfono y no se exportan.</string>
+    <string name="case_note_edit">Editar la nota</string>
+    <string name="home_sort">Orden: %1$s</string>
+    <string name="home_sort_activity">Actividad reciente</string>
+    <string name="home_sort_hearing">Próxima audiencia</string>
+    <string name="home_sort_expediente">Número de expediente</string>
+    <string name="home_sort_organo">Órgano</string>
+    <string name="home_sort_added">Agregados recientemente</string>
+    <string name="home_filter_new">Con acuerdos nuevos</string>
+
+    <!-- Daily check status and the app's version. -->
+    <string name="settings_check_never">Aún no se ha hecho ninguna revisión.</string>
+    <string name="settings_check_last">Última revisión: %1$s</string>
+    <plurals name="settings_check_counts">
+        <item quantity="one">%1$d de %2$d expediente revisado</item>
+        <item quantity="many">%1$d de %2$d expedientes revisados</item>
+        <item quantity="other">%1$d de %2$d expedientes revisados</item>
+    </plurals>
+    <plurals name="settings_check_new">
+        <item quantity="one">%d con acuerdos nuevos</item>
+        <item quantity="many">%d con acuerdos nuevos</item>
+        <item quantity="other">%d con acuerdos nuevos</item>
+    </plurals>
+    <plurals name="settings_check_loaded">
+        <item quantity="one">%d importado cargado</item>
+        <item quantity="many">%d importados cargados</item>
+        <item quantity="other">%d importados cargados</item>
+    </plurals>
+    <string name="settings_check_stopped">Se detuvo: %1$s Sigue en la próxima revisión.</string>
+    <string name="settings_check_next">Próxima: a partir del %1$s</string>
+    <string name="settings_section_acerca">Acerca de</string>
+    <string name="settings_version">SISE Tracker %1$s (%2$d)</string>
+    <string name="settings_version_debug">Versión de prueba: se instala aparte de la app del equipo y tiene sus propios datos.</string>
+
+    <!-- App lock. -->
+    <string name="settings_section_privacidad">Privacidad</string>
+    <string name="settings_app_lock">Bloquear la app</string>
+    <string name="settings_app_lock_help">Pide tu huella, rostro o el bloqueo de pantalla al abrir la app, o al volver a ella después de un minuto.</string>
+    <string name="settings_app_lock_unavailable">Primero configura un bloqueo de pantalla en los ajustes de Android.</string>
+    <string name="lock_title">SISE Tracker está bloqueado</string>
+    <string name="lock_body">Desbloquéalo para ver tus expedientes.</string>
+    <string name="lock_unlock">Desbloquear</string>
+    <string name="lock_prompt_title">Desbloquear SISE Tracker</string>
+    <string name="lock_prompt_subtitle">Usa tu huella, rostro o el bloqueo de pantalla</string>
+    <string name="settings_recents_hidden">Android no muestra el contenido de la app en la pantalla de apps recientes.</string>
+    <string name="notification_summary_title">Acuerdos nuevos</string>
+    <plurals name="notification_summary_text">
+        <item quantity="one">%d expediente con acuerdos nuevos</item>
+        <item quantity="many">%d expedientes con acuerdos nuevos</item>
+        <item quantity="other">%d expedientes con acuerdos nuevos</item>
+    </plurals>
 </resources>

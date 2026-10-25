@@ -2,6 +2,7 @@ package mx.sisetracker.data.db
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
@@ -15,12 +16,54 @@ abstract class CaseDao {
         SELECT c.*,
             (SELECT COUNT(*) FROM acuerdos a WHERE a.neun = c.neun) AS acuerdoCount,
             (SELECT COUNT(*) FROM acuerdos a WHERE a.neun = c.neun AND a.seen = 0) AS unseenCount,
-            (SELECT MAX(a.fechaPublicacion) FROM acuerdos a WHERE a.neun = c.neun) AS latestPublicacion
-        FROM cases c
+            (SELECT MAX(a.fechaPublicacion) FROM acuerdos a WHERE a.neun = c.neun) AS latestPublicacion,
+            n.label AS label, n.note AS note
+        FROM cases c LEFT JOIN case_notes n ON n.neun = c.neun
         ORDER BY latestPublicacion IS NULL, latestPublicacion DESC, c.addedAt DESC
         """,
     )
     abstract fun observeSummaries(): Flow<List<CaseSummary>>
+
+    /** Every saved case's hearing entries in "Captura de Información", in page order (see Audiencias). */
+    @Query(
+        """
+        SELECT neun, section, group_index, label, value FROM captura
+        WHERE label LIKE '%audiencia%' ORDER BY neun, position
+        """,
+    )
+    abstract fun observeHearingEntries(): Flow<List<HearingEntry>>
+
+    @Query(
+        """
+        SELECT neun, section, group_index, label, value FROM captura
+        WHERE label LIKE '%audiencia%' ORDER BY neun, position
+        """,
+    )
+    abstract suspend fun getHearingEntries(): List<HearingEntry>
+
+    @Query("SELECT * FROM case_notes WHERE neun = :neun")
+    abstract fun observeNote(neun: String): Flow<CaseNoteEntity?>
+
+    @Upsert
+    abstract suspend fun upsertNote(note: CaseNoteEntity)
+
+    @Query("DELETE FROM case_notes WHERE neun = :neun")
+    abstract suspend fun deleteNote(neun: String)
+
+    @Query("SELECT * FROM pending_cases ORDER BY addedAt, caseUrl")
+    abstract fun observePending(): Flow<List<PendingCaseEntity>>
+
+    @Query("SELECT * FROM pending_cases ORDER BY addedAt, caseUrl")
+    abstract suspend fun getPending(): List<PendingCaseEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun insertPending(rows: List<PendingCaseEntity>)
+
+    @Query("DELETE FROM pending_cases WHERE caseUrl = :caseUrl")
+    abstract suspend fun deletePending(caseUrl: String)
+
+    @Query("UPDATE pending_cases SET notFound = 1 WHERE caseUrl = :caseUrl")
+    abstract suspend fun markPendingNotFound(caseUrl: String)
 
     @Query(
         """

@@ -21,13 +21,19 @@ import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.capture.DownloadsSaver
 import mx.sisetracker.data.check.DailyCheckScheduler
 import mx.sisetracker.data.crawl.CatalogCrawlScheduler
+import mx.sisetracker.data.settings.CheckReport
 import mx.sisetracker.data.settings.CrawlStatus
 import mx.sisetracker.data.settings.SettingsStore
+import mx.sisetracker.data.transfer.CaseListTransfer
 
 data class SettingsUiState(
     val loaded: Boolean = false,
     val dailyCheck: Boolean = true,
     val intervalDays: Int = 1,
+    /** What the last background check did; null before the first. */
+    val lastCheck: CheckReport? = null,
+    val hearingReminders: Boolean = true,
+    val appLock: Boolean = false,
     val catalogsCleared: Boolean = false,
     val captureEnabled: Boolean = false,
     val captureCount: Int = 0,
@@ -40,7 +46,14 @@ sealed interface SettingsMessage {
     data class Saved(val fileName: String) : SettingsMessage
 
     data object SaveFailed : SettingsMessage
+
+    data object NothingToExport : SettingsMessage
 }
+
+/** A file for the share sheet or the "save as" picker, with its type. */
+data class OutgoingFile(val file: File, val mimeType: String)
+
+private data class CheckPrefs(val enabled: Boolean, val days: Int, val report: CheckReport?, val cleared: Boolean)
 
 class SettingsViewModel(
     private val settings: SettingsStore,
@@ -49,33 +62,38 @@ class SettingsViewModel(
     private val captures: CaptureStore,
     private val crawlScheduler: CatalogCrawlScheduler,
     private val saver: DownloadsSaver,
+    private val transfer: CaseListTransfer,
 ) : ViewModel() {
     private val catalogsCleared = MutableStateFlow(false)
     private val captureCount = MutableStateFlow(0)
 
-    /** A zip of the captures to hand to the share sheet: consumed by the screen. */
-    private val _shareFile = MutableStateFlow<File?>(null)
-    val shareFile: StateFlow<File?> = _shareFile.asStateFlow()
+    /** A file (captures zip, exported list) to hand to the share sheet: consumed by the screen. */
+    private val _shareFile = MutableStateFlow<OutgoingFile?>(null)
+    val shareFile: StateFlow<OutgoingFile?> = _shareFile.asStateFlow()
 
     private val _message = MutableStateFlow<SettingsMessage?>(null)
     val message: StateFlow<SettingsMessage?> = _message.asStateFlow()
 
-    /** Before Android 10: a zip waiting for the user to pick where to save it. Consumed by the screen. */
-    private val _pickSaveLocation = MutableStateFlow<File?>(null)
-    val pickSaveLocation: StateFlow<File?> = _pickSaveLocation.asStateFlow()
+    /** Before Android 10: a file waiting for the user to pick where to save it. Consumed by the screen. */
+    private val _pickSaveLocation = MutableStateFlow<OutgoingFile?>(null)
+    val pickSaveLocation: StateFlow<OutgoingFile?> = _pickSaveLocation.asStateFlow()
     private var pendingSave: File? = null
 
     val state: StateFlow<SettingsUiState> =
         combine(
-            combine(settings.dailyCheckEnabled, settings.checkIntervalDays, catalogsCleared, ::Triple),
+            combine(settings.dailyCheckEnabled, settings.checkIntervalDays, settings.lastCheckReport, catalogsCleared, ::CheckPrefs),
+            combine(settings.hearingReminders, settings.appLock, ::Pair),
             combine(settings.captureEnabled, captureCount, ::Pair),
             combine(settings.crawlEnabled, settings.crawlStatus, ::Pair),
-        ) { (enabled, days, cleared), (capture, count), (crawl, crawlStatus) ->
+        ) { check, (reminders, lock), (capture, count), (crawl, crawlStatus) ->
             SettingsUiState(
                 loaded = true,
-                dailyCheck = enabled,
-                intervalDays = days,
-                catalogsCleared = cleared,
+                dailyCheck = check.enabled,
+                intervalDays = check.days,
+                lastCheck = check.report,
+                hearingReminders = reminders,
+                appLock = lock,
+                catalogsCleared = check.cleared,
                 captureEnabled = capture,
                 captureCount = count,
                 crawlEnabled = crawl,
@@ -106,14 +124,36 @@ class SettingsViewModel(
 
     /** "Guardar en Descargas": straight to Downloads on Android 10+, else via a file picker. */
     fun onSaveCaptures() {
+        viewModelScope.launch { captures.zip()?.let { save(OutgoingFile(it, DownloadsSaver.MIME_TYPE)) } }
+    }
+
+    /** "Exportar la lista" → "Guardar en Descargas": the links of every saved case. */
+    fun onSaveList() {
         viewModelScope.launch {
-            val zip = captures.zip() ?: return@launch
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                _message.value = if (saver.saveToDownloads(zip)) SettingsMessage.Saved(zip.name) else SettingsMessage.SaveFailed
+            val file = transfer.exportFile()
+            if (file == null) _message.value = SettingsMessage.NothingToExport else save(OutgoingFile(file, CaseListTransfer.MIME_TYPE))
+        }
+    }
+
+    /** "Exportar la lista" → "Compartir". */
+    fun onShareList() {
+        viewModelScope.launch {
+            val file = transfer.exportFile()
+            if (file == null) {
+                _message.value = SettingsMessage.NothingToExport
             } else {
-                pendingSave = zip
-                _pickSaveLocation.value = zip
+                _shareFile.value = OutgoingFile(file, CaseListTransfer.MIME_TYPE)
             }
+        }
+    }
+
+    private suspend fun save(outgoing: OutgoingFile) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val saved = saver.saveToDownloads(outgoing.file, outgoing.mimeType)
+            _message.value = if (saved) SettingsMessage.Saved(outgoing.file.name) else SettingsMessage.SaveFailed
+        } else {
+            pendingSave = outgoing.file
+            _pickSaveLocation.value = outgoing
         }
     }
 
@@ -123,11 +163,11 @@ class SettingsViewModel(
 
     /** The picked document (null if the user cancelled). */
     fun onSaveLocationPicked(uri: Uri?) {
-        val zip = pendingSave ?: return
+        val file = pendingSave ?: return
         pendingSave = null
         if (uri == null) return
         viewModelScope.launch {
-            _message.value = if (saver.saveTo(uri, zip)) SettingsMessage.Saved(zip.name) else SettingsMessage.SaveFailed
+            _message.value = if (saver.saveTo(uri, file)) SettingsMessage.Saved(file.name) else SettingsMessage.SaveFailed
         }
     }
 
@@ -145,7 +185,7 @@ class SettingsViewModel(
     }
 
     fun onShareCaptures() {
-        viewModelScope.launch { _shareFile.value = captures.zip() }
+        viewModelScope.launch { _shareFile.value = captures.zip()?.let { OutgoingFile(it, DownloadsSaver.MIME_TYPE) } }
     }
 
     fun onShareHandled() {
@@ -164,6 +204,15 @@ class SettingsViewModel(
             settings.setDailyCheckEnabled(enabled)
             scheduler.apply(enabled, settings.checkIntervalDays.first(), replace = true)
         }
+    }
+
+    fun onHearingRemindersChange(enabled: Boolean) {
+        viewModelScope.launch { settings.setHearingReminders(enabled) }
+    }
+
+    /** The screen confirms the device can be unlocked (and the user can) before turning it on. */
+    fun onAppLockChange(enabled: Boolean) {
+        viewModelScope.launch { settings.setAppLock(enabled) }
     }
 
     fun onIntervalChange(days: Int) {
@@ -196,6 +245,7 @@ class SettingsViewModel(
                     c.captureStore,
                     c.catalogCrawlScheduler,
                     c.downloadsSaver,
+                    c.caseListTransfer,
                 )
             }
         }

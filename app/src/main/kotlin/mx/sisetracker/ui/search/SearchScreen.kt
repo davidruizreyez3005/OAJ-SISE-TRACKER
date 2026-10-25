@@ -314,7 +314,8 @@ private fun CircuitoField(
             label = { Text(stringResource(R.string.search_circuito)) },
             leadingIcon = { Icon(Icons.Filled.Place, contentDescription = null) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            singleLine = true,
+            // Wraps rather than cuts the circuit's name with large text.
+            maxLines = 3,
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),

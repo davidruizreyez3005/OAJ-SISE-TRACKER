@@ -102,7 +102,7 @@ class CaseScreensTest {
         compose.onNodeWithText("Último acuerdo publicado: 01/09/2026").assertExists()
         compose.onRoot().saveScreenshot("home_cases_light")
 
-        compose.onNodeWithText("Filtrar por expediente u órgano").performTextInput("civil")
+        compose.onNodeWithText("Filtrar mis expedientes").performTextInput("civil")
         waitForText("Ningún expediente guardado coincide con el filtro.")
         compose.onNodeWithText("1183/2025").assertDoesNotExist()
     }
@@ -255,13 +255,14 @@ class CaseScreensTest {
             ),
             mx.sisetracker.data.crawl.CatalogCrawlScheduler { androidx.work.WorkManager.getInstance(context) },
             mx.sisetracker.data.capture.DownloadsSaver(context),
+            mx.sisetracker.data.transfer.CaseListTransfer(context, repository, java.io.File(context.cacheDir, "shared-test")),
         )
         compose.setContent { SiseTrackerTheme { SettingsScreen(onBack = {}, viewModel = viewModel) } }
 
         waitForText("Revisión diaria")
         compose.onNodeWithText("Revisar cada día").assertExists()
         compose.onRoot().saveScreenshot("settings_light")
-        compose.onNodeWithText("Actualizar catálogos").performClick()
+        compose.onNodeWithText("Actualizar catálogos").performScrollTo().performClick()
         waitForText("Catálogos borrados. Se cargarán de nuevo al usarlos.")
 
         // The crawl starts only after confirming, and only queues work (it waits for a connection).

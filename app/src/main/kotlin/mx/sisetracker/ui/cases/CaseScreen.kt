@@ -27,11 +27,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +44,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -47,6 +54,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,21 +74,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
 import mx.sisetracker.R
+import mx.sisetracker.core.Audiencia
 import mx.sisetracker.core.OrganoTitle
 import mx.sisetracker.core.SiseDates
 import mx.sisetracker.data.db.AcuerdoEntity
 import mx.sisetracker.data.db.AsuntoRelacionadoEntity
 import mx.sisetracker.data.db.CapturaEntryEntity
 import mx.sisetracker.data.db.CaseEntity
+import mx.sisetracker.data.db.CaseNoteEntity
 import mx.sisetracker.data.db.ResolucionEntity
 import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.BrandHeader
@@ -91,6 +103,7 @@ import mx.sisetracker.ui.components.NewBadge
 import mx.sisetracker.ui.components.SiseCard
 import mx.sisetracker.ui.components.SiseMotion
 import mx.sisetracker.ui.components.SiseTopAppBar
+import mx.sisetracker.ui.components.hearingLine
 import mx.sisetracker.ui.components.openInBrowser
 import mx.sisetracker.ui.components.portalErrorText
 import mx.sisetracker.ui.components.rememberCopyPortalLink
@@ -113,6 +126,7 @@ fun CaseScreen(
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var editingNote by rememberSaveable { mutableStateOf(false) }
 
     val message = state.message?.let { messageText(it) }
     LaunchedEffect(state.message) {
@@ -157,6 +171,14 @@ fun CaseScreen(
                                 },
                             )
                             DropdownMenuItem(
+                                text = { Text(stringResource(R.string.case_note_menu)) },
+                                leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    editingNote = true
+                                },
+                            )
+                            DropdownMenuItem(
                                 text = { Text(stringResource(R.string.case_delete)) },
                                 onClick = {
                                     menuOpen = false
@@ -186,7 +208,7 @@ fun CaseScreen(
                     .padding(padding)
                     .fillMaxSize(),
             ) {
-                CaseHeader(case)
+                CaseHeader(case, state.note, state.nextHearing, state.today, onEditNote = { editingNote = true })
                 val tabs = listOf(
                     stringResource(R.string.case_tab_acuerdos, state.acuerdos.size),
                     stringResource(R.string.case_tab_resoluciones, state.resoluciones.size),
@@ -232,6 +254,17 @@ fun CaseScreen(
         }
     }
 
+    if (editingNote) {
+        NoteSheet(
+            note = state.note,
+            onSave = { label, note ->
+                editingNote = false
+                viewModel.saveNote(label, note)
+            },
+            onDismiss = { editingNote = false },
+        )
+    }
+
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
@@ -265,10 +298,20 @@ private fun messageText(message: CaseMessage): String = when (message) {
 
 private val checkedFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
-/** The guinda band under the bar: tipo de asunto, órgano, the case's numbers and when it was last checked. */
+/**
+ * The guinda band under the bar: tipo de asunto, órgano, the next hearing,
+ * the user's label, the case's numbers and when it was last checked, then
+ * the user's note (tap to edit).
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CaseHeader(case: CaseEntity) {
+private fun CaseHeader(
+    case: CaseEntity,
+    note: CaseNoteEntity?,
+    nextHearing: Audiencia?,
+    today: LocalDate,
+    onEditNote: () -> Unit,
+) {
     val brand = LocalBrandColors.current
     BrandHeader {
         Text(case.tipoAsuntoName, style = MaterialTheme.typography.labelLarge, color = brand.goldOnTopBar)
@@ -278,6 +321,8 @@ private fun CaseHeader(case: CaseEntity) {
             verticalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier.padding(top = 6.dp),
         ) {
+            nextHearing?.let { HeaderChip(hearingLine(it, today), icon = painterResource(R.drawable.ic_event)) }
+            note?.label?.takeIf { it.isNotEmpty() }?.let { HeaderChip(it, icon = painterResource(R.drawable.ic_label)) }
             HeaderChip(stringResource(R.string.case_neun, case.neun), icon = painterResource(R.drawable.ic_tag))
             if (case.noControlOcc.isNotEmpty()) {
                 HeaderChip(stringResource(R.string.case_occ, case.noControlOcc))
@@ -285,8 +330,87 @@ private fun CaseHeader(case: CaseEntity) {
             val checked = Instant.ofEpochMilli(case.lastCheckedAt).atZone(ZoneId.systemDefault()).format(checkedFormat)
             HeaderChip(stringResource(R.string.case_checked, checked), icon = painterResource(R.drawable.ic_schedule))
         }
+        note?.note?.takeIf { it.isNotEmpty() }?.let { text ->
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clickable(onClickLabel = stringResource(R.string.case_note_edit), onClick = onEditNote),
+            ) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = null,
+                    tint = brand.goldOnTopBar,
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .size(14.dp),
+                )
+                Text(
+                    text,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = brand.onTopBarVariant,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 6.dp),
+                )
+            }
+        }
     }
 }
+
+/**
+ * "Etiqueta y nota": the user's own words for the case, kept on the phone
+ * only. A sheet, like the órgano picker, so a long note has room.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NoteSheet(note: CaseNoteEntity?, onSave: (label: String, note: String) -> Unit, onDismiss: () -> Unit) {
+    var label by rememberSaveable { mutableStateOf(note?.label.orEmpty()) }
+    var text by rememberSaveable { mutableStateOf(note?.note.orEmpty()) }
+    val sentences = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, autoCorrectEnabled = false)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(stringResource(R.string.case_note_title), style = MaterialTheme.typography.titleLarge)
+            OutlinedTextField(
+                value = label,
+                onValueChange = { label = it.take(MAX_LABEL_LENGTH) },
+                label = { Text(stringResource(R.string.case_note_label)) },
+                supportingText = { Text(stringResource(R.string.case_note_label_help)) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
+                singleLine = true,
+                keyboardOptions = sentences,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it.take(MAX_NOTE_LENGTH) },
+                label = { Text(stringResource(R.string.case_note_text)) },
+                minLines = 4,
+                maxLines = 10,
+                keyboardOptions = sentences,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                stringResource(R.string.case_note_private),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(modifier = Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+                Button(onClick = { onSave(label, text) }) { Text(stringResource(R.string.action_save)) }
+            }
+        }
+    }
+}
+
+private const val MAX_LABEL_LENGTH = 40
+private const val MAX_NOTE_LENGTH = 2000
 
 private fun LazyListScope.emptyMessage(text: @Composable () -> String) {
     item {

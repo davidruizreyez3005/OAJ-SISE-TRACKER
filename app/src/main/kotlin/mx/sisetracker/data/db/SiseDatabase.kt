@@ -1,5 +1,6 @@
 package mx.sisetracker.data.db
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
@@ -16,8 +17,12 @@ import java.time.LocalDate
         ResolucionEntity::class,
         AsuntoRelacionadoEntity::class,
         CapturaEntryEntity::class,
+        CaseNoteEntity::class,
+        PendingCaseEntity::class,
     ],
-    version = 2,
+    version = 3,
+    // Version 3 only adds tables (notes, imported links), which Room migrates by itself.
+    autoMigrations = [AutoMigration(from = 2, to = 3)],
 )
 @TypeConverters(DateConverters::class)
 abstract class SiseDatabase : RoomDatabase() {

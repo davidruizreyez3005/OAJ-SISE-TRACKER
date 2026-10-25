@@ -12,10 +12,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Saves the captures zip where the user can find it without sharing it to an
- * app. Android 10+ writes straight to Downloads through MediaStore (no
- * permission); older versions copy it to a file the user picks
- * (`ACTION_CREATE_DOCUMENT`, which opens on Downloads by default).
+ * Saves a file (the captures zip, the exported list) where the user can find
+ * it without sharing it to an app. Android 10+ writes straight to Downloads
+ * through MediaStore (no permission); older versions copy it to a file the
+ * user picks (`ACTION_CREATE_DOCUMENT`, which opens on Downloads by default).
  */
 class DownloadsSaver(private val context: Context) {
 
@@ -23,11 +23,11 @@ class DownloadsSaver(private val context: Context) {
 
     /** Copies [file] into Downloads under its own name; false if that failed. */
     @RequiresApi(Build.VERSION_CODES.Q)
-    suspend fun saveToDownloads(file: File): Boolean = withContext(Dispatchers.IO) {
+    suspend fun saveToDownloads(file: File, mimeType: String = MIME_TYPE): Boolean = withContext(Dispatchers.IO) {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, file.name)
-            put(MediaStore.Downloads.MIME_TYPE, MIME_TYPE)
+            put(MediaStore.Downloads.MIME_TYPE, mimeType)
             put(MediaStore.Downloads.IS_PENDING, 1)
         }
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return@withContext false

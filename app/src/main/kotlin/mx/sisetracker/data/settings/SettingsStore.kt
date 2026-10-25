@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -35,6 +36,26 @@ data class CrawlStatus(
 ) {
     enum class State { IDLE, RUNNING, WAITING, FINISHED, STOPPED }
 }
+
+/** What the last background check did, for Ajustes: counts only, no case text. */
+@Serializable
+data class CheckReport(
+    val startedAt: Long,
+    val finishedAt: Long,
+    /** Saved cases when it started. */
+    val total: Int,
+    /** Cases whose page it read. */
+    val checked: Int,
+    /** Cases with new acuerdos. */
+    val notified: Int,
+    /** Imported links it loaded. */
+    val loaded: Int = 0,
+    /** A PortalError name, when a connection failure stopped it early. */
+    val error: String? = null,
+)
+
+/** How "Mis expedientes" orders the saved cases. */
+enum class CaseSort { ACTIVITY, HEARING, EXPEDIENTE, ORGANO, ADDED }
 
 /** Small preferences. Nothing here is case text. */
 class SettingsStore(private val dataStore: DataStore<Preferences>) {
@@ -89,6 +110,55 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
 
     val notificationPromptDismissed: Flow<Boolean> = dataStore.data.map { it[NOTIFICATION_PROMPT_DISMISSED] ?: false }
 
+    /** The last background check's outcome, or null before the first one. */
+    val lastCheckReport: Flow<CheckReport?> = dataStore.data.map { prefs ->
+        prefs[LAST_CHECK_REPORT]?.let {
+            try {
+                json.decodeFromString<CheckReport>(it)
+            } catch (e: SerializationException) {
+                null
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }
+    }
+
+    suspend fun setLastCheckReport(report: CheckReport) {
+        dataStore.edit { it[LAST_CHECK_REPORT] = json.encodeToString(report) }
+    }
+
+    /** A reminder the day before each hearing (local, no requests). On by default. */
+    val hearingReminders: Flow<Boolean> = dataStore.data.map { it[HEARING_REMINDERS] ?: true }
+
+    suspend fun setHearingReminders(enabled: Boolean) {
+        dataStore.edit { it[HEARING_REMINDERS] = enabled }
+    }
+
+    /** Reminders already shown, as [hearingKey]s, so each hearing is announced once. */
+    val remindedHearings: Flow<Set<String>> = dataStore.data.map { it[REMINDED_HEARINGS].orEmpty() }
+
+    /** Records [keys] as reminded, keeping only those still in [current] (past hearings drop out). */
+    suspend fun addRemindedHearings(keys: Set<String>, current: Set<String>) {
+        dataStore.edit { prefs ->
+            prefs[REMINDED_HEARINGS] = (prefs[REMINDED_HEARINGS].orEmpty() + keys).filterTo(mutableSetOf()) { it in current || it in keys }
+        }
+    }
+
+    val caseSort: Flow<CaseSort> = dataStore.data.map { prefs ->
+        prefs[CASE_SORT]?.let { name -> CaseSort.entries.firstOrNull { it.name == name } } ?: CaseSort.ACTIVITY
+    }
+
+    suspend fun setCaseSort(sort: CaseSort) {
+        dataStore.edit { it[CASE_SORT] = sort.name }
+    }
+
+    /** Ask for the fingerprint, face or screen lock when opening the app. Off by default. */
+    val appLock: Flow<Boolean> = dataStore.data.map { it[APP_LOCK] ?: false }
+
+    suspend fun setAppLock(enabled: Boolean) {
+        dataStore.edit { it[APP_LOCK] = enabled }
+    }
+
     suspend fun setDailyCheckEnabled(enabled: Boolean) {
         dataStore.edit { it[DAILY_CHECK] = enabled }
     }
@@ -140,6 +210,14 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         private val CAPTURE = booleanPreferencesKey("capture_catalog_pages")
         private val CRAWL = booleanPreferencesKey("catalog_crawl")
         private val CRAWL_STATUS = stringPreferencesKey("catalog_crawl_status")
+        private val LAST_CHECK_REPORT = stringPreferencesKey("last_check_report")
+        private val HEARING_REMINDERS = booleanPreferencesKey("hearing_reminders")
+        private val REMINDED_HEARINGS = stringSetPreferencesKey("reminded_hearings")
+        private val CASE_SORT = stringPreferencesKey("case_sort")
+        private val APP_LOCK = booleanPreferencesKey("app_lock")
+
+        /** Identifies one hearing date of one case, for [remindedHearings]. */
+        fun hearingKey(neun: String, tipo: String, fecha: String): String = "$neun|$tipo|$fecha"
         private val json = Json { ignoreUnknownKeys = true }
     }
 }

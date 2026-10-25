@@ -16,6 +16,9 @@ import mx.sisetracker.data.capture.DownloadsSaver
 import mx.sisetracker.data.catalog.CatalogDatabase
 import mx.sisetracker.data.catalog.CatalogRepository
 import mx.sisetracker.data.db.SiseDatabase
+import mx.sisetracker.data.hearings.HearingReminderScheduler
+import mx.sisetracker.data.hearings.HearingReminders
+import mx.sisetracker.data.hearings.SystemHearingNotifier
 import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.net.InMemoryCookieJar
 import mx.sisetracker.data.net.OkHttpSiseClient
@@ -24,6 +27,7 @@ import mx.sisetracker.data.net.SiseClient
 import mx.sisetracker.data.net.UserAgent
 import mx.sisetracker.data.settings.SettingsStore
 import mx.sisetracker.data.settings.settingsDataStore
+import mx.sisetracker.data.transfer.CaseListTransfer
 import okhttp3.OkHttpClient
 
 /** Manual dependency wiring, one instance per process. */
@@ -77,7 +81,17 @@ class AppContainer(private val app: Application) {
     val settings: SettingsStore by lazy { SettingsStore(app.settingsDataStore) }
 
     val dailyCheck: DailyCheck by lazy {
-        DailyCheck(caseRepository, settings, SystemNewAcuerdosNotifier(app))
+        DailyCheck(caseRepository, settings, SystemNewAcuerdosNotifier(app), afterCheck = hearingReminders::update)
+    }
+
+    /** Local reminders the day before hearings: no portal requests. */
+    val hearingReminders: HearingReminders by lazy {
+        HearingReminders(
+            caseRepository,
+            settings,
+            SystemHearingNotifier(app),
+            HearingReminderScheduler { WorkManager.getInstance(app) },
+        )
     }
 
     val dailyCheckScheduler: DailyCheckScheduler by lazy {
@@ -92,4 +106,8 @@ class AppContainer(private val app: Application) {
     }
 
     val downloadsSaver: DownloadsSaver by lazy { DownloadsSaver(app) }
+
+    val caseListTransfer: CaseListTransfer by lazy {
+        CaseListTransfer(app, caseRepository, shareDir = File(app.cacheDir, "shared"))
+    }
 }

@@ -1,6 +1,8 @@
 package mx.sisetracker.ui.settings
 
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -23,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
@@ -46,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,13 +65,21 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+import mx.sisetracker.BuildConfig
 import mx.sisetracker.R
 import mx.sisetracker.core.Circuitos
 import mx.sisetracker.data.capture.DownloadsSaver
 import mx.sisetracker.data.net.PortalError
+import mx.sisetracker.data.settings.CheckReport
 import mx.sisetracker.data.settings.CrawlStatus
 import mx.sisetracker.data.settings.SettingsStore
+import mx.sisetracker.data.transfer.CaseListTransfer
 import mx.sisetracker.ui.components.BackButton
 import mx.sisetracker.ui.components.MessageCard
 import mx.sisetracker.ui.components.SiseMotion
@@ -76,11 +88,13 @@ import mx.sisetracker.ui.components.messageRes
 import mx.sisetracker.ui.components.rememberNotificationPermission
 import mx.sisetracker.ui.components.siseCardBorder
 import mx.sisetracker.ui.components.siseCardColors
+import mx.sisetracker.ui.lock.LocalDeviceUnlock
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onImportFile: (Uri) -> Unit = {},
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -97,11 +111,11 @@ fun SettingsScreen(
     val shareFile by viewModel.shareFile.collectAsStateWithLifecycle()
     val shareTitle = stringResource(R.string.settings_capture_share)
     LaunchedEffect(shareFile) {
-        val file = shareFile ?: return@LaunchedEffect
+        val outgoing = shareFile ?: return@LaunchedEffect
         viewModel.onShareHandled()
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", outgoing.file)
         val send = Intent(Intent.ACTION_SEND)
-            .setType("application/zip")
+            .setType(outgoing.mimeType)
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         context.startActivity(Intent.createChooser(send, shareTitle))
@@ -111,23 +125,41 @@ fun SettingsScreen(
         when (it) {
             is SettingsMessage.Saved -> stringResource(R.string.settings_capture_saved, it.fileName)
             SettingsMessage.SaveFailed -> stringResource(R.string.settings_capture_save_failed)
+            SettingsMessage.NothingToExport -> stringResource(R.string.settings_export_empty)
         }
     }
+    // Shown in the screen's scope: clearing the message changes this effect's
+    // key, which would cancel a snackbar shown from the effect itself.
+    val scope = rememberCoroutineScope()
     LaunchedEffect(message) {
         val text = savedText ?: return@LaunchedEffect
         viewModel.onMessageShown()
-        snackbar.showSnackbar(text)
+        scope.launch { snackbar.showSnackbar(text) }
     }
     // Before Android 10 there's no permission-free way into Downloads: let the user pick the file.
-    val createDocument = rememberLauncherForActivityResult(
+    val createZip = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument(DownloadsSaver.MIME_TYPE),
+        viewModel::onSaveLocationPicked,
+    )
+    val createText = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(CaseListTransfer.MIME_TYPE),
         viewModel::onSaveLocationPicked,
     )
     val pickSaveLocation by viewModel.pickSaveLocation.collectAsStateWithLifecycle()
     LaunchedEffect(pickSaveLocation) {
-        val zip = pickSaveLocation ?: return@LaunchedEffect
+        val outgoing = pickSaveLocation ?: return@LaunchedEffect
         viewModel.onPickSaveLocationHandled()
-        createDocument.launch(zip.name)
+        (if (outgoing.mimeType == CaseListTransfer.MIME_TYPE) createText else createZip).launch(outgoing.file.name)
+    }
+    val openList = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(onImportFile) }
+    val deviceUnlock = LocalDeviceUnlock.current
+    var lockUnavailable by remember { mutableStateOf(false) }
+    val onLockToggle: (Boolean) -> Unit = { enable ->
+        when {
+            !enable -> viewModel.onAppLockChange(false)
+            deviceUnlock?.available == true -> deviceUnlock.authenticate { unlocked -> if (unlocked) viewModel.onAppLockChange(true) }
+            else -> lockUnavailable = true
+        }
     }
     var confirmCrawl by remember { mutableStateOf(false) }
     if (confirmCrawl) {
@@ -196,6 +228,11 @@ fun SettingsScreen(
                                 steps = SettingsStore.MAX_INTERVAL_DAYS - SettingsStore.MIN_INTERVAL_DAYS - 1,
                             )
                         }
+                        CheckStatus(
+                            report = state.lastCheck,
+                            intervalDays = state.intervalDays,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                        )
                         if (!permission.granted) {
                             ListItem(
                                 headlineContent = { Text(stringResource(R.string.notifications_off)) },
@@ -207,6 +244,74 @@ fun SettingsScreen(
                             )
                         }
                     }
+                }
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_hearing_reminders)) },
+                    supportingContent = { Text(stringResource(R.string.settings_hearing_reminders_help)) },
+                    trailingContent = {
+                        Switch(checked = state.hearingReminders, onCheckedChange = viewModel::onHearingRemindersChange)
+                    },
+                    colors = transparent,
+                    modifier = Modifier.clickable { viewModel.onHearingRemindersChange(!state.hearingReminders) },
+                )
+            }
+
+            SettingsSection(stringResource(R.string.settings_section_expedientes), painterResource(R.drawable.ic_folder)) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_export)) },
+                    supportingContent = {
+                        Column {
+                            Text(stringResource(R.string.settings_export_help))
+                            FlowRow {
+                                TextButton(onClick = viewModel::onSaveList) { Text(stringResource(R.string.settings_capture_save)) }
+                                TextButton(onClick = viewModel::onShareList) { Text(stringResource(R.string.settings_capture_share)) }
+                            }
+                        }
+                    },
+                    leadingContent = {
+                        Icon(painterResource(R.drawable.ic_upload), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    colors = transparent,
+                )
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_import)) },
+                    supportingContent = { Text(stringResource(R.string.settings_import_help)) },
+                    leadingContent = {
+                        Icon(painterResource(R.drawable.ic_download), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    colors = transparent,
+                    modifier = Modifier.clickable { openList.launch(arrayOf("text/*")) },
+                )
+            }
+
+            SettingsSection(stringResource(R.string.settings_section_privacidad), rememberVectorPainter(Icons.Filled.Lock)) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_app_lock)) },
+                    supportingContent = {
+                        Column {
+                            Text(stringResource(R.string.settings_app_lock_help))
+                            if (lockUnavailable) {
+                                Text(
+                                    stringResource(R.string.settings_app_lock_unavailable),
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                )
+                            }
+                        }
+                    },
+                    trailingContent = { Switch(checked = state.appLock, onCheckedChange = onLockToggle) },
+                    colors = transparent,
+                    modifier = Modifier.clickable { onLockToggle(!state.appLock) },
+                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Text(
+                        stringResource(R.string.settings_recents_hidden),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                    )
                 }
             }
 
@@ -271,11 +376,64 @@ fun SettingsScreen(
                 }
             }
 
+            SettingsSection(stringResource(R.string.settings_section_acerca), rememberVectorPainter(Icons.Filled.Info)) {
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE))
+                    },
+                    supportingContent = if (BuildConfig.DEBUG) {
+                        { Text(stringResource(R.string.settings_version_debug)) }
+                    } else {
+                        null
+                    },
+                    colors = transparent,
+                )
+            }
+
             MessageCard(
                 text = stringResource(R.string.settings_privacy),
                 icon = rememberVectorPainter(Icons.Filled.Lock),
             )
         }
+    }
+}
+
+private val reportTime = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+
+private fun formatTime(epochMillis: Long): String = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).format(reportTime)
+
+/**
+ * What the last daily check did: when, how many cases it read out of how
+ * many, how many had news, and whether a connection failure stopped it;
+ * then roughly when the next one runs (Android picks the exact time).
+ */
+@Composable
+private fun CheckStatus(report: CheckReport?, intervalDays: Int, modifier: Modifier = Modifier) {
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (report == null) {
+            Text(stringResource(R.string.settings_check_never), style = MaterialTheme.typography.bodySmall, color = muted)
+            return@Column
+        }
+        Text(stringResource(R.string.settings_check_last, formatTime(report.startedAt)), style = MaterialTheme.typography.bodyMedium)
+        val counts = buildList {
+            add(pluralStringResource(R.plurals.settings_check_counts, report.total, report.checked, report.total))
+            if (report.notified > 0) add(pluralStringResource(R.plurals.settings_check_new, report.notified, report.notified))
+            if (report.loaded > 0) add(pluralStringResource(R.plurals.settings_check_loaded, report.loaded, report.loaded))
+        }
+        Text(counts.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = muted)
+        report.error?.let { name -> PortalError.entries.firstOrNull { it.name == name } }?.let { error ->
+            Text(
+                stringResource(R.string.settings_check_stopped, stringResource(error.messageRes())),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+        Text(
+            stringResource(R.string.settings_check_next, formatTime(report.startedAt + TimeUnit.DAYS.toMillis(intervalDays.toLong()))),
+            style = MaterialTheme.typography.bodySmall,
+            color = muted,
+        )
     }
 }
 

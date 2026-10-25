@@ -100,10 +100,13 @@ data class CaseUrl(
         private val urlInText = Regex("https?://[^\\s<>\"']+", RegexOption.IGNORE_CASE)
 
         /** The first case URL in shared or pasted text, if any. */
-        fun findIn(text: String): CaseUrl? =
-            urlInText.findAll(text).firstNotNullOfOrNull { match ->
-                parse(match.value.trimEnd('.', ',', ';', ')', ']', '>'))
-            }
+        fun findIn(text: String): CaseUrl? = casesIn(text).firstOrNull()
+
+        /** Every distinct case URL in [text], in order: an exported list, or several shared links. */
+        fun findAllIn(text: String): List<CaseUrl> = casesIn(text).distinct().toList()
+
+        private fun casesIn(text: String): Sequence<CaseUrl> =
+            urlInText.findAll(text).mapNotNull { match -> parse(match.value.trimEnd('.', ',', ';', ')', ']', '>')) }
 
         /**
          * The case shown by the portal's search result page

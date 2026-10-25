@@ -62,6 +62,32 @@ class SearchHelpersTest {
     }
 
     @Test
+    fun `finds every case URL in an exported list, once each`() {
+        val base = "https://www.dgej.cjf.gob.mx/siseinternet/reportes/vercaptura.aspx"
+        val text = """
+            SISE Tracker: 2 expedientes guardados
+            $base?tipoasunto=1&organismo=767&expediente=1183/2025&tipoprocedimiento=0
+            $base?tipoasunto=11&organismo=18&expediente=293/2026&tipoprocedimiento=0
+            $base?tipoasunto=1&organismo=767&expediente=1183%2f2025&tipoprocedimiento=0
+            https://www.oaj.gob.mx/
+        """.trimIndent()
+
+        assertEquals(
+            listOf(CaseUrl("1", "767", "1183/2025", "0"), CaseUrl("11", "18", "293/2026", "0")),
+            CaseUrl.findAllIn(text),
+        )
+        assertEquals(emptyList<CaseUrl>(), CaseUrl.findAllIn("sin enlaces"))
+    }
+
+    @Test
+    fun `orders expedientes by year, then number`() {
+        val sorted = listOf("10/2025", "1/2026", "12/2026-A", "9/2025", "sin numero", "293/2026")
+            .sortedWith(ExpedienteFormat.order)
+
+        assertEquals(listOf("9/2025", "10/2025", "1/2026", "12/2026-A", "293/2026", "sin numero"), sorted)
+    }
+
+    @Test
     fun `circuitos URL`() {
         assertEquals(
             "https://www.dgej.cjf.gob.mx/internet/expedientes/circuitos.asp?Cir=1&Exp=1",

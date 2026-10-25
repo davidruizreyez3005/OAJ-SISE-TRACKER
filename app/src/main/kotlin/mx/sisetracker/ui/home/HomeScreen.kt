@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -18,17 +19,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,9 +51,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -51,31 +65,40 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.launch
 import mx.sisetracker.R
+import mx.sisetracker.core.Audiencia
 import mx.sisetracker.core.CaseUrl
 import mx.sisetracker.core.OrganoKind
 import mx.sisetracker.core.SiseDates
-import mx.sisetracker.data.db.CaseSummary
+import mx.sisetracker.data.settings.CaseSort
 import mx.sisetracker.ui.components.BrandHeader
 import mx.sisetracker.ui.components.CasesIllustration
 import mx.sisetracker.ui.components.HeaderChip
 import mx.sisetracker.ui.components.IconBadge
+import mx.sisetracker.ui.components.InfoChip
 import mx.sisetracker.ui.components.MessageCard
 import mx.sisetracker.ui.components.NewBadge
 import mx.sisetracker.ui.components.SiseCard
 import mx.sisetracker.ui.components.SiseTopAppBar
 import mx.sisetracker.ui.components.StepRow
+import mx.sisetracker.ui.components.cardNameLines
+import mx.sisetracker.ui.components.hearingLine
 import mx.sisetracker.ui.components.icon
+import mx.sisetracker.ui.components.portalErrorText
 import mx.sisetracker.ui.components.rememberNotificationPermission
 import mx.sisetracker.ui.components.rememberPasteCaseLink
 import mx.sisetracker.ui.theme.LocalBrandColors
 
-/** "Mis expedientes": the saved cases, with a filter by expediente or órgano. */
+/** "Mis expedientes": the saved cases, with a filter, sort and chips, and the imported links still to load. */
 @Composable
 fun HomeScreen(
     onSearchClick: () -> Unit,
@@ -92,6 +115,28 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     // The header has its own search: the button only comes in once it's scrolled away.
     val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+
+    val message = state.message?.let { message ->
+        when (message) {
+            HomeMessage.PendingNotFound -> stringResource(R.string.home_pending_not_found_message)
+            is HomeMessage.Failed -> portalErrorText(message.error, message.location)
+        }
+    }
+    // Shown in the screen's scope: clearing the message changes this effect's
+    // key, which would cancel a snackbar shown from the effect itself.
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(state.message) {
+        if (message != null) {
+            viewModel.onMessageShown()
+            scope.launch { snackbarHostState.showSnackbar(message) }
+        }
+    }
+    LaunchedEffect(state.openCase) {
+        state.openCase?.let { neun ->
+            viewModel.onCaseOpened()
+            onOpenCase(neun)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -112,7 +157,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = state.savedCount > 0 && showFab,
+                visible = !state.isEmpty && showFab,
                 enter = scaleIn() + fadeIn(),
                 exit = scaleOut() + fadeOut(),
             ) {
@@ -144,7 +189,7 @@ fun HomeScreen(
                     onSearchAcuerdos = onSearchAcuerdos,
                 )
             }
-            if (state.savedCount == 0) {
+            if (state.isEmpty) {
                 item(key = "empty") { EmptyHome(onSearchClick = onSearchClick, onPasteLink = pasteLink) }
                 return@LazyColumn
             }
@@ -188,6 +233,44 @@ fun HomeScreen(
                         .padding(horizontal = 16.dp),
                 )
             }
+            if (state.savedCount > 0) {
+                item(key = "chips") {
+                    ListChips(
+                        state = state,
+                        onSort = viewModel::onSortChange,
+                        onNewOnly = viewModel::onNewOnlyChange,
+                        onLabel = viewModel::onLabelFilter,
+                    )
+                }
+            }
+            if (state.pending.isNotEmpty()) {
+                item(key = "pending-section") {
+                    Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp)) {
+                        Text(
+                            pluralStringResource(R.plurals.home_pending_section, state.pending.size, state.pending.size),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
+                        Text(
+                            stringResource(R.string.home_pending_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                items(state.pending, key = { "pending:${it.caseUrl}" }) { item ->
+                    PendingCard(
+                        item = item,
+                        loading = state.loadingPending == item.caseUrl,
+                        onClick = { viewModel.onOpenPending(item) },
+                        onRemove = { viewModel.onRemovePending(item) },
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .animateItem(),
+                    )
+                }
+            }
+            if (state.savedCount == 0) return@LazyColumn
             item(key = "section") {
                 Text(
                     stringResource(R.string.home_saved_section),
@@ -206,10 +289,11 @@ fun HomeScreen(
                     )
                 }
             }
-            items(state.cases, key = { it.case.neun }) { summary ->
+            items(state.cases, key = { it.summary.case.neun }) { case ->
                 CaseCard(
-                    summary = summary,
-                    onClick = { onOpenCase(summary.case.neun) },
+                    case = case,
+                    today = state.today,
+                    onClick = { onOpenCase(case.summary.case.neun) },
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .animateItem(),
@@ -303,10 +387,139 @@ private fun HomeHeader(
     }
 }
 
+/** Sort order, "Con acuerdos nuevos" and the user's labels, in one scrolling row. */
 @Composable
-private fun CaseCard(summary: CaseSummary, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val case = summary.case
-    val kind = remember(case.organoName) { OrganoKind.fromName(case.organoName) }
+private fun ListChips(
+    state: HomeUiState,
+    onSort: (CaseSort) -> Unit,
+    onNewOnly: (Boolean) -> Unit,
+    onLabel: (String?) -> Unit,
+) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+    ) {
+        item(key = "sort") {
+            var open by remember { mutableStateOf(false) }
+            Box {
+                AssistChip(
+                    onClick = { open = true },
+                    label = { Text(stringResource(R.string.home_sort, stringResource(state.sort.labelRes()))) },
+                    trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+                )
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                    CaseSort.entries.forEach { sort ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(sort.labelRes())) },
+                            leadingIcon = {
+                                if (sort == state.sort) Icon(Icons.Filled.Check, contentDescription = null)
+                            },
+                            onClick = {
+                                open = false
+                                onSort(sort)
+                            },
+                        )
+                    }
+                }
+            }
+        }
+        if (state.unseenTotal > 0 || state.newOnly) {
+            item(key = "new") {
+                FilterChip(
+                    selected = state.newOnly,
+                    onClick = { onNewOnly(!state.newOnly) },
+                    label = { Text(stringResource(R.string.home_filter_new)) },
+                    leadingIcon = if (state.newOnly) {
+                        { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    } else {
+                        null
+                    },
+                )
+            }
+        }
+        items(state.labels, key = { "label:$it" }) { label ->
+            FilterChip(
+                selected = state.labelFilter == label,
+                onClick = { onLabel(label) },
+                label = { Text(label) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null, modifier = Modifier.size(18.dp)) },
+            )
+        }
+    }
+}
+
+private fun CaseSort.labelRes(): Int = when (this) {
+    CaseSort.ACTIVITY -> R.string.home_sort_activity
+    CaseSort.HEARING -> R.string.home_sort_hearing
+    CaseSort.EXPEDIENTE -> R.string.home_sort_expediente
+    CaseSort.ORGANO -> R.string.home_sort_organo
+    CaseSort.ADDED -> R.string.home_sort_added
+}
+
+/** An imported link: what the link itself says, until a tap loads the case. */
+@Composable
+private fun PendingCard(
+    item: PendingItem,
+    loading: Boolean,
+    onClick: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SiseCard(onClick = if (loading) null else onClick, modifier = modifier) {
+        Row(verticalAlignment = Alignment.Top) {
+            IconBadge(
+                painterResource(R.drawable.ic_link),
+                size = 44.dp,
+                container = MaterialTheme.colorScheme.secondaryContainer,
+                content = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(item.expediente, style = MaterialTheme.typography.titleLarge)
+                item.tipoAsuntoName?.let {
+                    Text(it, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+                }
+                Text(
+                    item.organoName ?: stringResource(R.string.search_organo_number, item.organismoId),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = cardNameLines(),
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                    if (loading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Text(
+                            stringResource(R.string.home_pending_loading),
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    } else if (item.notFound) {
+                        InfoChip(
+                            stringResource(R.string.home_pending_not_found),
+                            container = MaterialTheme.colorScheme.errorContainer,
+                            content = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    } else {
+                        InfoChip(stringResource(R.string.home_pending_chip), icon = painterResource(R.drawable.ic_schedule))
+                    }
+                }
+            }
+            IconButton(onClick = onRemove, enabled = !loading) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.home_pending_remove))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CaseCard(case: HomeCase, today: LocalDate, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val summary = case.summary
+    val kind = remember(summary.case.organoName) { OrganoKind.fromName(summary.case.organoName) }
     SiseCard(
         onClick = onClick,
         accent = if (summary.unseenCount > 0) MaterialTheme.colorScheme.tertiary else null,
@@ -321,18 +534,28 @@ private fun CaseCard(summary: CaseSummary, onClick: () -> Unit, modifier: Modifi
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(case.expediente, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                    Text(summary.case.expediente, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                     if (summary.unseenCount > 0) {
                         NewBadge(pluralStringResource(R.plurals.home_unseen, summary.unseenCount, summary.unseenCount))
                     }
                 }
-                Text(case.tipoAsuntoName, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+                Text(summary.case.tipoAsuntoName, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
                 Text(
-                    case.organoName,
+                    summary.case.organoName,
                     style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2,
+                    maxLines = cardNameLines(),
                     overflow = TextOverflow.Ellipsis,
                 )
+                summary.label?.takeIf { it.isNotEmpty() }?.let { label ->
+                    InfoChip(
+                        label,
+                        icon = painterResource(R.drawable.ic_label),
+                        container = MaterialTheme.colorScheme.secondaryContainer,
+                        content = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+                case.nextHearing?.let { HearingFact(it, today, modifier = Modifier.padding(top = 4.dp)) }
                 val latest = summary.latestPublicacion
                 CardFact(
                     painterResource(R.drawable.ic_event),
@@ -341,7 +564,7 @@ private fun CaseCard(summary: CaseSummary, onClick: () -> Unit, modifier: Modifi
                     } else {
                         stringResource(R.string.home_no_acuerdos)
                     },
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = if (case.nextHearing == null) 4.dp else 0.dp),
                 )
                 CardFact(
                     painterResource(R.drawable.ic_description),
@@ -349,6 +572,28 @@ private fun CaseCard(summary: CaseSummary, onClick: () -> Unit, modifier: Modifi
                 )
             }
         }
+    }
+}
+
+/** The next hearing, in gold when it's within a week. */
+@Composable
+private fun HearingFact(audiencia: Audiencia, today: LocalDate, modifier: Modifier = Modifier) {
+    val soon = ChronoUnit.DAYS.between(today, audiencia.fecha) < 7
+    val colors = MaterialTheme.colorScheme
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        Icon(
+            painterResource(R.drawable.ic_event),
+            contentDescription = null,
+            tint = if (soon) colors.secondary else colors.onSurfaceVariant,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            hearingLine(audiencia, today),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = if (soon) FontWeight.SemiBold else null,
+            color = if (soon) colors.secondary else colors.onSurfaceVariant,
+            modifier = Modifier.padding(start = 6.dp),
+        )
     }
 }
 

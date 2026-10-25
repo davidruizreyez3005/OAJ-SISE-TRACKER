@@ -31,6 +31,19 @@ object SearchText {
 /** Expediente numbers have always been `n/yyyy` so far; other shapes only get a warning. */
 object ExpedienteFormat {
     private val usual = Regex("^\\d+/\\d{4}$")
+    private val numberAndYear = Regex("^(\\d{1,9})/(\\d{4})")
 
     fun isUsual(expediente: String): Boolean = usual.matches(expediente.trim())
+
+    private data class Key(val year: Int, val number: Int)
+
+    private fun key(expediente: String): Key? =
+        numberAndYear.find(expediente.trim())?.destructured?.let { (number, year) -> Key(year.toInt(), number.toInt()) }
+
+    /**
+     * Orders expedientes by year, then number ("9/2025", "10/2025",
+     * "1/2026"); other shapes go last, alphabetically.
+     */
+    val order: Comparator<String> =
+        compareBy<String, Key?>(nullsLast(compareBy<Key>({ it.year }, { it.number }))) { key(it) }.thenBy { it.trim() }
 }

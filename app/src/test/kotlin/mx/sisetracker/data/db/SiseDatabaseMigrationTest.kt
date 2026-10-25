@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import java.io.File
 import java.time.LocalDate
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import mx.sisetracker.testing.ftsOrdenes
 import org.json.JSONObject
@@ -18,9 +19,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 /**
- * Saved cases are user data: a version 1 database, built from the exported
- * schema `schemas/…/1.json`, must open as version 2 with everything kept,
- * full-text search included.
+ * Saved cases are user data: an old database, built from its exported
+ * schema (`schemas/…/1.json`, `2.json`), must open as the current version
+ * with everything kept, full-text search included.
  */
 @RunWith(RobolectricTestRunner::class)
 class SiseDatabaseMigrationTest {
@@ -34,10 +35,12 @@ class SiseDatabaseMigrationTest {
         context.deleteDatabase(name)
     }
 
-    private fun createVersion1() {
-        val schema = JSONObject(File("schemas/mx.sisetracker.data.db.SiseDatabase/1.json").readText())
+    private fun createVersion1() = createVersion(1)
+
+    private fun createVersion(version: Int) {
+        val schema = JSONObject(File("schemas/mx.sisetracker.data.db.SiseDatabase/$version.json").readText())
             .getJSONObject("database")
-        val callback = object : SupportSQLiteOpenHelper.Callback(1) {
+        val callback = object : SupportSQLiteOpenHelper.Callback(version) {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 val entities = schema.getJSONArray("entities")
                 for (i in 0 until entities.length()) {
@@ -90,5 +93,24 @@ class SiseDatabaseMigrationTest {
         dao.insertAcuerdos(listOf(acuerdo.copy(orden = 40, fechaPublicacion = null, resumen = "Pieza postal devuelta")))
         assertNull(dao.getAcuerdo("40612904", 40)?.fechaPublicacion)
         assertEquals(listOf(40), db.ftsOrdenes("postal"))
+    }
+
+    @Test
+    fun `version 2 migrates to 3 keeping everything and adding notes and imported links`() = runTest {
+        createVersion(2)
+
+        val db = Room.databaseBuilder(context, SiseDatabase::class.java, name)
+            .addMigrations(*SiseDatabase.MIGRATIONS)
+            .allowMainThreadQueries()
+            .build()
+            .also { room = it }
+        val dao = db.caseDao()
+
+        assertEquals("1183/2025", dao.getCase("40612904")?.expediente)
+        assertEquals(listOf(38), db.ftsOrdenes("colegiado"))
+        dao.upsertNote(CaseNoteEntity("40612904", "Cliente A", "", updatedAt = 2000))
+        dao.insertPending(listOf(PendingCaseEntity("https://example/293", "18", "11", "293/2026", addedAt = 2000, notFound = false)))
+        assertEquals("Cliente A", dao.observeSummaries().first().single().label)
+        assertEquals("293/2026", dao.getPending().single().expediente)
     }
 }

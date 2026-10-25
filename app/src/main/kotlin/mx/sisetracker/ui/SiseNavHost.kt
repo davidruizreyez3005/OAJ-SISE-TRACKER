@@ -1,11 +1,15 @@
 package mx.sisetracker.ui
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,9 +17,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
+import mx.sisetracker.R
 import mx.sisetracker.core.OrganoTitle
 import mx.sisetracker.ui.acuerdo.AcuerdoScreen
 import mx.sisetracker.ui.capture.CaptureSheet
+import mx.sisetracker.ui.capture.ImportDialog
 import mx.sisetracker.ui.cases.CaseScreen
 import mx.sisetracker.ui.components.SiseMotion
 import mx.sisetracker.ui.home.HomeScreen
@@ -101,7 +107,7 @@ fun SiseNavHost(
             )
         }
         composable<SettingsRoute> {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(onBack = { navController.popBackStack() }, onImportFile = appViewModel::onImportFile)
         }
         composable<SearchRoute> {
             SearchScreen(
@@ -147,6 +153,24 @@ fun SiseNavHost(
             onSave = appViewModel::onSaveCaptured,
             onDismiss = appViewModel::onCaptureDismissed,
         )
+    }
+
+    val import by appViewModel.import.collectAsStateWithLifecycle()
+    import?.let { state ->
+        ImportDialog(state = state, onConfirm = appViewModel::onConfirmImport, onDismiss = appViewModel::onImportDismissed)
+    }
+
+    val context = LocalContext.current
+    val message by appViewModel.message.collectAsStateWithLifecycle()
+    val messageText = when (val shown = message) {
+        is AppMessage.Imported -> pluralStringResource(R.plurals.import_done, shown.count, shown.count)
+        AppMessage.NoLinks -> stringResource(R.string.import_no_links)
+        null -> null
+    }
+    LaunchedEffect(message) {
+        val text = messageText ?: return@LaunchedEffect
+        appViewModel.onMessageShown()
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
     }
 
     val openCase by appViewModel.openCase.collectAsStateWithLifecycle()

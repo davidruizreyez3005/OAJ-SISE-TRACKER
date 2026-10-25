@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import mx.sisetracker.core.Acuerdo
 import mx.sisetracker.core.AcuerdoDiff
+import mx.sisetracker.core.CapturaEntry
 import mx.sisetracker.core.CaseLookup
 import mx.sisetracker.core.CasePage
 import mx.sisetracker.core.CaseUrl
@@ -24,7 +25,9 @@ import mx.sisetracker.data.db.AcuerdoSearchResult
 import mx.sisetracker.data.db.AsuntoRelacionadoEntity
 import mx.sisetracker.data.db.CapturaEntryEntity
 import mx.sisetracker.data.db.CaseEntity
+import mx.sisetracker.data.db.CaseNoteEntity
 import mx.sisetracker.data.db.CaseSummary
+import mx.sisetracker.data.db.PendingCaseEntity
 import mx.sisetracker.data.db.ResolucionEntity
 import mx.sisetracker.data.db.SavedOrgano
 import mx.sisetracker.data.db.SiseDatabase
@@ -47,6 +50,9 @@ sealed interface RefreshResult {
 
     data object NotSaved : RefreshResult
 }
+
+/** Links to import, split into the ones not saved yet and how many already are. */
+data class ImportPreview(val new: List<CaseUrl>, val alreadySaved: Int)
 
 /** What the search screen needs from saved cases. */
 interface SavedCases {
@@ -90,6 +96,76 @@ class CaseRepository(
 
     fun observeCaptura(neun: String): Flow<List<CapturaEntryEntity>> = dao.observeCaptura(neun)
 
+    /** Each saved case's hearing entries, by NEUN, in page order: for `Audiencias`. */
+    fun observeHearings(): Flow<Map<String, List<CapturaEntry>>> =
+        dao.observeHearingEntries().map { rows ->
+            rows.groupBy({ it.neun }, { CapturaEntry(it.section, it.group, it.label, it.value) })
+        }
+
+    suspend fun getHearings(): Map<String, List<CapturaEntry>> =
+        dao.getHearingEntries().groupBy({ it.neun }, { CapturaEntry(it.section, it.group, it.label, it.value) })
+
+    fun observeNote(neun: String): Flow<CaseNoteEntity?> = dao.observeNote(neun)
+
+    /** Sets the user's label and note for a saved case; both blank removes them. */
+    suspend fun setNote(neun: String, label: String, note: String) {
+        val cleanLabel = label.trim()
+        val cleanNote = note.trim()
+        if (cleanLabel.isEmpty() && cleanNote.isEmpty()) {
+            dao.deleteNote(neun)
+        } else {
+            dao.upsertNote(CaseNoteEntity(neun, cleanLabel, cleanNote, updatedAt = now()))
+        }
+    }
+
+    /** Imported links whose cases haven't loaded yet. */
+    fun observePending(): Flow<List<PendingCaseEntity>> = dao.observePending()
+
+    /** Imported links to load in the daily check: all but those the portal didn't find. */
+    suspend fun getPendingToLoad(): List<PendingCaseEntity> = dao.getPending().filterNot { it.notFound }
+
+    /**
+     * Every saved link, for "Exportar": saved cases, oldest first, then the
+     * imported ones not loaded yet. Links only, never case text (hard rule 6).
+     */
+    suspend fun exportLinks(): List<String> = dao.getCases().map { it.caseUrl } + dao.getPending().map { it.caseUrl }
+
+    /** Which of [urls] aren't saved or imported yet. Makes no request. */
+    suspend fun previewImport(urls: List<CaseUrl>): ImportPreview {
+        val known = knownUrls()
+        val new = urls.distinct().filterNot { it in known }
+        return ImportPreview(new, alreadySaved = urls.distinct().size - new.size)
+    }
+
+    /**
+     * Adds [urls] that aren't saved or imported yet as cases to load later
+     * (on open, or in the daily check): no request now. Returns how many.
+     */
+    suspend fun importLinks(urls: List<CaseUrl>): Int = db.withTransaction {
+        val new = previewImport(urls).new
+        val now = now()
+        dao.insertPending(
+            new.map { PendingCaseEntity(it.toUrl(), it.organismo, it.tipoAsunto, it.expediente, addedAt = now, notFound = false) },
+        )
+        new.size
+    }
+
+    /** Loads an imported case: fetches its page once and saves it, or marks it not found. */
+    suspend fun loadPending(caseUrl: String): SaveResult {
+        val url = CaseUrl.parse(caseUrl) ?: run {
+            dao.deletePending(caseUrl)
+            return SaveResult.NotFound
+        }
+        val result = saveFromUrl(url)
+        if (result == SaveResult.NotFound) dao.markPendingNotFound(caseUrl)
+        return result
+    }
+
+    suspend fun removePending(caseUrl: String) = dao.deletePending(caseUrl)
+
+    private suspend fun knownUrls(): Set<CaseUrl> =
+        (dao.getCases().map { it.caseUrl } + dao.getPending().map { it.caseUrl }).mapNotNull(CaseUrl::parse).toSet()
+
     suspend fun getCases(): List<CaseEntity> = dao.getCases()
 
     /** Full-text search over every saved résumé and síntesis, newest first. Empty for an empty query. */
@@ -108,6 +184,8 @@ class CaseRepository(
         db.withTransaction {
             val existing = dao.getCase(page.neun)
             if (existing == null) insertNew(url, page) else merge(existing, url, page)
+            // An imported link for the same case has nothing left to load.
+            dao.deletePending(url.toUrl())
         }
     }
 

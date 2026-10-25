@@ -3,6 +3,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The optional app lock (Ajustes → "Bloquear la app"): a normal permission, nothing to ask. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <!--
         Case text stays on the device (hard rule 6): no cloud backup and no

@@ -1,6 +1,7 @@
 package mx.sisetracker.data.check
 
 import android.Manifest
+import android.app.Notification
 import android.app.NotificationManager
 import androidx.core.app.NotificationCompat
 import androidx.work.NetworkType
@@ -17,6 +18,7 @@ import mx.sisetracker.data.db.CaseEntity
 import mx.sisetracker.data.db.SiseDatabase
 import mx.sisetracker.data.lookup.LookupRepository
 import mx.sisetracker.data.net.PortalError
+import mx.sisetracker.data.settings.CheckReport
 import mx.sisetracker.data.settings.SettingsStore
 import mx.sisetracker.testing.FakeSiseClient
 import mx.sisetracker.testing.Fixtures
@@ -76,6 +78,47 @@ class DailyCheckTest {
         assertEquals(listOf(caseGet, sintesis38), client.requests)
         assertTrue(db.caseDao().getAcuerdo(neun, 38)?.sintesis.orEmpty().startsWith("Ciudad de México"))
         assertEquals(now, settings.lastBackgroundCheckAt.first())
+    }
+
+    @Test
+    fun `imported links load one by one after the saved cases, without notifying`() = runTest {
+        repository.importLinks(listOf(url))
+
+        val outcome = check.run()
+
+        assertEquals(DailyCheck.Outcome.Done(checkedCases = 0, notifiedCases = 0, loadedImports = 1), outcome)
+        assertEquals(listOf(caseGet), client.requests)
+        assertTrue(notified.isEmpty())
+        assertTrue(repository.observePending().first().isEmpty())
+        assertEquals("1183/2025", db.caseDao().getCase(neun)?.expediente)
+    }
+
+    @Test
+    fun `the check records what it did for Ajustes, and then updates the hearing reminders`() = runTest {
+        var hearingsUpdated = 0
+        check = DailyCheck(repository, settings, { _, _ -> }, now = { now }, afterCheck = { hearingsUpdated++ })
+        repository.save(url, page.copy(acuerdos = page.acuerdos.filterNot { it.orden == 4 }))
+
+        check.run()
+
+        assertEquals(
+            CheckReport(startedAt = now, finishedAt = now, total = 1, checked = 1, notified = 1, loaded = 0, error = null),
+            settings.lastCheckReport.first(),
+        )
+        assertEquals(1, hearingsUpdated)
+    }
+
+    @Test
+    fun `a stopped check records the error`() = runTest {
+        repository.save(url, page)
+        client.onGet = { throw IOException("offline") }
+
+        check.run()
+
+        val report = settings.lastCheckReport.first()
+        assertEquals(PortalError.NETWORK.name, report?.error)
+        assertEquals(0, report?.checked)
+        assertEquals(1, report?.total)
     }
 
     @Test
@@ -152,6 +195,23 @@ class DailyCheckTest {
         assertEquals(NotificationCompat.VISIBILITY_PRIVATE, notification.visibility)
         assertEquals(null, notification.publicVersion)
         assertFalse(extras.keySet().any { it == NotificationCompat.EXTRA_BIG_TEXT })
+    }
+
+    @Test
+    fun `several cases with news are grouped under one summary`() {
+        val context = RuntimeEnvironment.getApplication()
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val notifier = SystemNewAcuerdosNotifier(context)
+        val case = CaseEntity(neun, "767", "1", "0", "1183/2025", "Juzgado Sexto", "Amparo Indirecto", "", 5, url.toUrl(), 0, 0)
+
+        notifier.notifyNewAcuerdos(case, 2)
+        notifier.notifyNewAcuerdos(case.copy(neun = "42423129", expediente = "293/2026"), 1)
+
+        val manager = context.getSystemService(NotificationManager::class.java)
+        val summary = shadowOf(manager).allNotifications.single { it.flags and Notification.FLAG_GROUP_SUMMARY != 0 }
+        assertEquals("2 expedientes con acuerdos nuevos", summary.extras.getCharSequence(NotificationCompat.EXTRA_TEXT).toString())
+        assertEquals(NotificationCompat.VISIBILITY_PRIVATE, summary.visibility)
+        assertEquals(3, shadowOf(manager).allNotifications.size)
     }
 
     @Test

@@ -23,9 +23,15 @@ milestone per PR.
    the app").
 2. **Track cases.** Save a case, read its acuerdos and full síntesis,
    resoluciones, related cases and case data.
-3. **Search what you've saved.** Filter saved cases by expediente number or
-   órgano, and full-text search across all saved acuerdos.
-4. **Get notified** when a saved case has new acuerdos.
+3. **Search what you've saved.** Filter saved cases by expediente number,
+   órgano, label or note, sort them, and full-text search across all saved
+   acuerdos.
+4. **Get notified** when a saved case has new acuerdos, and the day before
+   a hearing its case data sets.
+5. **Keep your own notes.** A short label and a note per case, on the
+   phone only.
+6. **Move the list.** Export the saved cases' links to a text file and
+   import them on another phone.
 
 ## Hard rules
 
@@ -49,6 +55,11 @@ milestone per PR.
    - Lookups happen only for an expediente a user typed, picked from a related
      case, or shared, one per tap. Never generate, guess or iterate expediente
      numbers: no ranges, no "nearby" searches, no batch lookups.
+   - Imported links (Ajustes → "Importar una lista", or several shared at
+     once) are cases the user already saved elsewhere: importing makes no
+     request. Each loads when the user opens it, or one by one in the next
+     daily check, like a saved case's refresh. Never load them all at
+     import.
    - No crawling or prefetching of cases, ever, and no prefetching of
      catalogs the user didn't open, with **one exception**: the opt-in
      catalog crawl (Ajustes → "Recorrer todos los circuitos", asked for by
@@ -72,8 +83,15 @@ milestone per PR.
    - No analytics or crash reporting that could include case text.
    - Exclude the database from Android backup and device transfer
      (`android:allowBackup="false"`, or data extraction rules excluding it).
-   - Notifications show only expediente, órgano and a count, with
-     `VISIBILITY_PRIVATE`, never síntesis text.
+   - Notifications show only expediente, órgano and a count (hearing
+     reminders: the hearing's kind, day and time instead of the count),
+     with `VISIBILITY_PRIVATE`, never síntesis text.
+   - The exported list holds only the portal links ("Copiar enlace del
+     portal" for every case): no acuerdos, síntesis or the user's notes.
+     Notes and labels never leave the phone.
+   - The recent-apps screen doesn't show the app's content (Android 13+,
+     `setRecentsScreenshotEnabled(false)`, which keeps screenshots working),
+     and Ajustes → "Bloquear la app" asks for the device's unlock.
    - Mask personal names (same-length `*`) in any new fixture before
      committing it.
 
@@ -104,6 +122,13 @@ Builds (README "Releases"):
   first minified build.
 - The first copies were debug builds from a cloud machine; 0.2.0 rotated
   them to the team key (v3 signature lineage), see README.
+- An APK for the team from a cloud session: only if the environment has
+  `SISE_KEYSTORE_BASE64`, `SISE_KEYSTORE_PASSWORD`, `SISE_KEY_ALIAS` and
+  `SISE_KEY_PASSWORD` (the same values as the GitHub secrets). Decode the
+  first to a file outside the repo, point `SISE_KEYSTORE_PATH` at it, run
+  `assembleRelease`, and check the signer with `apksigner verify
+  --print-certs`. Without them, say so and offer a debug APK only as "SISE
+  Tracker (prueba)".
 
 ## Visual design
 
@@ -141,6 +166,11 @@ own documents. Error keeps the OAJ stylesheet's red `#B31217`.
   (`HorizontalPager`), sections expand and the search result fades in.
 - The empty "Mis expedientes" draws its illustration in Compose
   (`CasesIllustration`) with theme colors, so it follows the dark theme.
+- The user's labels are `secondaryContainer` chips with the "label" icon;
+  a hearing within a week is written in `secondary` (dark gold), bold. The
+  lock screen is the header band's guinda gradient, full screen.
+- Every main screen is checked at 200% font size (`LargeTextTest`
+  screenshots): text wraps instead of being cut.
 
 | Token | Light | Dark |
 |---|---|---|
@@ -256,6 +286,43 @@ As built (`data/db` and `data/catalog` in `:app`):
   screenshot from normal use says what to fix. Prefer this over bulk
   "verification" lookups, which hard rule 3 forbids. New parser checks
   should throw with a location (`parseFailure`, `parsingAt`).
+- `sise.db` version 3 adds two tables, by Room auto-migration
+  (`SiseDatabaseMigrationTest` checks 1→2→3):
+  - `case_notes` (neun, label, note): the user's own words, cascade-deleted
+    with the case and kept out of every refresh, so a re-read never touches
+    them. The label shows on the card and as a filter chip.
+  - `pending_cases` (caseUrl, organismo, tipo, expediente, notFound):
+    imported links not loaded yet. "Mis expedientes" names them from the
+    link and the bundled catalog until they load (hard rule 3). Saving the
+    same case any other way removes its row.
+- "Exportar la lista" writes `sise-expedientes-yyyyMMdd.txt` (a header
+  line, how to import it, then one `vercaptura.aspx` link per line) to
+  Downloads or the share sheet (`CaseListTransfer`). Import reads any text
+  for links (`CaseUrl.findAllIn`): a picked file, a shared file, or shared
+  text with several links (one link still opens "¿Guardar este
+  expediente?").
+- Next hearings come from the saved Captura de Información
+  (`Audiencias`, see the protocol section): the case header and card show
+  the soonest one from today on, gold within a week, and "Mis
+  expedientes" can sort by it. `HearingReminders` posts a reminder at 9:00
+  the day before each one (Ajustes → "Recordar audiencias", on by
+  default), from saved data only: one unique WorkManager job waits for the
+  next reminder time and is rescheduled whenever the hearing entries or
+  the setting change, after each daily check, and on app start. Each
+  hearing date is announced once; one whose time has already passed isn't.
+- The daily check records what it did (`CheckReport`: when, cases read of
+  total, how many had news, imported links loaded, the error that stopped
+  it), and Ajustes shows it with the next check's earliest time, for "it
+  didn't tell me" questions. New-acuerdos notifications are grouped under
+  a summary from two cases on.
+- App lock (off by default): the app opens locked, and locks again after
+  a minute in the background (a file picker or the share sheet doesn't
+  lock it). While locked, the lock screen replaces every screen, so no
+  dialog or sheet shows above it; the navigation back stack is kept.
+  Unlocking uses Android's BiometricPrompt (fingerprint, face or screen
+  lock) on Android 11+, the screen-lock confirmation before, and needs a
+  screen lock on the device. No new library: `androidx.biometric` has had
+  no stable release since 1.1.0.
 
 ## SISE protocol reference
 
@@ -522,6 +589,8 @@ as windows-1252, because
 
 **Other ways in:**
 - Accept a shared or pasted `vercaptura.aspx` link (Android share intent).
+  Several links in one share, or a shared exported list, open "Importar
+  expedientes" instead (see "As built").
 - From a related case ("Asuntos Relacionados"), "Buscar este expediente"
   pre-fills the search screen with its expediente. If the cached catalogs
   match the órgano name and the tipo de asunto (the part after the last
@@ -574,6 +643,16 @@ The slash in `expediente` may be raw or `%2f`; both work.
   "Observaciones" in the panels (jQuery `:contains`, case-sensitive), plus the
   value cell next to such a label. The app drops the same entries, even
   though no fixture has one yet.
+- Hearings (1183/2025, section "Audiencia" and "Suspension Audiencia
+  Incidental"): each record has "Fecha señalada para audiencia
+  {constitucional|incidental}" (`dd/MM/yyyy`) and "Hora señalada para
+  audiencia …" (`HH:mm`); each postponement is another record whose labels
+  end in "(diferimiento)" (the date label with no space before it, the hour
+  label with one); "Fecha celebración audiencia constitucional" (and its
+  hora) appear once it was held. `Audiencias` takes each kind's last record
+  in page order as its current date, and a celebración on or after it as
+  held. Labels are matched without accents, case or spacing. Tribunal
+  cases may have none of these.
 
 **Asuntos Relacionados** (`table#grvAsuntosRelacionados`):
 - Per-row span IDs end in `_lblContenido` (NEUN), `_lblNúmeroExpediente`
